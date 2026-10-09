@@ -19,6 +19,7 @@ public partial class Interface
 {
     private sealed class ItemTable : Table<ExtendedGatherable>, IDisposable
     {
+        private static IReadOnlyList<(ExtendedGatherable Item, int Index)> _visibleRows = [];
         private static float _nameColumnWidth;
         private static float _gatheredColumnWidth;
         private static float _levelingColumnWidth;
@@ -40,6 +41,7 @@ public partial class Interface
 
         protected override void PreDraw()
         {
+            _visibleRows = GetFilteredItems();
             if (ImGuiHelpers.GlobalScale != _globalScale)
             {
                 _globalScale         = ImGuiHelpers.GlobalScale;
@@ -128,6 +130,8 @@ public partial class Interface
             }
         }
 
+        private static readonly SelectionColumn   _selectionColumn   = new() { Label = "Select" };
+        private static readonly QuantityColumn    _quantityColumn    = new() { Label = "Qty" };
         private static readonly NameColumn        _nameColumn        = new() { Label = "Item Name..." };
         private static readonly GatheredColumn    _gatheredColumn    = new() { Label = "Log" };
         private static readonly LevelingColumn    _levelingColumn    = new() { Label = "Leveling" };
@@ -288,6 +292,71 @@ public partial class Interface
 
                 GatherBuddy.Config.Save();
                 return true;
+            }
+        }
+
+        private sealed class SelectionColumn : Column<ExtendedGatherable>
+        {
+            public SelectionColumn()
+                => Flags |= ImGuiTableColumnFlags.NoHide | ImGuiTableColumnFlags.NoReorder | ImGuiTableColumnFlags.NoSort;
+
+            public override float Width => 55f * ImGuiHelpers.GlobalScale;
+
+            public override bool DrawFilter()
+            {
+                var allSelected = _visibleRows.All(row => !GatherBuddy.Config.ExcludedAutoGatherItemIds.Contains(row.Item.Data.ItemId));
+                if (ImGui.Checkbox("##select-all-gatherables", ref allSelected))
+                {
+                    foreach (var (item, _) in _visibleRows)
+                    {
+                        if (allSelected) GatherBuddy.Config.ExcludedAutoGatherItemIds.Remove(item.Data.ItemId);
+                        else GatherBuddy.Config.ExcludedAutoGatherItemIds.Add(item.Data.ItemId);
+                    }
+                    GatherBuddy.Config.Save();
+                }
+                return false;
+            }
+
+            public override void DrawColumn(ExtendedGatherable item, int _)
+            {
+                var selected = !GatherBuddy.Config.ExcludedAutoGatherItemIds.Contains(item.Data.ItemId);
+                if (!ImGui.Checkbox($"##select_{item.Data.ItemId}", ref selected)) return;
+                if (selected) GatherBuddy.Config.ExcludedAutoGatherItemIds.Remove(item.Data.ItemId);
+                else GatherBuddy.Config.ExcludedAutoGatherItemIds.Add(item.Data.ItemId);
+                GatherBuddy.Config.Save();
+            }
+        }
+
+        private sealed class QuantityColumn : Column<ExtendedGatherable>
+        {
+            public QuantityColumn()
+                => Flags |= ImGuiTableColumnFlags.NoHide | ImGuiTableColumnFlags.NoReorder | ImGuiTableColumnFlags.NoSort;
+
+            public override float Width => 95f * ImGuiHelpers.GlobalScale;
+
+            public override bool DrawFilter()
+            {
+                var quantity = GatherBuddy.Config.AutoGatherBulkQuantity;
+                ImGui.SetNextItemWidth(85f * ImGuiHelpers.GlobalScale);
+                if (ImGui.InputInt("##all-gather-quantity", ref quantity))
+                {
+                    quantity = Math.Clamp(quantity, 1, 999999);
+                    GatherBuddy.Config.AutoGatherBulkQuantity = quantity;
+                    foreach (var (item, _) in _visibleRows)
+                        GatherBuddy.Config.AutoGatherItemQuantities[item.Data.ItemId] = (uint)quantity;
+                    GatherBuddy.Config.Save();
+                }
+                return false;
+            }
+
+            public override void DrawColumn(ExtendedGatherable item, int _)
+            {
+                var quantity = (int)GatherBuddy.Config.AutoGatherItemQuantities.GetValueOrDefault(item.Data.ItemId,
+                    (uint)GatherBuddy.Config.AutoGatherBulkQuantity);
+                ImGui.SetNextItemWidth(85f * ImGuiHelpers.GlobalScale);
+                if (!ImGui.InputInt($"##qty_{item.Data.ItemId}", ref quantity)) return;
+                GatherBuddy.Config.AutoGatherItemQuantities[item.Data.ItemId] = (uint)Math.Clamp(quantity, 1, 999999);
+                GatherBuddy.Config.Save();
             }
         }
 
@@ -746,7 +815,7 @@ public partial class Interface
         public ItemTable()
             : base("ItemTable",
                 GatherBuddy.GameData.Gatherables.Values.Where(g => g.GatheringType != GatheringType.Unknown)
-                    .Select(g => new ExtendedGatherable(g)).ToList(), _nameColumn, _gatheredColumn, _levelingColumn, _nextUptimeColumn, _aetheryteColumn,
+                    .Select(g => new ExtendedGatherable(g)).ToList(), _selectionColumn, _quantityColumn, _nameColumn, _gatheredColumn, _levelingColumn, _nextUptimeColumn, _aetheryteColumn,
                 _levelColumn, _jobColumn, _typeColumn, _expansionColumn, _folkloreColumn, _uptimesColumn, _bestNodeColumn, _bestZoneColumn,
                 _itemIdColumn, _gatheringIdColumn)
         {

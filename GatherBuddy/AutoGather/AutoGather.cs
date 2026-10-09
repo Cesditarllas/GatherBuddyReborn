@@ -397,6 +397,12 @@ namespace GatherBuddy.AutoGather
                 if (!value)
                 {
                     AutoStatus = "Idle...";
+                    if (_npcRepairTaskQueued)
+                    {
+                        Crafting.CraftingTasks.StopNavigation();
+                        Crafting.CraftingTasks.ResetRepairState();
+                    }
+                    _npcRepairTaskQueued = false;
                     TaskManager.Abort();
                     YesAlready.Unlock();
 

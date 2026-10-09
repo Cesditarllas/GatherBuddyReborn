@@ -6,6 +6,7 @@ using GatherBuddy.Automation;
 using GatherBuddy.Plugin;
 using GatherBuddy.Vulcan;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Lumina.Excel.Sheets;
@@ -276,6 +277,18 @@ public class CraftingQueueProcessor
         }
 
         var requiredJob = (uint)(recipe.Value.CraftType.RowId + 8);
+        if (PlanningSnapshot?.CraftOrderMode == CraftOrderMode.LevelAndDifficulty)
+        {
+            var jobSheet = Dalamud.GameData.GetExcelSheet<ClassJob>();
+            var playerState = PlayerState.Instance();
+            if (jobSheet?.TryGetRow(requiredJob, out var job) == true && playerState != null
+                && playerState->ClassJobLevels[job.ExpArrayIndex] < recipe.Value.RecipeLevelTable.Value.ClassJobLevel)
+            {
+                GatherBuddy.Log.Information($"[CraftingQueueProcessor] Skipping recipe {recipeItem.RecipeId}: job level is too low");
+                SkipRemainingRecipeInstances(recipeItem.RecipeId);
+                return;
+            }
+        }
         var currentJob = Dalamud.Objects.LocalPlayer?.ClassJob.RowId ?? 0;
 
         if (currentJob != requiredJob)
@@ -777,7 +790,7 @@ public class CraftingQueueProcessor
             _ => "RecipeNote ingredient assignment",
         };
 
-        if (priorFailures == 0)
+        if (priorFailures == 0 && PlanningSnapshot?.CraftOrderMode != CraftOrderMode.LevelAndDifficulty)
         {
             _missingIngredientFailures[failure.RecipeId] = 1;
             GatherBuddy.Log.Warning($"[CraftingQueueProcessor] Missing materials caused {failureContext} failure for '{itemName}' (recipe {failure.RecipeId}): {failure.Details}. Retrying once before skipping remaining instances.");
@@ -801,7 +814,7 @@ public class CraftingQueueProcessor
 
             queueItem.Options.Skipping = true;
             skippedCount++;
-            GatherBuddy.Log.Debug($"[CraftingQueueProcessor] Marked queue index {i} for recipe {recipeId} as skipped after repeated missing-material preparation failure");
+            GatherBuddy.Log.Debug($"[CraftingQueueProcessor] Marked queue index {i} for recipe {recipeId} as skipped");
         }
 
         _missingIngredientFailures.Remove(recipeId);
@@ -825,6 +838,11 @@ public class CraftingQueueProcessor
         }
 
         GatherBuddy.Log.Warning($"[CraftingQueueProcessor] Skipping '{itemName}' (recipe {recipeId}) - Raphael solution failed: {failureReason ?? "unknown"}");
+        if (PlanningSnapshot?.CraftOrderMode == CraftOrderMode.LevelAndDifficulty)
+        {
+            SkipRemainingRecipeInstances(recipeId);
+            return;
+        }
         _currentQueueIndex++;
 
         if (_currentQueueIndex >= QueueItems.Count)
@@ -926,6 +944,11 @@ public class CraftingQueueProcessor
 
             var jobName = GetJobName(jobId);
             GatherBuddy.Log.Error($"[CraftingQueueProcessor] No gearset found for {jobName} (Job ID: {jobId})");
+            if (PlanningSnapshot?.CraftOrderMode == CraftOrderMode.LevelAndDifficulty && CurrentRecipeItem != null)
+            {
+                SkipRemainingRecipeInstances(CurrentRecipeItem.RecipeId);
+                return;
+            }
             Dalamud.Chat.PrintError($"[GatherBuddy] Cannot continue crafting: No gearset found for {jobName}. Please create a gearset for this job.");
             CompleteQueue();
         }

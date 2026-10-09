@@ -3,6 +3,8 @@ using Lumina.Excel.Sheets;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using System;
+using System.Linq;
+using System.Numerics;
 using Dalamud.Game.ClientState.Conditions;
 using GatherBuddy.Automation;
 using GatherBuddy.Helpers;
@@ -11,6 +13,8 @@ namespace GatherBuddy.AutoGather;
 
 public unsafe partial class AutoGather
 {
+    private bool _npcRepairTaskQueued;
+
     private Item? EquipmentNeedingRepair()
     {
         const int defaultThreshold = 5;
@@ -77,6 +81,9 @@ public unsafe partial class AutoGather
             AbortAutoGather("Repairs needed.");
             return true;
         }
+
+        if (TryQueueNpcRepair(false))
+            return true;
 
         if (!HasRepairJob((Item)itemToRepair))
         {
@@ -147,6 +154,9 @@ public unsafe partial class AutoGather
             return true;
         }
 
+        if (TryQueueNpcRepair(true))
+            return true;
+
         if (!HasRepairJob((Item)itemToRepair))
         {
             AbortAutoGather("Repairs needed, but no repair job found.");
@@ -213,5 +223,134 @@ public unsafe partial class AutoGather
         });
 
         return true;
+    }
+
+    private bool TryQueueNpcRepair(bool fishing)
+    {
+        var repairConfig = GatherBuddy.Config.VulcanRepairConfig;
+        if (!repairConfig.PrioritizeNPCRepair)
+            return false;
+
+        var npc = repairConfig.PreferredRepairNPC ?? FindRepairNPCInCurrentZone();
+        if (npc == null)
+            return false;
+
+        var playerPosition = Dalamud.Objects.LocalPlayer?.Position ?? Vector3.Zero;
+        var needsNavigation = npc.TerritoryType != Dalamud.ClientState.TerritoryType
+            || playerPosition == Vector3.Zero
+            || Vector3.Distance(playerPosition, npc.Position) > 7f;
+        if (needsNavigation && !VNavmesh.Enabled)
+            return false;
+
+        var repairPrice = global::GatherBuddy.Crafting.RepairManager.GetNPCRepairPrice();
+        var gilCount = InventoryManager.Instance()->GetInventoryItemCount(1);
+        if (gilCount < repairPrice)
+        {
+            GatherBuddy.Log.Warning($"[AutoGather] Not enough gil for NPC repair ({gilCount}/{repairPrice})");
+            return false;
+        }
+
+        if (_npcRepairTaskQueued)
+            return true;
+
+        _npcRepairTaskQueued = true;
+        _lastRepairTime = DateTime.Now;
+        AutoStatus = "Repairing at NPC...";
+        TaskManager.Enqueue(StopNavigation);
+
+        var restoreAutoHook = fishing && GatherBuddy.Config.AutoGatherConfig.UseAutoHook && AutoHook.Enabled;
+        if (fishing)
+        {
+            if (restoreAutoHook)
+            {
+                TaskManager.Enqueue(() =>
+                {
+                    AutoHook.SetPluginState?.Invoke(false);
+                    AutoHook.SetAutoStartFishing?.Invoke(false);
+                });
+            }
+
+            if (IsGathering || IsFishing)
+            {
+                QueueQuitFishingTasks();
+                TaskManager.Enqueue(() => !IsFishing, 5000, "Wait until fishing stopped for NPC repair.");
+            }
+        }
+
+        global::GatherBuddy.Crafting.CraftingTasks.ResetRepairState();
+        if (needsNavigation)
+        {
+            EnqueueNpcRepairStep(() => global::GatherBuddy.Crafting.CraftingTasks.TaskNavigateToRepairNPC(npc),
+                "Navigate to repair NPC", "Could not reach the repair NPC.", 120000);
+        }
+        EnqueueNpcRepairStep(global::GatherBuddy.Crafting.CraftingTasks.TaskInteractWithRepairNPC,
+            "Interact with repair NPC", "Could not interact with the repair NPC.");
+        EnqueueNpcRepairStep(global::GatherBuddy.Crafting.CraftingTasks.TaskSelectRepairFromMenu,
+            "Select NPC repair", "Could not open the NPC repair menu.");
+        EnqueueNpcRepairStep(() => global::GatherBuddy.Crafting.CraftingTasks.TaskExecuteRepair(),
+            "Repair equipment at NPC", "NPC repair did not complete.");
+        EnqueueNpcRepairStep(global::GatherBuddy.Crafting.CraftingTasks.TaskCloseRepairWindow,
+            "Close repair window", "Could not close the NPC repair window.");
+        TaskManager.Enqueue(() =>
+        {
+            _npcRepairTaskQueued = false;
+            _lastRepairTime = DateTime.MinValue;
+            if (restoreAutoHook)
+            {
+                AutoHook.SetPluginState?.Invoke(true);
+                AutoHook.SetAutoStartFishing?.Invoke(true);
+            }
+        }, "Finish NPC repair");
+
+        return true;
+    }
+
+    private global::GatherBuddy.Crafting.RepairNPCData? FindRepairNPCInCurrentZone()
+    {
+        if (global::GatherBuddy.Crafting.RepairManager.RepairNPCNearby(out var nearbyNpc) && nearbyNpc != null)
+        {
+            return global::GatherBuddy.Crafting.RepairNPCHelper.RepairNPCs.FirstOrDefault(npc =>
+                       npc.DataId == nearbyNpc.BaseId && npc.TerritoryType == Dalamud.ClientState.TerritoryType)
+                   ?? new global::GatherBuddy.Crafting.RepairNPCData
+                   {
+                       DataId = nearbyNpc.BaseId,
+                       Name = nearbyNpc.Name.TextValue,
+                       TerritoryType = Dalamud.ClientState.TerritoryType,
+                       Position = nearbyNpc.Position
+                   };
+        }
+
+        var territory = Dalamud.ClientState.TerritoryType;
+        var playerPosition = Dalamud.Objects.LocalPlayer?.Position;
+        if (playerPosition == null)
+            return null;
+
+        return global::GatherBuddy.Crafting.RepairNPCHelper.RepairNPCs
+            .Where(npc => npc.TerritoryType == territory)
+            .OrderBy(npc => Vector3.Distance(playerPosition.Value, npc.Position))
+            .FirstOrDefault();
+    }
+
+    private void EnqueueNpcRepairStep(Func<global::GatherBuddy.Crafting.CraftingTasks.TaskResult> step,
+        string name, string failure, int timeoutMs = 15000)
+    {
+        var started = DateTime.UtcNow;
+        TaskManager.Enqueue(() =>
+        {
+            var result = step();
+            if (result == global::GatherBuddy.Crafting.CraftingTasks.TaskResult.Done)
+                return true;
+            if (result == global::GatherBuddy.Crafting.CraftingTasks.TaskResult.Retry
+                && (DateTime.UtcNow - started).TotalMilliseconds <= timeoutMs)
+                return false;
+
+            global::GatherBuddy.Crafting.CraftingTasks.StopNavigation();
+            global::GatherBuddy.Crafting.CraftingTasks.ResetRepairState();
+            TaskManager.Abort();
+            _npcRepairTaskQueued = false;
+            Communicator.PrintError($"[Auto-Gather] {failure}");
+            AbortAutoGather(failure);
+            return true;
+        }, timeoutMs + 1000, true, name);
     }
 }

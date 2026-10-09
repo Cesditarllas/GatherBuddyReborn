@@ -41,6 +41,7 @@ namespace GatherBuddy;
 public partial class GatherBuddy : IDalamudPlugin
 {
     public const string InternalName = "GatherBuddyReborn";
+    internal static GatherBuddy Instance { get; private set; } = null!;
 
     public string Name
         => InternalName;
@@ -113,6 +114,7 @@ public partial class GatherBuddy : IDalamudPlugin
     {
         try
         {
+            Instance = this;
             Dalamud.Initialize(pluginInterface);
             Icons.Init(Dalamud.GameData, Dalamud.Textures);
             Log     = new Logger();

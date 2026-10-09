@@ -5,6 +5,12 @@ using Lumina.Excel.Sheets;
 
 namespace GatherBuddy.Crafting;
 
+public enum CraftOrderMode
+{
+    ListOrder,
+    LevelAndDifficulty,
+}
+
 public class CraftingListDefinition
 {
     public int ID { get; set; }
@@ -12,6 +18,7 @@ public class CraftingListDefinition
     public string Description { get; set; } = string.Empty;
     public string FolderPath { get; set; } = string.Empty;
     public int Order { get; set; } = -1;
+    public CraftOrderMode CraftOrderMode { get; set; } = CraftOrderMode.ListOrder;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public List<CraftingListItem> Recipes { get; set; } = new();
     public List<uint> ExpandedList { get; set; } = new();
@@ -82,6 +89,7 @@ public class CraftingListDefinition
             Description = Description,
             FolderPath = FolderPath,
             Order = Order,
+            CraftOrderMode = CraftOrderMode,
             CreatedAt = CreatedAt,
             Consumables = Consumables.Clone(),
             DefaultPrecraftMacroId = DefaultPrecraftMacroId,

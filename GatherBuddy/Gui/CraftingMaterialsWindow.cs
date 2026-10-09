@@ -11,7 +11,9 @@ using Dalamud.Interface.Windowing;
 using ElliLib;
 using ElliLib.Raii;
 using ElliLib.Text;
+using GatherBuddy.AutoGather.Lists;
 using GatherBuddy.Crafting;
+using GatherBuddy.Interfaces;
 using GatherBuddy.Plugin;
 using GatherBuddy.Vulcan.Vendors;
 using Lumina.Excel;
@@ -573,7 +575,7 @@ public class CraftingMaterialsWindow : Window
                     while (clipper.Step())
                     {
                         for (var i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
-                            DrawPanelRow(entries[i], retainerColumnMode, vendorTargets, maxNameWidth, preferBicolorDefault);
+                            DrawPanelRow(entries[i], entries, label, retainerColumnMode, vendorTargets, maxNameWidth, preferBicolorDefault);
                     }
                     clipper.End();
                     clipper.Destroy();
@@ -586,7 +588,7 @@ public class CraftingMaterialsWindow : Window
         }
     }
 
-    private void DrawPanelRow(MaterialEntry entry, RetainerColumnMode retainerColumnMode,
+    private void DrawPanelRow(MaterialEntry entry, IReadOnlyList<MaterialEntry> panelEntries, string panelLabel, RetainerColumnMode retainerColumnMode,
         IReadOnlyList<VendorBuyListManager.VendorTargetRequest>? vendorTargets, float maxNameWidth, bool preferBicolorDefault)
     {
         var itemId            = entry.ItemId;
@@ -643,9 +645,10 @@ public class CraftingMaterialsWindow : Window
                 Communicator.Print(SeString.CreateItemLink(itemId));
             if (ImGui.Selectable("Search Marketboard"))
             {
-                GatherBuddy.MarketboardService?.QueueLookup(itemId, name, iconId);
                 GatherBuddy.VulcanWindow?.OpenToMarketboardItem(itemId);
             }
+
+            DrawAutoGatherMaterialMenu(entry, panelEntries, panelLabel);
 
             DrawVendorBuyListPopup(entry, vendorTargets);
             ImGui.EndPopup();
@@ -748,6 +751,66 @@ public class CraftingMaterialsWindow : Window
                 barMin.Y + (barMax.Y - barMin.Y - pctSize.Y) * 0.5f),
             ImGui.GetColorU32(ImGuiCol.Text),
             pctText);
+    }
+
+    private static IGatherable? GetGatherableMaterial(uint itemId)
+    {
+        if (GatherBuddy.GameData.Gatherables.TryGetValue(itemId, out var gatherable)) return gatherable;
+        return GatherBuddy.GameData.Fishes.GetValueOrDefault(itemId);
+    }
+
+    private void DrawAutoGatherMaterialMenu(MaterialEntry entry, IReadOnlyList<MaterialEntry> panelEntries, string panelLabel)
+    {
+        if (GetGatherableMaterial(entry.ItemId) == null || !ImGui.BeginMenu("Add to Auto-Gather List"))
+            return;
+
+        DrawMaterialTransferChoices("This material", [entry]);
+        if (panelEntries.Count > 1)
+            DrawMaterialTransferChoices($"All {panelLabel} materials", panelEntries);
+        ImGui.EndMenu();
+    }
+
+    private void DrawMaterialTransferChoices(string label, IReadOnlyList<MaterialEntry> entries)
+    {
+        if (!ImGui.BeginMenu(label)) return;
+
+        var current = GatherBuddy.Instance.Interface.CurrentAutoGatherList;
+        if (ImGui.MenuItem("Create new list"))
+            AddMaterialTargets(entries, null);
+        if (ImGui.MenuItem($"Current list: {current?.Name ?? "None"}", string.Empty, false, current != null))
+            AddMaterialTargets(entries, current);
+        ImGui.EndMenu();
+    }
+
+    private void AddMaterialTargets(IReadOnlyList<MaterialEntry> entries, AutoGatherList? list)
+    {
+        var manager = GatherBuddy.Instance.AutoGatherListsManager;
+        if (list == null)
+        {
+            var baseName = $"{_editor?.ListName ?? "Vulcan"} Materials";
+            var name = baseName;
+            for (var suffix = 2; manager.Lists.Any(existing => existing.Name == name); suffix++)
+                name = $"{baseName} {suffix}";
+            list = new AutoGatherList { Name = name };
+            manager.AddList(list);
+        }
+
+        var changed = 0;
+        foreach (var entry in entries)
+        {
+            var item = GetGatherableMaterial(entry.ItemId);
+            if (item == null) continue;
+            var quantity = (uint)Math.Clamp(entry.Needed, 1, 999999);
+            if (list.Quantities.TryGetValue(item, out var existingQuantity))
+            {
+                if (quantity == existingQuantity) continue;
+                manager.ChangeQuantity(list, item, quantity);
+            }
+            else
+                manager.AddItem(list, item, quantity);
+            changed++;
+        }
+        Communicator.Print($"Added or updated {changed} gatherable materials in '{list.Name}'.");
     }
 
     private void DrawVendorBuyListPopup(MaterialEntry entry, IReadOnlyList<VendorBuyListManager.VendorTargetRequest>? vendorTargets)

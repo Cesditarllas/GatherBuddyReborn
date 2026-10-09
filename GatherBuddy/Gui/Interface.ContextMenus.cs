@@ -208,6 +208,7 @@ public partial class Interface
         DrawAddToAutoGather(item);
         if (ImGui.Selectable("Create Link"))
             Communicator.Print(SeString.CreateItemLink(item.ItemId));
+        DrawMarketSearch(item.ItemId);
         DrawOpenInGarlandTools(item.ItemId);
         DrawOpenInTeamCraft(item.ItemId);
     }
@@ -223,7 +224,9 @@ public partial class Interface
             if (current == null)
                 CreateAndAddPreset(item);
             else
-                _plugin.AutoGatherListsManager.AddItem(current, item);
+                _plugin.AutoGatherListsManager.AddItem(current, item,
+                    item is Gatherable ? GatherBuddy.Config.AutoGatherItemQuantities.GetValueOrDefault(item.ItemId,
+                        (uint)GatherBuddy.Config.AutoGatherBulkQuantity) : 1u);
         }
 
         if (ImGui.IsItemHovered())
@@ -261,7 +264,14 @@ public partial class Interface
                 if (!item.Locations.Any())
                     continue;
 
-                if (list.Add(item))
+                if (label == "Gatherables" && GatherBuddy.Config.ExcludedAutoGatherItemIds.Contains(item.ItemId))
+                    continue;
+
+                var quantity = label == "Gatherables"
+                    ? GatherBuddy.Config.AutoGatherItemQuantities.GetValueOrDefault(item.ItemId,
+                        (uint)GatherBuddy.Config.AutoGatherBulkQuantity)
+                    : 1u;
+                if (list.Add(item, quantity))
                     added++;
             }
 
@@ -281,7 +291,10 @@ public partial class Interface
             Description = AutomaticallyGenerated,
             Name        = PresetName
         };
-        preset.Add(item);
+        preset.Add(item, item is Gatherable
+            ? GatherBuddy.Config.AutoGatherItemQuantities.GetValueOrDefault(item.ItemId,
+                (uint)GatherBuddy.Config.AutoGatherBulkQuantity)
+            : 1u);
         _plugin.AutoGatherListsManager.AddList(preset);
 
         return preset;
@@ -298,6 +311,7 @@ public partial class Interface
 
         if (ImGui.Selectable("Create Link"))
             Communicator.Print(SeString.CreateItemLink(item.ItemId));
+        DrawMarketSearch(item.ItemId);
         DrawOpenInGarlandTools(item.ItemId);
         DrawOpenInTeamCraft(item.ItemId);
     }
@@ -316,6 +330,7 @@ public partial class Interface
 
         if (ImGui.Selectable("Create Link"))
             Communicator.Print(SeString.CreateItemLink(bait.Id));
+        DrawMarketSearch(bait.Id);
         DrawOpenInGarlandTools(bait.Id);
         DrawOpenInTeamCraft(bait.Id);
     }
@@ -333,5 +348,11 @@ public partial class Interface
             return;
 
         DrawOpenInTeamCraft(spot);
+    }
+
+    private static void DrawMarketSearch(uint itemId)
+    {
+        if (ImGui.Selectable("Search Market Board"))
+            GatherBuddy.VulcanWindow?.OpenToMarketboardItem(itemId);
     }
 }

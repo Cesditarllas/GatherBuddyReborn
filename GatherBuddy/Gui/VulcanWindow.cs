@@ -105,6 +105,9 @@ public partial class VulcanWindow : Window, IDisposable
 
     public void OpenToMarketboardItem(uint itemId)
     {
+        var items = Dalamud.GameData.GetExcelSheet<Item>();
+        if (items?.TryGetRow(itemId, out var item) == true)
+            GatherBuddy.MarketboardService?.QueueLookup(itemId, item.Name.ExtractText(), item.Icon);
         OpenToMarketboard();
         _mbSelectedItemId   = itemId;
         _mbDetailLastItemId = 0;
@@ -335,6 +338,7 @@ public partial class VulcanWindow : Window, IDisposable
             }
         
         _craftSettingsPopup.Draw();
+        DrawRecipeMaterialsPopup();
         
         GatherBuddy.ControllerSupport?.UpdateEndOfFrame();
     }

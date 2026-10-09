@@ -21,6 +21,8 @@ namespace GatherBuddy.Gui;
 
 public class CraftingListEditor
 {
+    private static readonly string[] CraftOrderLabels = ["List order", "Level / difficulty (low to high)"];
+
     private sealed class QueueCacheSnapshot
     {
         public string Hash { get; init; } = string.Empty;
@@ -216,7 +218,7 @@ public class CraftingListEditor
 
         var queueCache = GetQueueCache();
         if (queueCache == null || queueCache.Hash != hash)
-            PublishQueueCache(BuildQueueCacheSnapshot(activeExecutionPlan.ResolvedPlan, hash));
+            PublishQueueCache(BuildQueueCacheSnapshot(activeExecutionPlan.PlanningSnapshot, activeExecutionPlan.ResolvedPlan, hash));
 
         var materialCache = GetMaterialCache();
         if (materialCache == null || materialCache.Hash != hash)
@@ -583,6 +585,18 @@ public class CraftingListEditor
         ImGui.Spacing();
 
         ImGui.Checkbox("Show Precrafts##sp", ref _showPrecrafts);
+
+        var craftOrder = (int)_list.CraftOrderMode;
+        if (ImGui.Combo("Craft order##craftOrder", ref craftOrder, CraftOrderLabels, CraftOrderLabels.Length))
+        {
+            _list.CraftOrderMode = (CraftOrderMode)craftOrder;
+            InvalidateQueueCache();
+            InvalidatePresentationCaches();
+            GatherBuddy.CraftingListManager.SaveList(_list);
+            TriggerQueueRegeneration();
+        }
+        if (ImGui.IsItemHovered())
+            ImGui.SetTooltip("Required precrafts are made first. Recipes that cannot be crafted are skipped.");
 
         var skipIfEnough = _list.SkipIfEnough;
         if (ImGui.Checkbox("Skip if Already Have Enough##sie", ref skipIfEnough))
@@ -1256,6 +1270,9 @@ public class CraftingListEditor
             return;
         }
 
+        if (ImGui.MenuItem("Search Market Board"))
+            GatherBuddy.VulcanWindow?.OpenToMarketboardItem(row.Recipe.ItemResult.RowId);
+
         if (ImGui.MenuItem("Craft Settings..."))
         {
             if (row.IsOriginalRecipe)
@@ -1548,6 +1565,9 @@ public class CraftingListEditor
 
         if (isPopupOpen)
         {
+            if (ImGui.MenuItem("Search Market Board"))
+                GatherBuddy.VulcanWindow?.OpenToMarketboardItem(row.Recipe.ItemResult.RowId);
+
             if (ImGui.MenuItem("Craft Settings..."))
                 _craftSettingsPopup.OpenForListItem(item, _list, row.ItemName);
 
@@ -1643,6 +1663,7 @@ public class CraftingListEditor
         hashParts.Add($"SkipIfEnough:{planningList.SkipIfEnough}");
         hashParts.Add($"SkipFinalIfEnough:{planningList.SkipFinalIfEnough}");
         hashParts.Add($"RetainerRestock:{planningList.RetainerRestock}");
+        hashParts.Add($"CraftOrder:{planningList.CraftOrderMode}");
         foreach (var item in planningList.Recipes)
         {
             hashParts.Add($"{item.RecipeId}:{item.Quantity}:{item.Options.Skipping}");
@@ -1658,11 +1679,11 @@ public class CraftingListEditor
         Interlocked.Increment(ref _materialGenerationVersion);
         Interlocked.Increment(ref _materialCacheVersion);
     }
-    private QueueCacheSnapshot BuildQueueCacheSnapshot(CraftingListPlan plan, string hash)
+    private QueueCacheSnapshot BuildQueueCacheSnapshot(CraftingListDefinition list, CraftingListPlan plan, string hash)
         => new()
         {
             Hash = hash,
-            SortedQueue = BuildDisplayQueue(plan),
+            SortedQueue = BuildDisplayQueue(list, plan),
         };
 
     private MaterialCacheSnapshot BuildMaterialCacheSnapshot(CraftingListDefinition planningList, string hash)
@@ -1820,6 +1841,7 @@ public class CraftingListEditor
                 if (token.IsCancellationRequested) return;
 
                 var queueCacheSnapshot = BuildQueueCacheSnapshot(
+                    planningSnapshot,
                     planningSnapshot.CreatePlan(ShouldUseRetainerCraftablePlanning(planningSnapshot)),
                     hash);
                 TryPublishQueueCache(queueCacheSnapshot, generation, token);
@@ -1896,8 +1918,8 @@ public class CraftingListEditor
     }
     
 
-    private List<CraftingListItem> BuildDisplayQueue(CraftingListPlan plan)
-        => CraftingListQueueBuilder.CreateGroupedQueue(plan);
+    private List<CraftingListItem> BuildDisplayQueue(CraftingListDefinition list, CraftingListPlan plan)
+        => CraftingListQueueBuilder.CreateGroupedQueue(list, plan);
 
     private RecipeCraftSettings? GetEffectiveCraftSettings(uint recipeId, bool isOriginalRecipe)
     {

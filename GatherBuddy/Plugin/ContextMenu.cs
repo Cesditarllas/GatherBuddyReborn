@@ -23,6 +23,7 @@ public class ContextMenu : IDisposable
     private readonly MenuItem _menuItemAuto;
     private readonly MenuItem _menuItemCrafting;
     private readonly MenuItem _menuItemVulcanRecipe;
+    private readonly MenuItem _menuItemRecipeMaterials;
     private readonly MenuItem _menuItemVendorBuyList;
 
     public ContextMenu(GatherBuddy plugin, IContextMenu menu, Executor executor)
@@ -73,6 +74,15 @@ public class ContextMenu : IDisposable
             OnClicked   = OnClickVulcanRecipe,
             IsSubmenu   = false,
             PrefixColor = 42,
+        };
+
+        _menuItemRecipeMaterials = new MenuItem
+        {
+            IsEnabled = true,
+            PrefixChar = 'G',
+            PrefixColor = 42,
+            Name = "Add Recipe Materials to Auto-Gather List...",
+            OnClicked = OnClickRecipeMaterials,
         };
 
         _menuItemVendorBuyList = new MenuItem
@@ -156,6 +166,12 @@ public class ContextMenu : IDisposable
 
         GatherBuddy.Log.Debug($"[ContextMenu] Opening Vulcan to recipe {recipe.Value.RowId} for item {recipe.Value.ItemResult.RowId}");
         vulcanWindow.OpenToRecipe(recipe.Value.RowId);
+    }
+
+    private void OnClickRecipeMaterials(IMenuItemClickedArgs args)
+    {
+        if (_lastRecipeId is { } recipeId)
+            GatherBuddy.VulcanWindow?.OpenRecipeMaterialsPopup(recipeId);
     }
 
     private void OnClickCrafting(IMenuItemClickedArgs args)
@@ -322,6 +338,7 @@ public class ContextMenu : IDisposable
             _menuItemVulcanRecipe.IsEnabled = true;
             args.AddMenuItem(_menuItemCrafting);
             args.AddMenuItem(_menuItemVulcanRecipe);
+            args.AddMenuItem(_menuItemRecipeMaterials);
         }
         if (GatherBuddy.Config.VulcanContextMenuEntries && _lastVendorBuyListItemId.HasValue)
         {

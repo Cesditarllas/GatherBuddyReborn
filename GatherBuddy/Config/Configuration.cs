@@ -38,6 +38,9 @@ public partial class Configuration : IPluginConfiguration
     public LevelingFilter      ShowLevelingItems   { get; set; } = LevelingFilter.All;
     public List<int>           HiddenGatherableLevelFilters    { get; set; } = [];
     public List<uint>          HiddenGatherableFolkloreFilters { get; set; } = [];
+    public HashSet<uint>       ExcludedAutoGatherItemIds { get; set; } = [];
+    public Dictionary<uint, uint> AutoGatherItemQuantities { get; set; } = [];
+    public int                AutoGatherBulkQuantity { get; set; } = 999;
     public FishFilter          ShowFish            { get; set; } = FishFilter.All;
     public PatchFlag           HideFishPatch       { get; set; } = 0;
     public JobFlags            LocationFilter      { get; set; } = (JobFlags)0x3F;
@@ -88,6 +91,10 @@ public partial class Configuration : IPluginConfiguration
     public string CraftingLists { get; set; } = string.Empty;
     public List<string> CraftingFolders { get; set; } = [];
     public int MaxRecentCraftingListsInContextMenu { get; set; } = 10;
+    public int RecipeGatherOutputQuantity { get; set; } = 1;
+    public int RecipeGatherMaterialQuantity { get; set; } = 999;
+    public int RecipeGatherCrystalQuantity { get; set; } = 9999;
+    public bool RecipeGatherFixedQuantities { get; set; } = false;
     public Vector2 TeamCraftImportWindowSize { get; set; } = new(520, 310);
     public Vector2 VendorTeamCraftImportWindowSize { get; set; } = new(520, 310);
     public string RecipeBrowserSettings { get; set; } = string.Empty;
@@ -229,6 +236,11 @@ public partial class Configuration : IPluginConfiguration
                 config.HiddenGatherableLevelFilters ??= [];
                 changed |= config.HiddenGatherableFolkloreFilters == null;
                 config.HiddenGatherableFolkloreFilters ??= [];
+                changed |= config.ExcludedAutoGatherItemIds == null;
+                config.ExcludedAutoGatherItemIds ??= [];
+                changed |= config.AutoGatherItemQuantities == null;
+                config.AutoGatherItemQuantities ??= [];
+                config.AutoGatherBulkQuantity = Math.Clamp(config.AutoGatherBulkQuantity, 1, 999999);
                 changed |= config.VendorNpcPreferences == null;
                 config.VendorNpcPreferences ??= new();
                 changed |= config.VendorRoutePreferences == null;

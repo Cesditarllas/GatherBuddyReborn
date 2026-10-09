@@ -8,8 +8,8 @@ public static class CraftingListQueueBuilder
 {
     public static List<CraftingListItem> CreateExpandedQueue(CraftingListDefinition list, bool useRetainerCraftableAvailability = false)
         => CreateExpandedQueue(list, list.CreatePlan(useRetainerCraftableAvailability));
-    public static List<CraftingListItem> CreateGroupedQueue(CraftingListPlan plan)
-        => GetRecipesInDependencyOrder(plan.Recipes, plan.OriginalRecipes)
+    public static List<CraftingListItem> CreateGroupedQueue(CraftingListDefinition list, CraftingListPlan plan)
+        => GetRecipesInDependencyOrder(list, plan)
             .Select(item => new CraftingListItem(item.RecipeId, item.Quantity)
             {
                 IsOriginalRecipe = item.IsOriginalRecipe,
@@ -18,7 +18,7 @@ public static class CraftingListQueueBuilder
 
     public static List<CraftingListItem> CreateExpandedQueue(CraftingListDefinition list, CraftingListPlan plan)
     {
-        var sortedRecipes = CreateGroupedQueue(plan);
+        var sortedRecipes = CreateGroupedQueue(list, plan);
         var expandedQueue = new List<CraftingListItem>();
 
         foreach (var recipeItem in sortedRecipes)
@@ -103,75 +103,69 @@ public static class CraftingListQueueBuilder
             : (list.DefaultFinalMacroId, list.DefaultFinalSolverOverride);
     }
 
-    private static List<CraftingListItem> GetRecipesInDependencyOrder(List<CraftingListItem> recipes, List<CraftingListItem> originalRecipesList)
+    private static List<CraftingListItem> GetRecipesInDependencyOrder(CraftingListDefinition list, CraftingListPlan plan)
     {
-        var precrafts = recipes.Where(recipe => !recipe.IsOriginalRecipe).ToList();
-        var finalProducts = new List<CraftingListItem>(originalRecipesList);
-        var sortedPrecrafts = new List<CraftingListItem>();
-        var processed = new HashSet<uint>();
-
-        var precraftsByJob = precrafts
-            .GroupBy(r => RecipeManager.GetRecipe(r.RecipeId)?.CraftType.RowId ?? uint.MaxValue)
-            .OrderBy(g => g.Key);
-
-        foreach (var jobGroup in precraftsByJob)
-        {
-            foreach (var recipeItem in jobGroup.ToList())
-                ProcessRecipeWithDependencies(recipeItem, precrafts, processed, sortedPrecrafts);
-        }
-
         var result = new List<CraftingListItem>();
-        var attachedFinalRecipeIds = new HashSet<uint>();
-        var finalProductsByRecipeId = finalProducts.ToDictionary(recipe => recipe.RecipeId);
+        var precrafts = plan.Recipes.Where(recipe => !recipe.IsOriginalRecipe).ToList();
+        var finals = plan.OriginalRecipes;
+        var finalPositions = list.Recipes.Select((recipe, index) => (recipe.RecipeId, index))
+            .GroupBy(entry => entry.RecipeId)
+            .ToDictionary(group => group.Key, group => group.First().index);
 
-        foreach (var precraft in sortedPrecrafts)
-        {
-            result.Add(precraft);
-            if (!finalProductsByRecipeId.TryGetValue(precraft.RecipeId, out var finalProduct))
-                continue;
-
-            result.Add(finalProduct);
-            attachedFinalRecipeIds.Add(precraft.RecipeId);
-        }
-
-        var sortedFinalProducts = finalProducts
-            .Where(recipe => !attachedFinalRecipeIds.Contains(recipe.RecipeId))
-            .GroupBy(r => RecipeManager.GetRecipe(r.RecipeId)?.CraftType.RowId ?? uint.MaxValue)
-            .OrderBy(g => g.Key)
-            .SelectMany(g => g)
-            .ToList();
-
-        foreach (var recipeItem in sortedFinalProducts)
-            result.Add(recipeItem);
-
+        AppendInDependencyOrder(Order(precrafts, list.CraftOrderMode), precrafts, result);
+        AppendInDependencyOrder(Order(finals, list.CraftOrderMode, finalPositions), finals, result);
         return result;
     }
 
-    private static void ProcessRecipeWithDependencies(
-        CraftingListItem recipeItem,
-        List<CraftingListItem> allRecipes,
-        HashSet<uint> processed,
-        List<CraftingListItem> result)
+    private static IEnumerable<CraftingListItem> Order(List<CraftingListItem> items, CraftOrderMode mode,
+        Dictionary<uint, int>? listPositions = null)
     {
-        if (processed.Contains(recipeItem.RecipeId))
-            return;
+        var positioned = items.Select((item, index) => (item, index));
+        if (mode == CraftOrderMode.ListOrder)
+            return listPositions == null
+                ? items
+                : positioned.OrderBy(entry => listPositions.GetValueOrDefault(entry.item.RecipeId, int.MaxValue))
+                    .Select(entry => entry.item);
 
-        var recipe = RecipeManager.GetRecipe(recipeItem.RecipeId);
-        if (!recipe.HasValue)
-            return;
+        return positioned.OrderBy(entry => GetRecipeOrderKey(entry.item.RecipeId))
+            .ThenBy(entry => entry.index)
+            .Select(entry => entry.item);
+    }
 
-        foreach (var (itemId, _) in RecipeManager.GetIngredients(recipe.Value))
+    private static (int Level, long Difficulty) GetRecipeOrderKey(uint recipeId)
+    {
+        var recipe = RecipeManager.GetRecipe(recipeId);
+        if (recipe == null)
+            return (int.MaxValue, long.MaxValue);
+        var level = recipe.Value.RecipeLevelTable.Value;
+        return (level.ClassJobLevel, (long)level.Difficulty * recipe.Value.DifficultyFactor / 100);
+    }
+
+    private static void AppendInDependencyOrder(IEnumerable<CraftingListItem> ordered,
+        List<CraftingListItem> allRecipes, List<CraftingListItem> result)
+    {
+        var byResultItem = allRecipes
+            .Select(item => (Item: item, Recipe: RecipeManager.GetRecipe(item.RecipeId)))
+            .Where(entry => entry.Recipe != null)
+            .GroupBy(entry => entry.Recipe!.Value.ItemResult.RowId)
+            .ToDictionary(group => group.Key, group => group.First().Item);
+        var processed = new HashSet<uint>();
+
+        void Visit(CraftingListItem item)
         {
-            var depRecipe = RecipeManager.GetRecipeForItem(itemId);
-            if (!depRecipe.HasValue)
-                continue;
+            if (!processed.Add(item.RecipeId))
+                return;
 
-            var depItem = allRecipes.FirstOrDefault(r => r.RecipeId == depRecipe.Value.RowId && !r.IsOriginalRecipe);
-            if (depItem != null)
-                ProcessRecipeWithDependencies(depItem, allRecipes, processed, result);
+            var recipe = RecipeManager.GetRecipe(item.RecipeId);
+            if (recipe != null)
+                foreach (var (itemId, _) in RecipeManager.GetIngredients(recipe.Value))
+                    if (byResultItem.TryGetValue(itemId, out var dependency))
+                        Visit(dependency);
+
+            result.Add(item);
         }
 
-        processed.Add(recipeItem.RecipeId);
-        result.Add(recipeItem);
+        foreach (var item in ordered)
+            Visit(item);
     }
 }

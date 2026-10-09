@@ -480,7 +480,7 @@ namespace GatherBuddy.AutoGather
                 && nodeId.HasValue 
                 && AutoOffsets.TryGetRandomOffset(nodeId.Value, destination, player, out var offset))
             {
-                GatherBuddy.Log.Debug($"Using auto-offset for node {nodeId.Value}: {offset}. Distance to node: {Vector2.Distance(offset.ToVector2(), destination.ToVector2()):F2}y, angle: {Math.Acos(Vector2.Dot(Vector2.Normalize((player - destination).ToVector2()), Vector2.Normalize((offset - destination).ToVector2()))) * 180.0 / Math.PI:F1}°");
+                GatherBuddy.Log.Debug($"Using auto-offset for node {nodeId.Value}: {offset}. Distance to node: {Vector2.Distance(offset.ToVector2(), destination.ToVector2()):F2}y, angle: {Math.Acos(Vector2.Dot(Vector2.Normalize((player - destination).ToVector2()), Vector2.Normalize((offset - destination).ToVector2()))) * 180.0 / Math.PI:F1}Â°");
                 return offset;
             }
 

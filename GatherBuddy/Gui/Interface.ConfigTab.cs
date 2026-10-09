@@ -124,8 +124,9 @@ public partial class Interface
                 GatherBuddy.Config.AutoGatherConfig.HonkMode,   b => GatherBuddy.Config.AutoGatherConfig.HonkMode = b);
 
         public static void DrawRepairBox()
-            => DrawCheckbox("Repair gear when needed",        "Repair gear when it is almost broken",
+            => DrawCheckbox("Repair gear when needed",        "Repair gear when it is almost broken. If Vulcan is set to prioritize NPC repairs, Auto-Gather will use its preferred repair NPC when reachable and affordable; otherwise, self-repair is used.",
                 GatherBuddy.Config.AutoGatherConfig.DoRepair, b => GatherBuddy.Config.AutoGatherConfig.DoRepair = b);
+
 
         public static void DrawRepairThreshold()
         {

@@ -474,9 +474,9 @@ public partial class AutoGatherListsManager
         return removedAny;
     }
 
-    public void AddItem(AutoGatherList list, IGatherable item)
+    public void AddItem(AutoGatherList list, IGatherable item, uint quantity = 1)
     {
-        if (list.Add(item))
+        if (list.Add(item, quantity))
         {
             if (list.Enabled && !ValidateSingleFishBait(item))
             {

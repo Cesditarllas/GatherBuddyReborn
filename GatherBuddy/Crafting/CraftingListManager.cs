@@ -92,6 +92,7 @@ public class CraftingListManager
             existing.Description = list.Description;
             existing.FolderPath  = NormalizeFolderPath(list.FolderPath);
             existing.Order = list.Order;
+            existing.CraftOrderMode = list.CraftOrderMode;
             existing.Recipes     = list.Recipes;
             existing.SkipIfEnough = list.SkipIfEnough;
             existing.Materia = list.Materia;

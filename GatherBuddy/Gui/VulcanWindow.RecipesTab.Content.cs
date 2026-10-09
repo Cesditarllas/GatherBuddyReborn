@@ -436,6 +436,9 @@ public partial class VulcanWindow
             
             if (isPopupOpen)
             {
+                if (ImGui.MenuItem("Search Market Board"))
+                    OpenToMarketboardItem(recipe.Recipe.ItemResult.RowId);
+
                 if (ImGui.MenuItem("Show Recipe Properties (Debug)"))
                 {
                     GatherBuddy.Log.Information($"=== Recipe Properties for {recipe.Name} ===");

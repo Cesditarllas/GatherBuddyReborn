@@ -50,7 +50,7 @@ public partial class Interface
         }
 
         public AutoGatherListFileSystemSelector()
-            : base(_plugin.AutoGatherListsManager.FileSystem, Dalamud.Keys, new Logger(), null, "##AutoGatherListsFileSystem", false)
+            : base(_plugin.AutoGatherListsManager.FileSystem, Dalamud.Keys, new Logger(), null, "##AutoGatherListsFileSystem", true)
         {
             SetFilterDirty();
             AddButton(AddListButton, 0);
@@ -109,39 +109,31 @@ public partial class Interface
         {
             if (movedPaths.Count == 0)
                 return;
-            if (movedPaths.Count > 1)
-                throw new NotImplementedException();
-            if (movedPaths[0].Value is not FileSystem<AutoGatherList>.Leaf movedLeaf || targetPath is not FileSystem<AutoGatherList>.Leaf targetLeaf)
+            if (targetPath is not FileSystem<AutoGatherList>.Leaf targetLeaf)
                 return;
 
-            var movedFromUpperPart = false;
-            if (!FileSystem.Find(movedPaths[0].Key, out var sourceFolder))
-            {  // If Find() returns true, the item was moved within the same folder
+            var movedLeaves = movedPaths
+                .Where(path => path.Value is FileSystem<AutoGatherList>.Leaf)
+                .Select(path => (path.Key, Leaf: (FileSystem<AutoGatherList>.Leaf)path.Value))
+                .Where(path => path.Leaf != targetLeaf)
+                .ToList();
+            if (movedLeaves.Count == 0)
+                return;
 
-                if (IsAncestor(targetLeaf.Parent, sourceFolder))
-                {
-                    // Subfolders are rendered before leaves
-                    movedFromUpperPart = true;
-                }
-                else if (!IsAncestor(sourceFolder, targetLeaf))
-                {
-                    foreach (var node in FileSystem.Root.GetAllDescendants(SortMode))
-                    {
-                        if (node == sourceFolder)
-                        {
-                            movedFromUpperPart = true;
-                            break;
-                        }
-                        else if (node == targetLeaf.Parent)
-                        {
-                            break;
-                        }
-                    }
-                }
-            }
+            var orderedMoves = movedLeaves.Select(path =>
+            {
+                var movedFromUpperPart = IsMovedFromUpperPart(path.Key, targetLeaf);
+                return (path.Leaf, MovedFromUpperPart: movedFromUpperPart,
+                    PlaceAfterTarget: movedFromUpperPart || path.Leaf.Value.Order < targetLeaf.Value.Order);
+            }).ToList();
 
-            _plugin.AutoGatherListsManager.MoveList(movedLeaf, targetLeaf, movedFromUpperPart);
-            Select(movedLeaf, true);
+            // Reversing rows that move after the target keeps the selected block's visible order.
+            var placeAfterTarget = orderedMoves[0].PlaceAfterTarget;
+            var moves = placeAfterTarget ? orderedMoves.AsEnumerable().Reverse() : orderedMoves;
+            foreach (var move in moves)
+                _plugin.AutoGatherListsManager.MoveList(move.Leaf, targetLeaf, move.MovedFromUpperPart);
+
+            Select(movedLeaves[^1].Leaf, true);
 
             static bool IsAncestor(FileSystem<AutoGatherList>.IPath ancestor, FileSystem<AutoGatherList>.IPath descendant)
             {
@@ -151,6 +143,28 @@ public partial class Interface
                         return true;
                     descendant = descendant.Parent;
                 } while (descendant != null);
+                return false;
+            }
+
+            bool IsMovedFromUpperPart(string oldPath, FileSystem<AutoGatherList>.Leaf target)
+            {
+                if (FileSystem.Find(oldPath, out var sourceFolder))
+                    return false;
+
+                if (IsAncestor(target.Parent, sourceFolder))
+                    return true;
+
+                if (IsAncestor(sourceFolder, target))
+                    return false;
+
+                foreach (var node in FileSystem.Root.GetAllDescendants(SortMode))
+                {
+                    if (node == sourceFolder)
+                        return true;
+                    if (node == target.Parent)
+                        return false;
+                }
+
                 return false;
             }
         }

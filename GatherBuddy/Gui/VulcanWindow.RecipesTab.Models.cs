@@ -319,6 +319,9 @@ public partial class VulcanWindow
                 
                 if (isPopupOpen)
                 {
+                    if (ImGui.MenuItem("Search Market Board"))
+                        GatherBuddy.VulcanWindow?.OpenToMarketboardItem(item.Recipe.ItemResult.RowId);
+
                     if (ImGui.MenuItem("Configure Craft Settings"))
                     {
                         _craftSettingsPopup.Open(item.Recipe.RowId, item.Name);
