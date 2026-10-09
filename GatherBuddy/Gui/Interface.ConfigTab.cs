@@ -31,6 +31,34 @@ public partial class Interface
         private static string _fishFilterText = "";
         private static Fish? _selectedFish = null;
         private static string _presetName = "";
+        private static string _fullBackupPath = "";
+        private static string _fullBackupStatus = "";
+
+        public static void DrawFullBackup()
+        {
+            if (ImGui.Button("Export all settings and lists to ZIP"))
+            {
+                try
+                {
+                    _fullBackupPath = FullBackup.Export();
+                    ImGui.SetClipboardText(_fullBackupPath);
+                    _fullBackupStatus = $"Exported to {_fullBackupPath} (path copied to clipboard).";
+                }
+                catch (Exception ex) { _fullBackupStatus = $"Export failed: {ex.Message}"; }
+            }
+            ImGui.SetNextItemWidth(-1);
+            ImGui.InputText("Backup ZIP path to import", ref _fullBackupPath, 1024);
+            if (ImGui.Button("Import all settings and lists from ZIP"))
+            {
+                try
+                {
+                    var safetyCopy = FullBackup.Import(_fullBackupPath.Trim());
+                    _fullBackupStatus = $"Import complete. Reload GatherBuddy Reborn to apply it. Previous data: {safetyCopy}";
+                }
+                catch (Exception ex) { _fullBackupStatus = $"Import failed: {ex.Message}"; }
+            }
+            if (_fullBackupStatus.Length > 0) ImGui.TextWrapped(_fullBackupStatus);
+        }
 
         public static void DrawSetInput(string jobName, string oldName, Action<string> setName)
         {
@@ -1576,6 +1604,10 @@ public partial class Interface
             new("Miner Set",    () => ConfigFunctions.DrawSetInput("Miner",    GatherBuddy.Config.MinerSetName,    s => GatherBuddy.Config.MinerSetName    = s)),
             new("Botanist Set", () => ConfigFunctions.DrawSetInput("Botanist", GatherBuddy.Config.BotanistSetName, s => GatherBuddy.Config.BotanistSetName = s)),
             new("Fisher Set",   () => ConfigFunctions.DrawSetInput("Fisher",   GatherBuddy.Config.FisherSetName,   s => GatherBuddy.Config.FisherSetName   = s)),
+        ]),
+        new("General", "Full Backup",
+        [
+            new("Export or Import All Settings and Lists", ConfigFunctions.DrawFullBackup),
         ]),
         new("General", "Alarms",
         [
