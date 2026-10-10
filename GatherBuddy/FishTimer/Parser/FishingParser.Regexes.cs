@@ -1,5 +1,4 @@
 ﻿﻿using System;
-using System.ComponentModel;
 using System.Text.RegularExpressions;
 using Dalamud.Game;
 
@@ -22,7 +21,8 @@ public partial class FishingParser
                 ClientLanguage.German   => German.Value,
                 ClientLanguage.French   => French.Value,
                 ClientLanguage.Japanese => Japanese.Value,
-                _                       => throw new InvalidEnumArgumentException(),
+                // Chinese and other unsupported client languages use the English fallback.
+                _                       => English.Value,
             };
         }
 

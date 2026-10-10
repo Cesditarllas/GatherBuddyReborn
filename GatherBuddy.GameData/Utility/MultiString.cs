@@ -51,7 +51,9 @@ public readonly struct MultiString(string en, string de, string fr, string jp)
             ClientLanguage.German   => German,
             ClientLanguage.Japanese => Japanese,
             ClientLanguage.French   => French,
-            _                       => throw new ArgumentException(),
+            // Dalamud may report client languages not represented by this data set (for example, Chinese).
+            // Fall back to English so data initialization can complete on those clients.
+            _                       => English,
         };
 
     public static readonly MultiString Empty = new(string.Empty, string.Empty, string.Empty, string.Empty);
