@@ -277,7 +277,7 @@ public partial class Interface
     private void DrawAlarmTable(AlarmGroup group, int _)
     {
         var width = SetInputWidth * 3.35f + ImGui.GetFrameHeight() * 3 + (85 + 150) * ImGuiHelpers.GlobalScale + ItemSpacing.X * 8;
-        using var table = ImRaii.Table("##alarms", 9, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.NoKeepColumnsVisible,
+        using var table = ImRaii.Table("##alarms", 9, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.NoKeepColumnsVisible | ImGuiTableFlags.Resizable,
             Vector2.UnitX * width);
         if (!table)
             return;

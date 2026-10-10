@@ -310,7 +310,7 @@ public partial class Interface
         var times = _gatherGroupCache.UpdateItemPerMinute(group);
         DrawMissingTimesHint(times[0] > 0);
 
-        using var table = ImRaii.Table("##nodes", 6, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.ScrollX);
+        using var table = ImRaii.Table("##nodes", 6, ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.ScrollX | ImGuiTableFlags.Resizable);
         if (!table)
             return;
 

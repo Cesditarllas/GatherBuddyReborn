@@ -504,7 +504,7 @@ public class CraftingMaterialsWindow : Window
             var numW = VulcanUiScaling.Scaled(36f);
             var barW = VulcanUiScaling.Scaled(46f);
             var tableFlags = ImGuiTableFlags.ScrollY | ImGuiTableFlags.RowBg
-                           | ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingFixedFit;
+                           | ImGuiTableFlags.BordersInnerV | ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Resizable;
 
             if (ImGui.BeginTable($"{id}_tbl", colCount, tableFlags, new Vector2(0, ImGui.GetContentRegionAvail().Y)))
             {

@@ -256,7 +256,7 @@ namespace GatherBuddy.Gui
             {
                 if (popup)
                 {
-                    using (var table = ImRaii.Table("Items", 3, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg))
+                    using (var table = ImRaii.Table("Items", 3, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.Resizable))
                     {
                         ImGui.TableSetupColumn("采集列表");
                         ImGui.TableSetupColumn("物品");

@@ -202,22 +202,33 @@ public partial class Interface
         protected override void DrawLeafName(FileSystem<AutoGatherList>.Leaf leaf, in int state, bool selected)
         {
             var list = leaf.Value;
-            var flag = selected ? ImGuiTreeNodeFlags.Selected | LeafFlags : LeafFlags;
 
             var enabled = list.Enabled;
             if (ImGui.Checkbox($"##list_enabled_{leaf.Identifier}", ref enabled))
                 _plugin.AutoGatherListsManager.SetListsEnabled([list], enabled);
             ImGui.SameLine();
-            
+
             using var color = ImRaii.PushColor(ImGuiCol.Text, ColorId.DisabledText.Value(), !list.Enabled);
             var displayName = CheckUnnamed(list.Name);
-            
-            using var _ = ImRaii.TreeNode(displayName, flag);
-            
+            ImGui.Selectable(displayName, selected, ImGuiSelectableFlags.None, new Vector2(ImGui.CalcTextSize(displayName).X, 0));
+
             if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
-            {
                 _plugin.AutoGatherListsManager.ToggleList(list);
-            }
+        }
+
+        protected override bool DrawFolderPrefix(FileSystem<AutoGatherList>.Folder folder)
+        {
+            var lists = folder.GetAllDescendants(SortMode)
+                .OfType<FileSystem<AutoGatherList>.Leaf>()
+                .Select(leaf => leaf.Value)
+                .ToArray();
+            if (lists.Length == 0)
+                return false;
+
+            var enabled = lists.All(list => list.Enabled);
+            if (ImGui.Checkbox($"##folder_enabled_{folder.Identifier}", ref enabled))
+                _plugin.AutoGatherListsManager.SetFolderEnabled(folder, enabled);
+            return true;
         }
 
         protected override int GetState(FileSystem<AutoGatherList>.IPath path)

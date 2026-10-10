@@ -19,6 +19,7 @@ public partial class VulcanWindow
 {
     private const string CraftingListDragDropPayload = "GatherBuddyCraftingListDragDrop";
     private int? _draggedCraftingListId = null;
+    private readonly HashSet<int> _selectedCraftingListIds = [];
     private void DrawCraftingListsTab()
     {
         IDisposable tabItem;
@@ -162,6 +163,8 @@ public partial class VulcanWindow
 
         ImGui.Spacing();
 
+        DrawCraftingListSelectionBar();
+
         var avail  = ImGui.GetContentRegionAvail();
         var leftW  = VulcanUiScaling.Scaled(220f);
         var rightW = avail.X - leftW - ImGui.GetStyle().ItemSpacing.X;
@@ -207,6 +210,15 @@ public partial class VulcanWindow
         var childFolders = GatherBuddy.CraftingListManager.GetDirectSubfolderPaths(folderPath);
         var childLists = GatherBuddy.CraftingListManager.GetListsInFolder(folderPath);
         var hasChildren = childFolders.Count > 0 || childLists.Count > 0;
+
+        var folderLists = GetListsInFolderTree(folderPath);
+        if (folderLists.Count > 0)
+        {
+            var allSelected = folderLists.All(list => _selectedCraftingListIds.Contains(list.ID));
+            if (ImGui.Checkbox($"##craftinglist_folder_sel_{folderPath}", ref allSelected))
+                SetCraftingListSelection(folderLists.Select(list => list.ID), allSelected);
+            ImGui.SameLine();
+        }
 
         var flags = ImGuiTreeNodeFlags.SpanAvailWidth;
         if (!hasChildren)
@@ -266,8 +278,18 @@ public partial class VulcanWindow
         if (isHighlighted)
             ImGui.PushStyleColor(ImGuiCol.Text, ImGuiColors.ParsedGold);
 
+        var isSelected = _selectedCraftingListIds.Contains(list.ID);
+        if (ImGui.Checkbox($"##craftinglist_sel_{list.ID}", ref isSelected))
+            SetCraftingListSelection([list.ID], isSelected);
+        ImGui.SameLine();
+
         if (ImGui.Selectable($"{list.Name}##list_{list.ID}", isHighlighted))
-            OpenCraftingList(list);
+        {
+            if (ImGui.GetIO().KeyCtrl)
+                SetCraftingListSelection([list.ID], !_selectedCraftingListIds.Contains(list.ID));
+            else
+                OpenCraftingList(list);
+        }
         DrawCraftingListDragDropSource(list);
         DrawCraftingListEntryDropTarget(list);
 
@@ -343,6 +365,7 @@ public partial class VulcanWindow
         {
             if (_previewList?.ID == list.ID)
                 _previewList = null;
+            _selectedCraftingListIds.Remove(list.ID);
             GatherBuddy.CraftingListManager.DeleteList(list.ID);
         }
 
@@ -594,6 +617,100 @@ public partial class VulcanWindow
 
         _previewFolderPath = folderPath;
         _previewList = null;
+    }
+
+    private void DrawCraftingListSelectionBar()
+    {
+        if (_selectedCraftingListIds.Count == 0)
+            return;
+
+        _selectedCraftingListIds.IntersectWith(GatherBuddy.CraftingListManager.Lists.Select(list => list.ID));
+        if (_selectedCraftingListIds.Count == 0)
+            return;
+
+        ImGui.TextColored(ImGuiColors.ParsedGold, $"已选 {_selectedCraftingListIds.Count} 个清单");
+        ImGui.SameLine();
+        if (ImGui.SmallButton("删除所选"))
+            DeleteSelectedCraftingLists();
+        ImGui.SameLine();
+        if (ImGui.SmallButton("导出所选"))
+            ExportSelectedCraftingLists();
+        ImGui.SameLine();
+        if (ImGui.SmallButton("移动到文件夹"))
+            ImGui.OpenPopup("MoveSelectedCraftingListsPopup");
+        ImGui.SameLine();
+        if (ImGui.SmallButton("清空选择"))
+            _selectedCraftingListIds.Clear();
+
+        if (ImGui.BeginPopup("MoveSelectedCraftingListsPopup"))
+        {
+            if (ImGui.MenuItem("根目录"))
+                MoveSelectedCraftingLists(null);
+            foreach (var folderPath in GatherBuddy.CraftingListManager.GetAllFolderPaths())
+            {
+                if (ImGui.MenuItem(CraftingListManager.FormatFolderPath(folderPath)))
+                    MoveSelectedCraftingLists(folderPath);
+            }
+            ImGui.EndPopup();
+        }
+
+        ImGui.Separator();
+        ImGui.Spacing();
+    }
+
+    private List<CraftingListDefinition> GetListsInFolderTree(string folderPath)
+    {
+        var lists = new List<CraftingListDefinition>(GatherBuddy.CraftingListManager.GetListsInFolder(folderPath));
+        foreach (var childFolderPath in GatherBuddy.CraftingListManager.GetDirectSubfolderPaths(folderPath))
+            lists.AddRange(GetListsInFolderTree(childFolderPath));
+        return lists;
+    }
+
+    private void SetCraftingListSelection(IEnumerable<int> ids, bool selected)
+    {
+        if (selected)
+            _selectedCraftingListIds.UnionWith(ids);
+        else
+            _selectedCraftingListIds.ExceptWith(ids);
+    }
+
+    private void DeleteSelectedCraftingLists()
+    {
+        var ids = _selectedCraftingListIds.ToArray();
+        _selectedCraftingListIds.Clear();
+        foreach (var id in ids)
+        {
+            if (_previewList?.ID == id)
+                _previewList = null;
+            GatherBuddy.CraftingListManager.DeleteList(id);
+        }
+    }
+
+    private void ExportSelectedCraftingLists()
+    {
+        var parts = new List<string>();
+        foreach (var id in _selectedCraftingListIds.OrderBy(id => id))
+        {
+            var exported = GatherBuddy.CraftingListManager.ExportList(id);
+            if (!string.IsNullOrEmpty(exported))
+                parts.Add(exported);
+        }
+        if (parts.Count == 0)
+            return;
+
+        ImGui.SetClipboardText(string.Join(Environment.NewLine, parts));
+        GatherBuddy.Log.Information($"[VulcanWindow] 已导出 {parts.Count} 个清单到剪贴板（每行一个）");
+    }
+
+    private void MoveSelectedCraftingLists(string? folderPath)
+    {
+        var ids = _selectedCraftingListIds.ToArray();
+        foreach (var id in ids)
+        {
+            var list = GatherBuddy.CraftingListManager.GetListByID(id);
+            if (list != null)
+                GatherBuddy.CraftingListManager.MoveListToFolder(list, folderPath);
+        }
     }
 
 

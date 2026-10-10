@@ -932,7 +932,7 @@ public partial class VulcanWindow
 
         const ImGuiTableFlags tableFlags = ImGuiTableFlags.BordersOuter | ImGuiTableFlags.BordersInnerV
                                          | ImGuiTableFlags.ScrollY | ImGuiTableFlags.RowBg
-                                         | ImGuiTableFlags.SizingFixedFit;
+                                         | ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Resizable;
         if (!ImGui.BeginTable("##vendorTable", showAutomationControls ? 8 : 6, tableFlags, new Vector2(-1, -1)))
             return;
 

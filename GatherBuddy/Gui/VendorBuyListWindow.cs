@@ -427,7 +427,7 @@ public sealed partial class VendorBuyListWindow : Window
     {
         const ImGuiTableFlags tableFlags = ImGuiTableFlags.BordersOuter | ImGuiTableFlags.BordersInnerV
                                          | ImGuiTableFlags.ScrollY | ImGuiTableFlags.RowBg
-                                         | ImGuiTableFlags.SizingStretchProp;
+                                         | ImGuiTableFlags.SizingStretchProp | ImGuiTableFlags.Resizable;
         if (!ImGui.BeginTable("##vendorBuyListTable", 8, tableFlags, new Vector2(-1, -1)))
             return;
 
