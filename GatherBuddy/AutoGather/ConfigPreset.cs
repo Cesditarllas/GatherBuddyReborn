@@ -245,7 +245,7 @@ namespace GatherBuddy.AutoGather
             GatherableActions = original.GatherableActions with { };
             CollectableActions = original.CollectableActions with { };
             FishingActions = original.FishingActions with { };
-            Consumables = original.Consumables with { };
+            Consumables = new ConsumablesRec(original.Consumables);
         }
 
         public ConfigPreset MakeDefault()
