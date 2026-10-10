@@ -1,5 +1,6 @@
 using GatherBuddy.Classes;
 using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using GatherBuddy.Interfaces;
 
@@ -79,6 +80,22 @@ namespace GatherBuddy.AutoGather
         public record class ActionConfigConsumable : ActionConfig
         {
             public uint ItemId { get; set; } = 0;
+            public List<uint> ItemIds { get; set; } = new();
+
+            [JsonIgnore]
+            public IEnumerable<uint> PriorityItemIds
+                => ItemIds is { Count: > 0 } ? ItemIds : ItemId > 0 ? [ItemId] : [];
+
+            public void MigrateLegacyItemId()
+            {
+                ItemIds ??= new();
+                if (ItemIds.Count == 0 && ItemId > 0)
+                    ItemIds.Add(ItemId);
+                ItemId = 0;
+            }
+
+            public ActionConfigConsumable Copy()
+                => this with { ItemIds = new List<uint>(ItemIds ?? new()) };
         }
         public record class ToggleConfig
         {
@@ -195,12 +212,12 @@ namespace GatherBuddy.AutoGather
             public ActionConfigConsumable SquadronPass { get; init; } = new() { Enabled = false };
             public ConsumablesRec(ConsumablesRec original)
             {
-                Cordial = original.Cordial with { };
-                Food = original.Food with { };
-                Potion = original.Potion with { };
-                Manual = original.Manual with { };
-                SquadronManual = original.SquadronManual with { };
-                SquadronPass = original.SquadronPass with { };
+                Cordial = original.Cordial.Copy();
+                Food = original.Food.Copy();
+                Potion = original.Potion.Copy();
+                Manual = original.Manual.Copy();
+                SquadronManual = original.SquadronManual.Copy();
+                SquadronPass = original.SquadronPass.Copy();
             }
         }
 

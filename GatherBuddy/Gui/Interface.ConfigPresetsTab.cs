@@ -89,6 +89,7 @@ namespace GatherBuddy.Gui
                     return false;
                 }
 
+                MigrateHQItemIds(preset);
                 preset.Name = name;
 
                 Items.Insert(Items.Count - 1, preset);
@@ -99,11 +100,7 @@ namespace GatherBuddy.Gui
 
             protected override bool OnDuplicate(string name, int idx)
             {
-                var preset = Items[idx] with
-                {
-                    Enabled = false,
-                    Name = name
-                };
+                var preset = new ConfigPreset(Items[idx]) { Enabled = false, Name = name };
                 Items.Insert(Math.Min(idx + 1, Items.Count - 1), preset);
                 Save();
                 return true;
@@ -195,9 +192,11 @@ namespace GatherBuddy.Gui
             private static void MigrateConsumableItemId(ConfigPreset.ActionConfigConsumable consumable)
             {
                 if (consumable.ItemId >= 100_000 && consumable.ItemId < 1_000_000)
-                {
                     consumable.ItemId = consumable.ItemId - 100_000 + 1_000_000;
-                }
+                consumable.MigrateLegacyItemId();
+                for (var i = 0; i < consumable.ItemIds.Count; ++i)
+                    if (consumable.ItemIds[i] >= 100_000 && consumable.ItemIds[i] < 1_000_000)
+                        consumable.ItemIds[i] = consumable.ItemIds[i] - 100_000 + 1_000_000;
             }
 
             public ConfigPreset Match(IGatherable? item)
@@ -758,6 +757,7 @@ namespace GatherBuddy.Gui
 
             if (action is ConfigPreset.ActionConfigConsumable action7 && items != null)
             {
+                action7.MigrateLegacyItemId();
                 var list = items
                     .SelectMany(item => new[]
                     {
@@ -772,19 +772,42 @@ namespace GatherBuddy.Gui
                     .Select(x => x with { name = $"{x.name} ({x.count})" })
                     .ToList();
 
-                var       selected = (action7.ItemId > 0 ? list.FirstOrDefault(x => x.rowid == action7.ItemId).name : null) ?? string.Empty;
-                using var combo    = ImRaii.Combo($"Select {name.ToLower()}", selected);
-                if (combo)
+                ImGui.TextUnformatted("Priority (top first; unavailable items are skipped):");
+                for (var i = 0; i < action7.ItemIds.Count; ++i)
                 {
-                    if (ImGui.Selectable(string.Empty, action7.ItemId <= 0))
+                    var rowid = action7.ItemIds[i];
+                    var label = list.FirstOrDefault(x => x.rowid == rowid).name ?? rowid.ToString();
+                    using var row = ImRaii.PushId(i);
+                    ImGui.TextUnformatted($"{i + 1}. {label}");
+                    ImGui.SameLine();
+                    if (ImGui.SmallButton("Up") && i > 0)
                     {
-                        action7.ItemId = 0;
+                        (action7.ItemIds[i - 1], action7.ItemIds[i]) = (action7.ItemIds[i], action7.ItemIds[i - 1]);
                         save();
                     }
+                    ImGui.SameLine();
+                    if (ImGui.SmallButton("Down") && i < action7.ItemIds.Count - 1)
+                    {
+                        (action7.ItemIds[i + 1], action7.ItemIds[i]) = (action7.ItemIds[i], action7.ItemIds[i + 1]);
+                        save();
+                    }
+                    ImGui.SameLine();
+                    if (ImGui.SmallButton("Remove"))
+                    {
+                        action7.ItemIds.RemoveAt(i);
+                        save();
+                        break;
+                    }
+                }
 
+                using var combo = ImRaii.Combo($"Add {name.ToLower()}", "Select item...");
+                if (combo)
+                {
                     bool? separatorState = null;
                     foreach (var (itemname, rowid, count) in list)
                     {
+                        if (action7.ItemIds.Contains(rowid))
+                            continue;
                         if (count != 0)
                             separatorState = true;
                         else if (separatorState ?? false)
@@ -793,9 +816,9 @@ namespace GatherBuddy.Gui
                             separatorState = false;
                         }
 
-                        if (ImGui.Selectable(itemname, action7.ItemId == rowid))
+                        if (ImGui.Selectable(itemname))
                         {
-                            action7.ItemId = rowid;
+                            action7.ItemIds.Add(rowid);
                             save();
                         }
                     }

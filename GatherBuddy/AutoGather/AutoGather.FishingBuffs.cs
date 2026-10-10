@@ -65,14 +65,14 @@ public partial class AutoGather
         if (Player.Job != 18)
             return false;
 
+        var foodId = FirstAvailableConsumable(config.Consumables.Food);
+        var potionId = FirstAvailableConsumable(config.Consumables.Potion);
         var needFood = config.Consumables.Food.Enabled
-            && config.Consumables.Food.ItemId > 0
-            && !HasFoodBuff()
-            && GetInventoryItemCount(config.Consumables.Food.ItemId) > 0;
+            && foodId > 0
+            && !HasFoodBuff();
         var needMed = config.Consumables.Potion.Enabled
-            && config.Consumables.Potion.ItemId > 0
-            && !HasMedicineBuff()
-            && GetInventoryItemCount(config.Consumables.Potion.ItemId) > 0;
+            && potionId > 0
+            && !HasMedicineBuff();
         var manualItemId = GetConsumablesWithCastTime(config);
 
         if (!needFood && !needMed && manualItemId == 0)
@@ -89,15 +89,15 @@ public partial class AutoGather
 
         if (needFood)
         {
-            GatherBuddy.Log.Information($"[Consumables] Using food item {config.Consumables.Food.ItemId}");
-            EnqueueActionWithDelay(() => UseItem(config.Consumables.Food.ItemId));
+            GatherBuddy.Log.Information($"[Consumables] Using food item {foodId}");
+            EnqueueActionWithDelay(() => UseItem(foodId));
             return true;
         }
 
         if (needMed)
         {
-            GatherBuddy.Log.Information($"[Consumables] Using medicine item {config.Consumables.Potion.ItemId}");
-            EnqueueActionWithDelay(() => UseItem(config.Consumables.Potion.ItemId));
+            GatherBuddy.Log.Information($"[Consumables] Using medicine item {potionId}");
+            EnqueueActionWithDelay(() => UseItem(potionId));
             return true;
         }
 

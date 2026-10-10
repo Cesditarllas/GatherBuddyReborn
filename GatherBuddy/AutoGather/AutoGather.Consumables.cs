@@ -171,42 +171,45 @@ namespace GatherBuddy.AutoGather
             ActionManager.Instance()->UseAction(ActionType.Item, itemId, extraParam: 65535);
         }
 
+        private uint FirstAvailableConsumable(ConfigPreset.ActionConfigConsumable config)
+            => config.PriorityItemIds.FirstOrDefault(itemId => GetInventoryItemCount(itemId) > 0);
+
         // Cordial, food and potion have no cast time and can be used while mounted
         private bool DoUseConsumablesWithoutCastTime(ConfigPreset config, bool skipThrottle = false)
         {
             if (Throttler.Throttle("DoUseConsumablesWithoutCastTime", 5000) || skipThrottle)
             {
+                var cordialId = FirstAvailableConsumable(config.Consumables.Cordial);
                 if (config.Consumables.Cordial.Enabled
-                    && config.Consumables.Cordial.ItemId > 0
+                    && cordialId > 0
                     && !IsCordialOnCooldown
                     && Player.Object != null
                     && Player.Object.CurrentGp >= config.Consumables.Cordial.MinGP
                     && Player.Object.CurrentGp <= config.Consumables.Cordial.MaxGP
                     && Player.Object.CurrentGp < Player.Object.MaxGp
-                    && GetInventoryItemCount(config.Consumables.Cordial.ItemId) > 0
                 )
                 {
-                    EnqueueActionWithDelay(() => UseItem(config.Consumables.Cordial.ItemId));
+                    EnqueueActionWithDelay(() => UseItem(cordialId));
                     return true;
                 }
 
+                var foodId = FirstAvailableConsumable(config.Consumables.Food);
                 if (config.Consumables.Food.Enabled
-                    && config.Consumables.Food.ItemId > 0
-                    && !GetIsFoodBuffUp(config.Consumables.Food.ItemId)
-                    && GetInventoryItemCount(config.Consumables.Food.ItemId) > 0
+                    && foodId > 0
+                    && !HasFoodBuff()
                     )
                 {
-                    EnqueueActionWithDelay(() => UseItem(config.Consumables.Food.ItemId));
+                    EnqueueActionWithDelay(() => UseItem(foodId));
                     return true;
                 }
 
+                var potionId = FirstAvailableConsumable(config.Consumables.Potion);
                 if (config.Consumables.Potion.Enabled
-                    && config.Consumables.Potion.ItemId > 0
-                    && !GetIsPotionBuffUp(config.Consumables.Potion.ItemId)
-                    && GetInventoryItemCount(config.Consumables.Potion.ItemId) > 0
+                    && potionId > 0
+                    && !HasMedicineBuff()
                     )
                 {
-                    EnqueueActionWithDelay(() => UseItem(config.Consumables.Potion.ItemId));
+                    EnqueueActionWithDelay(() => UseItem(potionId));
                     return true;
                 }
             }
@@ -216,31 +219,31 @@ namespace GatherBuddy.AutoGather
         // Manuals have cast time and cannot be used while mounted
         private uint GetConsumablesWithCastTime(ConfigPreset config)
         {
+            var manualId = FirstAvailableConsumable(config.Consumables.Manual);
             if (config.Consumables.Manual.Enabled
-                && config.Consumables.Manual.ItemId > 0
+                && manualId > 0
                 && !IsManualBuffUp
-                && GetInventoryItemCount(config.Consumables.Manual.ItemId) > 0
                 )
             {
-                return config.Consumables.Manual.ItemId;
+                return manualId;
             }
 
+            var squadronManualId = FirstAvailableConsumable(config.Consumables.SquadronManual);
             if (config.Consumables.SquadronManual.Enabled
-                && config.Consumables.SquadronManual.ItemId > 0
-                && !GetIsSquadronManualBuffUp(config.Consumables.SquadronManual.ItemId)
-                && GetInventoryItemCount(config.Consumables.SquadronManual.ItemId) > 0
+                && squadronManualId > 0
+                && !GetIsSquadronManualBuffUp(squadronManualId)
                 )
             {
-                return config.Consumables.SquadronManual.ItemId;
+                return squadronManualId;
             }
 
+            var squadronPassId = FirstAvailableConsumable(config.Consumables.SquadronPass);
             if (config.Consumables.SquadronPass.Enabled
-                && config.Consumables.SquadronPass.ItemId > 0
-                && !GetIsSquadronPassBuffUp(config.Consumables.SquadronPass.ItemId)
-                && GetInventoryItemCount(config.Consumables.SquadronPass.ItemId) > 0
+                && squadronPassId > 0
+                && !GetIsSquadronPassBuffUp(squadronPassId)
                 )
             {
-                return config.Consumables.SquadronPass.ItemId;
+                return squadronPassId;
             }
             return 0;
         }
