@@ -1,4 +1,5 @@
 using Dalamud.Game.ClientState.Objects.Types;
+using Dalamud.Game.Inventory.InventoryEventArgTypes;
 using Dalamud.Utility;
 using ElliLib.Extensions;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
@@ -66,6 +67,7 @@ namespace GatherBuddy.AutoGather.Lists
             _listsManager                    =  listsManager;
             _autoGather                      =  autoGather;
             _listsManager.ActiveItemsChanged += OnActiveItemsChanged;
+            Dalamud.GameInventory.InventoryChanged += OnInventoryChanged;
         }
 
         /// <summary>
@@ -247,11 +249,19 @@ namespace GatherBuddy.AutoGather.Lists
             return (lhs.Time == TimeInterval.Always).CompareTo(rhs.Time == TimeInterval.Always);
         }
 
-        private static int CompareFishTargetOrder(GatherTarget lhs, GatherTarget rhs, TimeStamp now)
+        private int CompareFishTargetOrder(GatherTarget lhs, GatherTarget rhs, TimeStamp now)
         {
             var availabilityComparison = GetAvailabilityPriority(lhs, now).CompareTo(GetAvailabilityPriority(rhs, now));
             if (availabilityComparison != 0)
                 return availabilityComparison;
+
+            if (GetAvailabilityPriority(lhs, now) == 0)
+            {
+                var endComparison = lhs.Time.End.CompareTo(rhs.Time.End);
+                if (endComparison != 0) return endComparison;
+                var listComparison = _listsManager.GetItemOrder(lhs.Item).CompareTo(_listsManager.GetItemOrder(rhs.Item));
+                if (listComparison != 0) return listComparison;
+            }
 
             var windowComparison = FishWindowPriorityComparer.Instance.Compare(GetFishWindowPriority(lhs, now), GetFishWindowPriority(rhs, now));
             if (windowComparison != 0)
@@ -260,7 +270,7 @@ namespace GatherBuddy.AutoGather.Lists
             return CompareLegacyTargetOrder(lhs, rhs, now);
         }
 
-        private static List<GatherTarget> ApplyFishPriorityOrdering(IEnumerable<GatherTarget> targets, TimeStamp now)
+        private List<GatherTarget> ApplyFishPriorityOrdering(IEnumerable<GatherTarget> targets, TimeStamp now)
         {
             var orderedTargets = targets.ToList();
             var fishSlots = new List<int>(orderedTargets.Count);
@@ -284,9 +294,29 @@ namespace GatherBuddy.AutoGather.Lists
             return orderedTargets;
         }
 
+        private List<GatherTarget> ApplyBalancedOrdering(IEnumerable<GatherTarget> targets)
+        {
+            var ordered = targets.ToList();
+            var slots = ordered.Select((target, index) => (target, index))
+                .Where(entry => entry.target.Time == TimeInterval.Always && _listsManager.IsBalanced(entry.target.Item))
+                .Select(entry => entry.index).ToList();
+            if (slots.Count < 2) return ordered;
+
+            var balanced = slots.Select(index => ordered[index])
+                .OrderBy(target => (double)target.Item.GetTotalCount(_listsManager.UsesRetainerInventory(target.Item)) / Math.Max(1u, target.Quantity))
+                .ThenBy(target => _listsManager.GetItemOrder(target.Item)).ToList();
+            for (var index = 0; index < slots.Count; index++) ordered[slots[index]] = balanced[index];
+            return ordered;
+        }
+
         private void OnActiveItemsChanged()
         {
             _activeItemsChanged = true;
+        }
+
+        private void OnInventoryChanged(IReadOnlyCollection<InventoryEventArgs> events)
+        {
+            if (_listsManager.HasBalancedItems) _forceUpdateUnconditionally = true;
         }
 
         private void RemoveExpiredVisited(TimeStamp adjustedServerTime)
@@ -388,7 +418,9 @@ namespace GatherBuddy.AutoGather.Lists
                 // Put inactive timed nodes to the end, ordered by start time.
                 .OrderBy(x => x.Time.InRange(adjustedServerTime) ? TimeStamp.MinValue : x.Time.Start)
                 // Bring active timed nodes to the front.
-                .ThenBy(x => x.Time == TimeInterval.Always);
+                .ThenBy(x => x.Time == TimeInterval.Always)
+                .ThenBy(x => x.Time.InRange(adjustedServerTime) && x.Time != TimeInterval.Always ? x.Time.End : TimeStamp.MaxValue)
+                .ThenBy(x => x.Time.InRange(adjustedServerTime) && x.Time != TimeInterval.Always ? _listsManager.GetItemOrder(x.Item) : int.MaxValue);
 
             if (GatherBuddy.Config.AutoGatherConfig.SortingMethod == AutoGatherConfig.SortingType.Location)
             {
@@ -419,13 +451,14 @@ namespace GatherBuddy.AutoGather.Lists
                 // Within the leading Diadem items, move umbral items without matching weather to the back.
                 var targetsDiadem = targets
                     .Select(x => (Target: x, Priority: GetDiademPriority(x, ref frontDiadem, ref frontUmbral)))
-                    .OrderBy(x => x.Priority)
+                    .OrderBy(x => x.Target.Time.InRange(adjustedServerTime) && x.Target.Time != TimeInterval.Always ? 0 : 1)
+                    .ThenBy(x => x.Priority)
                     .Select(x => x.Target);
-                _gatherableItems.AddRange(ApplyFishPriorityOrdering(targetsDiadem, adjustedServerTime));
+                _gatherableItems.AddRange(ApplyBalancedOrdering(ApplyFishPriorityOrdering(targetsDiadem, adjustedServerTime)));
             }
             else
             {
-                _gatherableItems.AddRange(ApplyFishPriorityOrdering(targets, adjustedServerTime));
+                _gatherableItems.AddRange(ApplyBalancedOrdering(ApplyFishPriorityOrdering(targets, adjustedServerTime)));
             }
             LogFishPriorityOrder(adjustedServerTime);
 
@@ -710,6 +743,7 @@ namespace GatherBuddy.AutoGather.Lists
             {
                 _listsManager.ActiveItemsChanged -= OnActiveItemsChanged;
             }
+            Dalamud.GameInventory.InventoryChanged -= OnInventoryChanged;
         }
     }
 

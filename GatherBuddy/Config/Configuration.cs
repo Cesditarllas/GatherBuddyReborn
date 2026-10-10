@@ -9,6 +9,7 @@ using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.Text;
 using GatherBuddy.Alarms;
 using GatherBuddy.AutoGather;
+using GatherBuddy.AutoGather.Lists;
 using GatherBuddy.Crafting;
 using Newtonsoft.Json;
 using GatherBuddy.Enums;
@@ -74,6 +75,7 @@ public partial class Configuration : IPluginConfiguration
     // AutoGather Config
     public AutoGatherConfig AutoGatherConfig              { get; set; } = new();
     public float            AutoGatherListSelectorWidth { get; set; } = 225f;
+    public List<AutoGatherFolderConfig> AutoGatherFolders { get; set; } = [];
 
     // Collectable Config
     public CollectableConfig CollectableConfig { get; set; } = new();
@@ -241,6 +243,8 @@ public partial class Configuration : IPluginConfiguration
                 changed |= config.AutoGatherItemQuantities == null;
                 config.AutoGatherItemQuantities ??= [];
                 config.AutoGatherBulkQuantity = Math.Clamp(config.AutoGatherBulkQuantity, 1, 999999);
+                changed |= config.AutoGatherFolders == null;
+                config.AutoGatherFolders ??= [];
                 changed |= config.VendorNpcPreferences == null;
                 config.VendorNpcPreferences ??= new();
                 changed |= config.VendorRoutePreferences == null;

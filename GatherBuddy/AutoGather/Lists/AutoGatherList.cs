@@ -32,6 +32,7 @@ public class AutoGatherList
     public string FolderPath  { get; set; } = string.Empty;
     public int    Order       { get; set; } = 0;
     public bool   Enabled     { get; set; } = false;
+    public bool   BalanceEnabled { get; set; } = false;
     public bool   Fallback    { get; set; } = false;
     public bool   RemoveCompletedItems { get; set; } = false;
     internal bool UsesRetainerInventory { get; set; } = true;
@@ -53,6 +54,7 @@ public class AutoGatherList
             FolderPath         = FolderPath,
             Order              = Order,
             Enabled            = false,
+            BalanceEnabled     = BalanceEnabled,
             Fallback           = Fallback,
             RemoveCompletedItems = RemoveCompletedItems,
             UsesRetainerInventory = UsesRetainerInventory
@@ -174,6 +176,7 @@ public class AutoGatherList
         public string                 FolderPath         = list.FolderPath;
         public int                    Order              = list.Order;
         public bool                   Enabled            = list.Enabled;
+        public bool                   BalanceEnabled     = list.BalanceEnabled;
         public bool                   Fallback           = list.Fallback;
         public bool                   RemoveCompletedItems = list.RemoveCompletedItems;
 
@@ -232,6 +235,7 @@ public class AutoGatherList
             FolderPath         = cfg.FolderPath ?? string.Empty,
             Order              = cfg.Order,
             Enabled            = cfg.Enabled,
+            BalanceEnabled     = cfg.BalanceEnabled,
             Fallback           = cfg.Fallback,
             RemoveCompletedItems = cfg.RemoveCompletedItems,
             items              = new(cfg.ItemIds.Length),

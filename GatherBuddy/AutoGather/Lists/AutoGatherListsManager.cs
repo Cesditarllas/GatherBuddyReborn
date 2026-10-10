@@ -11,6 +11,12 @@ using Functions = GatherBuddy.Plugin.Functions;
 
 namespace GatherBuddy.AutoGather.Lists;
 
+public sealed class AutoGatherFolderConfig
+{
+    public string Path { get; set; } = string.Empty;
+    public bool BalanceEnabled { get; set; }
+}
+
 public class ManualOrderSortMode : ISortMode<AutoGatherList>
 {
     public ReadOnlySpan<byte> Name
@@ -21,7 +27,14 @@ public class ManualOrderSortMode : ISortMode<AutoGatherList>
 
     public IEnumerable<FileSystem<AutoGatherList>.IPath> GetChildren(FileSystem<AutoGatherList>.Folder folder)
     {
-        var folders = folder.GetSubFolders().Cast<FileSystem<AutoGatherList>.IPath>();
+        var folders = folder.GetSubFolders()
+            .OrderBy(path =>
+            {
+                var index = GatherBuddy.Config.AutoGatherFolders.FindIndex(config => config.Path == path.FullName());
+                return index >= 0 ? index : int.MaxValue;
+            })
+            .ThenBy(path => path.Name, StringComparer.OrdinalIgnoreCase)
+            .Cast<FileSystem<AutoGatherList>.IPath>();
         var leaves = folder.GetLeaves()
             .OrderBy(l => l.Value.Order)
             .ThenBy(l => l.Name, StringComparer.OrdinalIgnoreCase)
@@ -41,6 +54,8 @@ public partial class AutoGatherListsManager : IDisposable
     private readonly List<(IGatherable Item, uint Quantity)> _activeItems   = [];
     private readonly List<(IGatherable Item, uint Quantity)> _fallbackItems = [];
     private readonly HashSet<IGatherable>                    _localInventoryActiveItems = [];
+    private readonly Dictionary<IGatherable, int>             _itemOrder = [];
+    private readonly HashSet<IGatherable>                     _balancedItems = [];
     public static ManualOrderSortMode SortMode { get; } = new();
 
     public FileSystem<AutoGatherList> FileSystem
@@ -58,9 +73,18 @@ public partial class AutoGatherListsManager : IDisposable
     internal bool UsesRetainerInventory(IGatherable item)
         => !_localInventoryActiveItems.Contains(item);
 
+    internal int GetItemOrder(IGatherable item)
+        => _itemOrder.GetValueOrDefault(item, int.MaxValue);
+
+    internal bool IsBalanced(IGatherable item)
+        => _balancedItems.Contains(item);
+
+    internal bool HasBalancedItems => _balancedItems.Count > 0;
+
     public AutoGatherListsManager()
     {
         _fileSystem = new FileSystem<AutoGatherList>();
+        RestoreSavedFolders();
         _fileSystem.Changed += OnFileSystemChanged;
     }
 
@@ -68,6 +92,8 @@ public partial class AutoGatherListsManager : IDisposable
     {
         _fileSystem = new FileSystem<AutoGatherList>();
         var change = false;
+
+        RestoreSavedFolders();
 
         foreach (var cfg in configs)
         {
@@ -103,18 +129,71 @@ public partial class AutoGatherListsManager : IDisposable
         if (change)
             Save();
 
+        var addedFolder = false;
+        foreach (var folder in _fileSystem.Root.GetAllDescendants(SortMode).OfType<FileSystem<AutoGatherList>.Folder>())
+            if (!GatherBuddy.Config.AutoGatherFolders.Any(config => config.Path == folder.FullName()))
+            {
+                GatherBuddy.Config.AutoGatherFolders.Add(new AutoGatherFolderConfig { Path = folder.FullName() });
+                addedFolder = true;
+            }
+        if (addedFolder) GatherBuddy.Config.Save();
+
         _fileSystem.Changed += OnFileSystemChanged;
         SetActiveItems();
     }
 
+    private void RestoreSavedFolders()
+    {
+        foreach (var savedFolder in GatherBuddy.Config.AutoGatherFolders)
+        {
+            if (string.IsNullOrWhiteSpace(savedFolder.Path)) continue;
+            try { _fileSystem.FindOrCreateAllFolders(savedFolder.Path); }
+            catch (Exception e) { GatherBuddy.Log.Warning($"Could not restore auto-gather folder '{savedFolder.Path}': {e.Message}"); }
+        }
+    }
+
     private void OnFileSystemChanged(FileSystemChangeType type, FileSystem<AutoGatherList>.IPath changedObject, FileSystem<AutoGatherList>.IPath? previousParent, FileSystem<AutoGatherList>.IPath? newParent)
     {
+        if (type == FileSystemChangeType.FolderAdded && changedObject is FileSystem<AutoGatherList>.Folder addedFolder)
+        {
+            GatherBuddy.Config.AutoGatherFolders.Add(new AutoGatherFolderConfig { Path = addedFolder.FullName() });
+            GatherBuddy.Config.Save();
+        }
+        if (type == FileSystemChangeType.ObjectMoved && changedObject is FileSystem<AutoGatherList>.Folder movedFolder
+            && previousParent is FileSystem<AutoGatherList>.Folder oldParent)
+        {
+            RememberFolder(movedFolder.Parent);
+            var oldPath = oldParent.IsRoot ? movedFolder.Name : oldParent.FullName() + "/" + movedFolder.Name;
+            MoveFolderMetadata(oldPath, movedFolder.FullName());
+        }
+        if (type == FileSystemChangeType.ObjectRemoved && changedObject is FileSystem<AutoGatherList>.Folder removedFolder)
+        {
+            var path = removedFolder.FullName();
+            GatherBuddy.Config.AutoGatherFolders.RemoveAll(config => config.Path == path || config.Path.StartsWith(path + "/", StringComparison.Ordinal));
+            GatherBuddy.Config.Save();
+        }
         // Not renumbering the source folder on ObjectRemoved or ObjectMoved makes the numbering sparse, but it's fine for ordering.
         if (type is FileSystemChangeType.ObjectMoved or FileSystemChangeType.LeafAdded && changedObject is FileSystem<AutoGatherList>.Leaf newLeaf)
         {
+            RememberFolder(newLeaf.Parent);
             newLeaf.Value.Order = newLeaf.Parent.GetLeaves().Where(leaf => leaf != newLeaf).Select(leaf => leaf.Value.Order).DefaultIfEmpty().Max() + 1;
             Save();
+            if (newLeaf.Value.Enabled) SetActiveItems();
         }
+    }
+
+    private static void RememberFolder(FileSystem<AutoGatherList>.Folder folder)
+    {
+        var path = new Stack<FileSystem<AutoGatherList>.Folder>();
+        for (var current = folder; !current.IsRoot; current = current.Parent) path.Push(current);
+        var changed = false;
+        while (path.TryPop(out var current))
+        {
+            if (GatherBuddy.Config.AutoGatherFolders.Any(config => config.Path == current.FullName())) continue;
+            GatherBuddy.Config.AutoGatherFolders.Add(new AutoGatherFolderConfig { Path = current.FullName() });
+            changed = true;
+        }
+        if (changed) GatherBuddy.Config.Save();
     }
 
     public void Dispose()
@@ -127,6 +206,22 @@ public partial class AutoGatherListsManager : IDisposable
         _activeItems.Clear();
         _fallbackItems.Clear();
         _localInventoryActiveItems.Clear();
+        _itemOrder.Clear();
+        _balancedItems.Clear();
+
+        var order = 0;
+        foreach (var leaf in _fileSystem.Root.GetAllDescendants(SortMode).OfType<FileSystem<AutoGatherList>.Leaf>())
+        {
+            var list = leaf.Value;
+            if (!list.Enabled) continue;
+            var balanced = list.BalanceEnabled || IsFolderBalanced(leaf.Parent);
+            foreach (var item in list.Items.Where(item => list.EnabledItems.GetValueOrDefault(item)))
+            {
+                _itemOrder.TryAdd(item, order);
+                if (balanced) _balancedItems.Add(item);
+                order++;
+            }
+        }
 
         var items = _fileSystem.Root.GetAllDescendants(SortMode)
             .OfType<FileSystem<AutoGatherList>.Leaf>()
@@ -152,6 +247,14 @@ public partial class AutoGatherListsManager : IDisposable
         }
 
         ActiveItemsChanged?.Invoke();
+    }
+
+    private static bool IsFolderBalanced(FileSystem<AutoGatherList>.Folder folder)
+    {
+        for (var current = folder; !current.IsRoot; current = current.Parent)
+            if (GatherBuddy.Config.AutoGatherFolders.Any(config => config.Path == current.FullName() && config.BalanceEnabled))
+                return true;
+        return false;
     }
 
     public void Save()

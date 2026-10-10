@@ -60,16 +60,26 @@ public partial class Interface
             SubscribeRightClickLeaf(DeleteListContext, 100);
             SubscribeRightClickLeaf(DuplicateListContext, 200);
             SubscribeRightClickLeaf(ToggleListContext, 300);
+            SubscribeRightClickLeaf(BalanceListContext, 310);
             SubscribeRightClickLeaf(ExportListContext, 400);
             SubscribeRightClickLeaf(GenerateVendorBuyListContext, 450);
             SubscribeRightClickFolder(CreateFolderContext, 500);
+            SubscribeRightClickFolder(MoveFolderUpContext, 40);
+            SubscribeRightClickFolder(MoveFolderDownContext, 50);
+            SubscribeRightClickFolder(ToggleFolderContext, 300);
+            SubscribeRightClickFolder(BalanceFolderContext, 310);
             SubscribeRightClickFolder(DeleteFolderContext, 600);
             UnsubscribeRightClickLeaf(RenameLeaf);
+            UnsubscribeRightClickFolder(RenameFolder);
+            SubscribeRightClickLeaf(RenameListContext, 950);
+            SubscribeRightClickFolder(RenameFolderContext, 950);
 
             PathDropped += OnPathDropped;
         }
 
         public AutoGatherListsDragDropData? DragDropItem { set; get; }
+        private string _renameListName = string.Empty;
+        private string _renameFolderName = string.Empty;
 
         public void DrawBaitBuyListResultPopup()
         {
@@ -193,6 +203,11 @@ public partial class Interface
         {
             var list = leaf.Value;
             var flag = selected ? ImGuiTreeNodeFlags.Selected | LeafFlags : LeafFlags;
+
+            var enabled = list.Enabled;
+            if (ImGui.Checkbox($"##list_enabled_{leaf.Identifier}", ref enabled))
+                _plugin.AutoGatherListsManager.SetListsEnabled([list], enabled);
+            ImGui.SameLine();
             
             using var color = ImRaii.PushColor(ImGuiCol.Text, ColorId.DisabledText.Value(), !list.Enabled);
             var displayName = CheckUnnamed(list.Name);
@@ -271,9 +286,37 @@ public partial class Interface
 
         private void ToggleListContext(FileSystem<AutoGatherList>.Leaf leaf)
         {
+            var selected = SelectedPaths.OfType<FileSystem<AutoGatherList>.Leaf>().ToList();
+            if (selected.Count > 1 && selected.Contains(leaf))
+            {
+                if (ImGui.MenuItem($"Enable Selected ({selected.Count})"))
+                    _plugin.AutoGatherListsManager.SetListsEnabled(selected.Select(path => path.Value), true);
+                if (ImGui.MenuItem($"Disable Selected ({selected.Count})"))
+                    _plugin.AutoGatherListsManager.SetListsEnabled(selected.Select(path => path.Value), false);
+                return;
+            }
             var list = leaf.Value;
             if (ImGui.MenuItem(list.Enabled ? "Disable" : "Enable"))
                 _plugin.AutoGatherListsManager.ToggleList(list);
+        }
+
+        private void BalanceListContext(FileSystem<AutoGatherList>.Leaf leaf)
+        {
+            var enabled = leaf.Value.BalanceEnabled;
+            if (ImGui.MenuItem("Balance gathering within this list", string.Empty, enabled))
+                _plugin.AutoGatherListsManager.SetListBalanceEnabled(leaf.Value, !enabled);
+        }
+
+        private void RenameListContext(FileSystem<AutoGatherList>.Leaf leaf)
+        {
+            if (ImGui.IsWindowAppearing()) _renameListName = leaf.Value.Name;
+            ImGui.SetNextItemWidth(180f * ImGuiHelpers.GlobalScale);
+            if (ImGui.InputTextWithHint("##rename_auto_list", "Rename list, press Enter", ref _renameListName, 128,
+                    ImGuiInputTextFlags.EnterReturnsTrue) && !string.IsNullOrWhiteSpace(_renameListName))
+            {
+                _plugin.AutoGatherListsManager.ChangeName(leaf.Value, _renameListName.Trim());
+                ImGui.CloseCurrentPopup();
+            }
         }
 
         private void ExportListContext(FileSystem<AutoGatherList>.Leaf leaf)
@@ -454,6 +497,48 @@ public partial class Interface
             if (ImGuiUtil.OpenNameField(newFolderName, ref name) && name.Length > 0)
             {
                 _plugin.AutoGatherListsManager.CreateFolder(name, folder);
+            }
+        }
+
+        private void MoveFolderUpContext(FileSystem<AutoGatherList>.Folder folder)
+        {
+            if (!folder.IsRoot && ImGui.MenuItem("Move Folder Up"))
+                _plugin.AutoGatherListsManager.MoveFolderOnce(folder, false);
+        }
+
+        private void MoveFolderDownContext(FileSystem<AutoGatherList>.Folder folder)
+        {
+            if (!folder.IsRoot && ImGui.MenuItem("Move Folder Down"))
+                _plugin.AutoGatherListsManager.MoveFolderOnce(folder, true);
+        }
+
+        private void ToggleFolderContext(FileSystem<AutoGatherList>.Folder folder)
+        {
+            if (folder.IsRoot) return;
+            if (ImGui.MenuItem("Enable All Lists in Folder"))
+                _plugin.AutoGatherListsManager.SetFolderEnabled(folder, true);
+            if (ImGui.MenuItem("Disable All Lists in Folder"))
+                _plugin.AutoGatherListsManager.SetFolderEnabled(folder, false);
+        }
+
+        private void BalanceFolderContext(FileSystem<AutoGatherList>.Folder folder)
+        {
+            if (folder.IsRoot) return;
+            var enabled = _plugin.AutoGatherListsManager.IsFolderBalanceEnabled(folder);
+            if (ImGui.MenuItem("Balance gathering within this folder", string.Empty, enabled))
+                _plugin.AutoGatherListsManager.SetFolderBalanceEnabled(folder, !enabled);
+        }
+
+        private void RenameFolderContext(FileSystem<AutoGatherList>.Folder folder)
+        {
+            if (folder.IsRoot) return;
+            if (ImGui.IsWindowAppearing()) _renameFolderName = folder.Name;
+            ImGui.SetNextItemWidth(180f * ImGuiHelpers.GlobalScale);
+            if (ImGui.InputTextWithHint("##rename_auto_folder", "Rename folder, press Enter", ref _renameFolderName, 128,
+                    ImGuiInputTextFlags.EnterReturnsTrue) && !string.IsNullOrWhiteSpace(_renameFolderName))
+            {
+                _plugin.AutoGatherListsManager.RenameFolder(folder, _renameFolderName);
+                ImGui.CloseCurrentPopup();
             }
         }
 

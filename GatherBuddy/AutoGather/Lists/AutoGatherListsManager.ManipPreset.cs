@@ -59,6 +59,11 @@ public partial class AutoGatherListsManager
     {
         if (folder.IsRoot)
             return;
+        if (folder.GetAllDescendants(SortMode).Any())
+        {
+            GatherBuddy.Log.Warning("Move or delete the contents before deleting an auto-gather folder.");
+            return;
+        }
 
         try
         {
@@ -70,6 +75,68 @@ public partial class AutoGatherListsManager
             GatherBuddy.Log.Warning($"Failed to delete folder: {e.Message}");
         }
     }
+
+    public void RenameFolder(FileSystem<AutoGatherList>.Folder folder, string name)
+    {
+        if (folder.IsRoot || string.IsNullOrWhiteSpace(name)) return;
+        try
+        {
+            var oldPath = folder.FullName();
+            _fileSystem.Rename(folder, name.Trim());
+            MoveFolderMetadata(oldPath, folder.FullName());
+        }
+        catch (Exception e) { GatherBuddy.Log.Warning($"Failed to rename folder: {e.Message}"); }
+    }
+
+    public void MoveFolderMetadata(string oldPath, string newPath)
+    {
+        foreach (var config in GatherBuddy.Config.AutoGatherFolders)
+            if (config.Path == oldPath || config.Path.StartsWith(oldPath + "/", StringComparison.Ordinal))
+                config.Path = newPath + config.Path[oldPath.Length..];
+        GatherBuddy.Config.Save();
+        Save();
+        SetActiveItems();
+    }
+
+    public void MoveFolderOnce(FileSystem<AutoGatherList>.Folder folder, bool down)
+    {
+        var siblings = folder.Parent.GetSubFolders().OrderBy(path =>
+            GatherBuddy.Config.AutoGatherFolders.FindIndex(config => config.Path == path.FullName())).ToList();
+        var index = siblings.IndexOf(folder);
+        var other = index + (down ? 1 : -1);
+        if (other < 0 || other >= siblings.Count) return;
+        var configs = GatherBuddy.Config.AutoGatherFolders;
+        var first = configs.FindIndex(config => config.Path == folder.FullName());
+        var second = configs.FindIndex(config => config.Path == siblings[other].FullName());
+        if (first < 0 || second < 0) return;
+        (configs[first], configs[second]) = (configs[second], configs[first]);
+        GatherBuddy.Config.Save();
+        ListOrderChanged?.Invoke();
+        SetActiveItems();
+    }
+
+    public bool IsFolderBalanceEnabled(FileSystem<AutoGatherList>.Folder folder)
+        => GatherBuddy.Config.AutoGatherFolders.Any(config => config.Path == folder.FullName() && config.BalanceEnabled);
+
+    public void SetFolderBalanceEnabled(FileSystem<AutoGatherList>.Folder folder, bool enabled)
+    {
+        var config = GatherBuddy.Config.AutoGatherFolders.FirstOrDefault(config => config.Path == folder.FullName());
+        if (config == null || config.BalanceEnabled == enabled) return;
+        config.BalanceEnabled = enabled;
+        GatherBuddy.Config.Save();
+        SetActiveItems();
+    }
+
+    public void SetListBalanceEnabled(AutoGatherList list, bool enabled)
+    {
+        if (list.BalanceEnabled == enabled) return;
+        list.BalanceEnabled = enabled;
+        Save();
+        SetActiveItems();
+    }
+
+    public void SetFolderEnabled(FileSystem<AutoGatherList>.Folder folder, bool enabled)
+        => SetListsEnabled(folder.GetAllDescendants(SortMode).OfType<FileSystem<AutoGatherList>.Leaf>().Select(leaf => leaf.Value), enabled);
 
     public void ChangeName(AutoGatherList list, string newName)
     {
@@ -98,21 +165,21 @@ public partial class AutoGatherListsManager
     }
 
     public void ToggleList(AutoGatherList list)
+        => SetListsEnabled([list], !list.Enabled);
+
+    public void SetListsEnabled(IEnumerable<AutoGatherList> lists, bool enabled)
     {
-        if (!list.Enabled && !ValidateFishingBait(list))
+        var changed = false;
+        foreach (var list in lists)
         {
-            return;
+            if (list.Enabled == enabled) continue;
+            if (enabled && (!ValidateFishingBait(list) || !ValidateGatherablePerception(list))) continue;
+            list.Enabled = enabled;
+            changed = true;
         }
-        
-        if (!list.Enabled && !ValidateGatherablePerception(list))
-        {
-            return;
-        }
-        
-        list.Enabled = !list.Enabled;
+        if (!changed) return;
         Save();
-        if (list.Items.Count > 0)
-            SetActiveItems();
+        SetActiveItems();
     }
     
     private unsafe bool ValidateFishingBait(AutoGatherList list)
@@ -637,6 +704,7 @@ public partial class AutoGatherListsManager
         movedList.Value.Order = insertIdx;
         Save();
         ListOrderChanged?.Invoke();        
+        SetActiveItems();
     }
 
     public void MoveListUp(FileSystem<AutoGatherList>.Leaf list)
@@ -660,6 +728,7 @@ public partial class AutoGatherListsManager
             (list.Value.Order, neighbor.Value.Order) = (neighbor.Value.Order, list.Value.Order);
             Save();
             ListOrderChanged?.Invoke();
+            SetActiveItems();
         }
     }
 
