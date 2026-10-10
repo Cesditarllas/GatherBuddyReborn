@@ -289,9 +289,9 @@ public partial class Interface
             var selected = SelectedPaths.OfType<FileSystem<AutoGatherList>.Leaf>().ToList();
             if (selected.Count > 1 && selected.Contains(leaf))
             {
-                if (ImGui.MenuItem($"Enable Selected ({selected.Count})"))
+                if (ImGui.MenuItem($"启用所选 ({selected.Count})"))
                     _plugin.AutoGatherListsManager.SetListsEnabled(selected.Select(path => path.Value), true);
-                if (ImGui.MenuItem($"Disable Selected ({selected.Count})"))
+                if (ImGui.MenuItem($"禁用所选 ({selected.Count})"))
                     _plugin.AutoGatherListsManager.SetListsEnabled(selected.Select(path => path.Value), false);
                 return;
             }
@@ -303,7 +303,7 @@ public partial class Interface
         private void BalanceListContext(FileSystem<AutoGatherList>.Leaf leaf)
         {
             var enabled = leaf.Value.BalanceEnabled;
-            if (ImGui.MenuItem("Balance gathering within this list", string.Empty, enabled))
+            if (ImGui.MenuItem("在本清单内均衡采集", string.Empty, enabled))
                 _plugin.AutoGatherListsManager.SetListBalanceEnabled(leaf.Value, !enabled);
         }
 
@@ -502,22 +502,22 @@ public partial class Interface
 
         private void MoveFolderUpContext(FileSystem<AutoGatherList>.Folder folder)
         {
-            if (!folder.IsRoot && ImGui.MenuItem("Move Folder Up"))
+            if (!folder.IsRoot && ImGui.MenuItem("上移文件夹"))
                 _plugin.AutoGatherListsManager.MoveFolderOnce(folder, false);
         }
 
         private void MoveFolderDownContext(FileSystem<AutoGatherList>.Folder folder)
         {
-            if (!folder.IsRoot && ImGui.MenuItem("Move Folder Down"))
+            if (!folder.IsRoot && ImGui.MenuItem("下移文件夹"))
                 _plugin.AutoGatherListsManager.MoveFolderOnce(folder, true);
         }
 
         private void ToggleFolderContext(FileSystem<AutoGatherList>.Folder folder)
         {
             if (folder.IsRoot) return;
-            if (ImGui.MenuItem("Enable All Lists in Folder"))
+            if (ImGui.MenuItem("启用文件夹内全部清单"))
                 _plugin.AutoGatherListsManager.SetFolderEnabled(folder, true);
-            if (ImGui.MenuItem("Disable All Lists in Folder"))
+            if (ImGui.MenuItem("禁用文件夹内全部清单"))
                 _plugin.AutoGatherListsManager.SetFolderEnabled(folder, false);
         }
 
@@ -525,7 +525,7 @@ public partial class Interface
         {
             if (folder.IsRoot) return;
             var enabled = _plugin.AutoGatherListsManager.IsFolderBalanceEnabled(folder);
-            if (ImGui.MenuItem("Balance gathering within this folder", string.Empty, enabled))
+            if (ImGui.MenuItem("在本文件夹内均衡采集", string.Empty, enabled))
                 _plugin.AutoGatherListsManager.SetFolderBalanceEnabled(folder, !enabled);
         }
 

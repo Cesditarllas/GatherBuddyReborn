@@ -36,7 +36,7 @@ public partial class Interface
 
         public static void DrawFullBackup()
         {
-            if (ImGui.Button("Export all settings and lists to ZIP"))
+            if (ImGui.Button("导出全部设置与清单到 ZIP"))
             {
                 try
                 {
@@ -47,8 +47,8 @@ public partial class Interface
                 catch (Exception ex) { _fullBackupStatus = $"Export failed: {ex.Message}"; }
             }
             ImGui.SetNextItemWidth(-1);
-            ImGui.InputText("Backup ZIP path to import", ref _fullBackupPath, 1024);
-            if (ImGui.Button("Import all settings and lists from ZIP"))
+            ImGui.InputText("要导入的备份 ZIP 路径", ref _fullBackupPath, 1024);
+            if (ImGui.Button("从 ZIP 导入全部设置与清单"))
             {
                 try
                 {

@@ -380,7 +380,7 @@ public partial class Interface
 
     private static void DrawMarketSearch(uint itemId)
     {
-        if (ImGui.Selectable("Search Market Board"))
+        if (ImGui.Selectable("搜索市场板"))
             GatherBuddy.VulcanWindow?.OpenToMarketboardItem(itemId);
     }
 }

@@ -761,7 +761,7 @@ public class CraftingMaterialsWindow : Window
 
     private void DrawAutoGatherMaterialMenu(MaterialEntry entry, IReadOnlyList<MaterialEntry> panelEntries, string panelLabel)
     {
-        if (GetGatherableMaterial(entry.ItemId) == null || !ImGui.BeginMenu("Add to Auto-Gather List"))
+        if (GetGatherableMaterial(entry.ItemId) == null || !ImGui.BeginMenu("添加到自动采集列表"))
             return;
 
         DrawMaterialTransferChoices("This material", [entry]);
@@ -775,9 +775,9 @@ public class CraftingMaterialsWindow : Window
         if (!ImGui.BeginMenu(label)) return;
 
         var current = GatherBuddy.Instance.Interface.CurrentAutoGatherList;
-        if (ImGui.MenuItem("Create new list"))
+        if (ImGui.MenuItem("新建清单"))
             AddMaterialTargets(entries, null);
-        if (ImGui.MenuItem($"Current list: {current?.Name ?? "None"}", string.Empty, false, current != null))
+        if (ImGui.MenuItem($"当前清单: {current?.Name ?? "无"}", string.Empty, false, current != null))
             AddMaterialTargets(entries, current);
         ImGui.EndMenu();
     }

@@ -48,7 +48,7 @@ public partial class VulcanWindow
             GatherBuddy.Config.Save();
         }
         var fixedQuantities = GatherBuddy.Config.RecipeGatherFixedQuantities;
-        if (ImGui.Checkbox("Use fixed material quantities", ref fixedQuantities))
+        if (ImGui.Checkbox("使用固定的材料数量", ref fixedQuantities))
         {
             GatherBuddy.Config.RecipeGatherFixedQuantities = fixedQuantities;
             GatherBuddy.Config.Save();
@@ -71,18 +71,18 @@ public partial class VulcanWindow
 
         var current = GatherBuddy.Instance.Interface.CurrentAutoGatherList;
         ImGui.BeginDisabled(current == null);
-        ImGui.Checkbox($"Add to current list: {current?.Name ?? "None"}", ref _recipeMaterialsUseCurrent);
+        ImGui.Checkbox($"添加到当前清单: {current?.Name ?? "无"}", ref _recipeMaterialsUseCurrent);
         ImGui.EndDisabled();
         if (!_recipeMaterialsUseCurrent || current == null)
-            ImGui.InputText("New list name", ref _recipeMaterialsNewListName, 128);
+            ImGui.InputText("新清单名称", ref _recipeMaterialsNewListName, 128);
 
-        if (ImGui.Button("Add materials") && _recipeMaterialsRecipeId is { } recipeId)
+        if (ImGui.Button("添加材料") && _recipeMaterialsRecipeId is { } recipeId)
         {
             if (AddRecipeMaterials(recipeId, _recipeMaterialsUseCurrent ? current : null))
                 ImGui.CloseCurrentPopup();
         }
         ImGui.SameLine();
-        if (ImGui.Button("Cancel")) ImGui.CloseCurrentPopup();
+        if (ImGui.Button("取消")) ImGui.CloseCurrentPopup();
         if (_recipeMaterialsStatus.Length > 0) ImGui.TextWrapped(_recipeMaterialsStatus);
         ImGui.EndPopup();
     }

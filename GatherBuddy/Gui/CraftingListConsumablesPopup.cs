@@ -91,9 +91,9 @@ public class CraftingListConsumablesPopup
         ImGui.Separator();
         ImGui.Spacing();
 
-        ImGui.Checkbox("Assume All HQ Materials##ListUseAllHQ", ref _workingUseAllHQ);
+        ImGui.Checkbox("假定全部 HQ 材料##ListUseAllHQ", ref _workingUseAllHQ);
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Use all HQ-capable ingredients as the list default for planning and Raphael warmup.\nItem and precraft settings can still override this.");
+            ImGui.SetTooltip("将全部可上 HQ 的材料作为清单默认值, 用于规划与 Raphael 预热。\n物品与半成品设置仍可单独覆盖。");
 
         ImGui.Spacing();
 

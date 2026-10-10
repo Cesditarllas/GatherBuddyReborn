@@ -327,8 +327,8 @@ public partial class VulcanWindow
         var sortLabel = _sortColumn switch
         {
             SortColumn.Level => _filterByEquipLevel ? "装备等级" : "等级",
-            SortColumn.Crafted => "Crafted",
-            _ => "Sort"
+            SortColumn.Crafted => "已制作",
+            _ => "排序"
         };
         var sortIcon = _sortDirection == SortDirection.Ascending ? FontAwesomeIcon.ArrowUp : FontAwesomeIcon.ArrowDown;
         
@@ -348,7 +348,7 @@ public partial class VulcanWindow
         
         if (ImGui.BeginPopup("##sortMenu"))
         {
-            if (ImGui.MenuItem("Level", "", _sortColumn == SortColumn.Level))
+            if (ImGui.MenuItem("等级", "", _sortColumn == SortColumn.Level))
             {
                 if (_sortColumn == SortColumn.Level)
                     _sortDirection = _sortDirection == SortDirection.Ascending ? SortDirection.Descending : SortDirection.Ascending;
@@ -356,7 +356,7 @@ public partial class VulcanWindow
                     _sortColumn = SortColumn.Level;
                 _filtersDirty = true;
             }
-            if (ImGui.MenuItem("Crafted", "", _sortColumn == SortColumn.Crafted))
+            if (ImGui.MenuItem("已制作", "", _sortColumn == SortColumn.Crafted))
             {
                 if (_sortColumn == SortColumn.Crafted)
                     _sortDirection = _sortDirection == SortDirection.Ascending ? SortDirection.Descending : SortDirection.Ascending;
@@ -482,7 +482,7 @@ public partial class VulcanWindow
                 var createEnter = ImGui.InputTextWithHint("##NewListName", "清单名称...", ref _contextMenuNewListName, 128, ImGuiInputTextFlags.EnterReturnsTrue);
                 ImGui.Checkbox("临时##ctxNewListEphemeral", ref _contextMenuNewListEphemeral);
                 if (ImGui.IsItemHovered())
-                    ImGui.SetTooltip("Delete this list automatically after crafting completes.\nCan be disabled later in the list editor.");
+                    ImGui.SetTooltip("制作完成后自动删除此清单。\n之后可在清单编辑器中关闭。");
                 if ((ImGui.Button("创建并添加", new Vector2(-1, 0)) || createEnter) && !string.IsNullOrWhiteSpace(_contextMenuNewListName))
                 {
                     var newList = GatherBuddy.CraftingListManager.CreateNewList(_contextMenuNewListName.Trim(), _contextMenuNewListEphemeral);

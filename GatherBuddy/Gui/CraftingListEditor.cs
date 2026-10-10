@@ -21,7 +21,7 @@ namespace GatherBuddy.Gui;
 
 public class CraftingListEditor
 {
-    private static readonly string[] CraftOrderLabels = ["List order", "Level / difficulty (low to high)"];
+    private static readonly string[] CraftOrderLabels = ["清单顺序", "等级 / 难度 (低到高)"];
 
     private sealed class QueueCacheSnapshot
     {
@@ -587,7 +587,7 @@ public class CraftingListEditor
         ImGui.Checkbox("显示半成品##sp", ref _showPrecrafts);
 
         var craftOrder = (int)_list.CraftOrderMode;
-        if (ImGui.Combo("Craft order##craftOrder", ref craftOrder, CraftOrderLabels, CraftOrderLabels.Length))
+        if (ImGui.Combo("制作顺序##craftOrder", ref craftOrder, CraftOrderLabels, CraftOrderLabels.Length))
         {
             _list.CraftOrderMode = (CraftOrderMode)craftOrder;
             InvalidateQueueCache();
@@ -596,7 +596,7 @@ public class CraftingListEditor
             TriggerQueueRegeneration();
         }
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Required precrafts are made first. Recipes that cannot be crafted are skipped.");
+            ImGui.SetTooltip("会优先制作所需的半成品。无法制作的配方将被跳过。");
 
         var skipIfEnough = _list.SkipIfEnough;
         if (ImGui.Checkbox("持有足够时跳过##sie", ref skipIfEnough))
@@ -982,7 +982,7 @@ public class CraftingListEditor
         }
 
         if (ImGui.IsItemHovered() && _selectedRecipe != null)
-            ImGui.SetTooltip($"Add {_recipeLabels[_selectedRecipe.Value.RowId]} x{_searchQuantity} to list");
+            ImGui.SetTooltip($"将 {_recipeLabels[_selectedRecipe.Value.RowId]} x{_searchQuantity} 添加到清单");
     }
 
     private void DrawRecipeComboWithKeywordFilter()
