@@ -19,7 +19,7 @@ public partial class Interface
 {
     internal static bool DrawLocationInput(IGatherable item, ILocation? current, out ILocation? ret)
     {
-        const string noPreferred = "No Preferred Location";
+        const string noPreferred = "无偏好采集位置";
         var          width       = SetInputWidth * 0.85f;
         ret = current;
         if (item.Locations.Count == 1)
@@ -90,7 +90,7 @@ public partial class Interface
         using var tt = ImRaii.Tooltip();
 
         if (uptimeDependency)
-            ImUtf8.TextFramed("Uptime Dependency"u8, 0xFF202080);
+            ImUtf8.TextFramed("依赖前置鱼"u8, 0xFF202080);
 
         if (!displayNextWindow)
             return;
@@ -104,7 +104,7 @@ public partial class Interface
         var uptimes   = GatherBuddy.UptimeManager.GetUpcomingUptimes(item, GatherBuddy.Config.UpcomingUptimesCount);
         if (uptimes.Count <= 0)
         {
-            ImUtf8.Text($"{uptime.Start}\n{uptime.End}\n{uptime.DurationString()}\n\nLoading next {GatherBuddy.Config.UpcomingUptimesCount} windows...");
+            ImUtf8.Text($"{uptime.Start}\n{uptime.End}\n{uptime.DurationString()}\n\n正在加载接下来的 {GatherBuddy.Config.UpcomingUptimesCount} 个窗口...");
             return;
         }
 
@@ -115,11 +115,11 @@ public partial class Interface
         if (!table)
             return;
 
-        ImGui.TableSetupColumn("Day"u8);
-        ImGui.TableSetupColumn("Time"u8);
-        ImGui.TableSetupColumn("Starts in"u8);
-        ImGui.TableSetupColumn("Duration"u8);
-        ImGui.TableSetupColumn("Downtime"u8);
+        ImGui.TableSetupColumn("日期"u8);
+        ImGui.TableSetupColumn("时间"u8);
+        ImGui.TableSetupColumn("距开始"u8);
+        ImGui.TableSetupColumn("持续时间"u8);
+        ImGui.TableSetupColumn("间隔"u8);
         ImGui.TableHeadersRow();
 
         DateTime? previousStartDate = null;
@@ -146,7 +146,7 @@ public partial class Interface
             }
             else
             {
-                ImUtf8.Text("Active"u8);
+                ImUtf8.Text("进行中"u8);
             }
 
             ImGui.TableNextColumn();
@@ -196,7 +196,7 @@ public partial class Interface
 
         ImGuiUtil.HoverTooltip(tooltip);
 
-        if (ImGuiUtil.DrawDisabledButton("Default", Vector2.Zero, defaultValue, defaultValue == oldValue))
+        if (ImGuiUtil.DrawDisabledButton("默认", Vector2.Zero, defaultValue, defaultValue == oldValue))
         {
             setValue(defaultValue);
             GatherBuddy.Config.Save();
@@ -215,11 +215,11 @@ public partial class Interface
         ImGui.SameLine();
         using var style = ImRaii.PushStyle(ImGuiStyleVar.ItemSpacing, Vector2.Zero);
         ImGui.NewLine();
-        ImUtf8.Text($"{table.CurrentItems} / {table.TotalItems} {name} Visible");
+        ImUtf8.Text($"{table.CurrentItems} / {table.TotalItems} {name} 可见");
         if (table.TotalColumns != table.VisibleColumns)
         {
             ImGui.SameLine(0, 50 * ImGuiHelpers.GlobalScale);
-            ImUtf8.Text($"{table.TotalColumns - table.VisibleColumns} Columns Hidden");
+            ImUtf8.Text($"{table.TotalColumns - table.VisibleColumns} 列被隐藏");
         }
 
         if (typeof(T) == typeof(ExtendedFish))
@@ -227,7 +227,7 @@ public partial class Interface
             if (File.Exists(GatherBuddy.GameData.OverrideFile))
             {
                 ImGui.SameLine(0, 50 * ImGuiHelpers.GlobalScale);
-                if (ImUtf8.SmallButton("Reimport Fish Overrides") && GatherBuddy.GameData.ReimportOverrides())
+                if (ImUtf8.SmallButton("重新导入鱼类覆盖数据") && GatherBuddy.GameData.ReimportOverrides())
                 {
                     GatherBuddy.UptimeManager.ResetModifiedUptimes();
                     foreach (var fish in ExtendedFishList.Where(f => f.Data.HasOverridenData))
@@ -238,7 +238,7 @@ public partial class Interface
             using (var popup = ImUtf8.PopupContextItem("##Context"u8))
             {
                 if (popup)
-                    if (ImUtf8.MenuItem("Move to Backup"u8))
+                    if (ImUtf8.MenuItem("移动到备份"u8))
                         try
                         {
                             File.Move(GatherBuddy.GameData.OverrideFile, Path.ChangeExtension(GatherBuddy.GameData.OverrideFile, ".json.bak"),
@@ -246,14 +246,14 @@ public partial class Interface
                         }
                         catch (Exception ex)
                         {
-                            GatherBuddy.Log.Error($"Could not move fish data override file to backup:\n{ex}");
+                            GatherBuddy.Log.Error($"无法将鱼类数据覆盖文件移动到备份:\n{ex}");
                         }
             }
             
             if (GatherBuddy.GameData.OverriddenFish > 0)
             {
                 ImGui.SameLine(0, 50 * ImGuiHelpers.GlobalScale);
-                ImUtf8.Text($"{GatherBuddy.GameData.OverriddenFish} Fish Overridden");
+                ImUtf8.Text($"{GatherBuddy.GameData.OverriddenFish} 鱼类覆盖已应用");
             }
         }
     }
@@ -261,7 +261,7 @@ public partial class Interface
     private static void DrawClippy()
     {
         const string popupName = "GatherClippy###ClippyPopup";
-        const string text      = "Can't find something?";
+        const string text      = "找不到想要的物品？";
         if (GatherBuddy.Config.HideClippy)
             return;
 
@@ -284,8 +284,8 @@ public partial class Interface
             GatherBuddy.Config.Save();
         }
 
-        ImGuiUtil.HoverTooltip("Click for some help navigating this table.\n"
-          + "Control + Shift + Right-Click to permanently hide this button.");
+        ImGuiUtil.HoverTooltip("单击以打开本表的使用帮助\n"
+          + "按住 Ctrl + Shift 键右键本按钮以永久隐藏");
 
         color.Pop();
         var windowSize = new Vector2(1024 * ImGuiHelpers.GlobalScale,
@@ -298,27 +298,27 @@ public partial class Interface
             return;
 
         ImGui.BulletText(
-            "You can use text filters like \"Item Name...\" to only show entries that contain the given string. They are case-insensitive and are not stored for your next session.");
+            "可以使用诸如 \"物品名称...\" 之类的文本过滤器，只显示包含指定字符串的条目。它们对大小写不敏感，并且不会保存。");
         ImGui.BulletText(
-            "Text filters also support regular expressions, e.g. \"(blue|green)\" matches all entries that contain either blue or green.");
-        ImGui.BulletText("Button filters like \"Next Uptime\", \"Node Type\" or \"Fish Type\" allow you to filter specific types on click.");
-        ImGui.BulletText("Those filters are stored across sessions. For columns with active filters, the filter buttons are tinted red.");
+            "文本过滤器还支持正则表达式，例如 \"(blue|green)\" 会匹配所有包含蓝色或绿色的条目。");
+        ImGui.BulletText("类似 \"下次时间\"、\"采集点类型\" 或 \"鱼类类型\" 的按钮过滤器可以通过点击来过滤特定类型。");
+        ImGui.BulletText("这些过滤器会保存。但对于具有活动过滤器的列，过滤按钮会变为红色。");
         ImGui.NewLine();
         ImGui.BulletText(
-            "You can click in the blank space of a header to sort the table in this column, ascending or descending. This is signified with a little triangle pointing up or down.");
+            "可以点击标题空白处来按该列对表格进行升序或降序排序，这会通过一个向上或向下的小三角形来表示。");
         ImGui.BulletText(
-            "You can right-click in the blank space of a header to open the table context menu, in which you can hide columns you are not interested in.");
+            "可以右键点击标题空白处来打开表格上下文菜单，在其中可以隐藏不感兴趣的列。");
         ImGui.BulletText(
-            "You can resize text columns by dragging the small separation markers of the column. It highlights the line in blue. Size is stored across sessions.");
+            "可以通过拖动列的分隔线来调整文本列的大小。调整时会以蓝色高亮显示分隔线。大小会在会话之间保存。");
         ImGui.BulletText(
-            "You can reorder most columns by left-clicking in the blank space, holding the mouse button and dragging them. Ordering is stored across sessions.");
+            "可以通过在空白处左键点击并拖动来重新排列大多数列。排列顺序会在会话之间保存。");
         ImGui.NewLine();
         ImGui.BulletText(
-            "You can right-click item names and a few other columns (like bait and fishing spot) to open further context menus with object-specific options.");
-        ImGui.BulletText("You can also re-order the tabs themselves, though that is not stored across sessions.");
+            "可以右键点击物品名称和其他一些列（如钓饵和钓鱼地点）来打开带有对象特定选项的右键菜单");
+        ImGui.BulletText("你也可以重新排列标签页，但无法保存");
 
         ImGui.SetCursorPosY(windowSize.Y - ImGui.GetFrameHeight() - ImGui.GetStyle().WindowPadding.Y);
-        if (ImGui.Button("Understood", -Vector2.UnitX))
+        if (ImGui.Button("明白了", -Vector2.UnitX))
             ImGui.CloseCurrentPopup();
     }
 }

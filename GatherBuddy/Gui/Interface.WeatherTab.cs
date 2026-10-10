@@ -45,7 +45,7 @@ public partial class Interface
         private sealed class ZoneHeader : ColumnString<CachedWeather>
         {
             public ZoneHeader()
-                => Label = "Filter Zone...";
+                => Label = "筛选区域...";
 
             public override float Width
                 => _zoneSize * ImGuiHelpers.GlobalScale;
@@ -167,9 +167,9 @@ public partial class Interface
     private void DrawWeatherTab()
     {
         using var id  = ImRaii.PushId("Weather");
-        using var tab = ImRaii.TabItem("Weather");
-        ImGuiUtil.HoverTooltip("Yes, 'Gloom' is weather.\n"
-          + "See the weather forecast in all zones for the following days, as well as the last one.");
+        using var tab = ImRaii.TabItem("天气");
+        ImGuiUtil.HoverTooltip("是的, \"妖雾\"确实是一种天气。\n"
+          + "在这里你可以查看所有区域未来几天的天气预报, 以及上一轮的天气。");
 
         if (!tab)
             return;

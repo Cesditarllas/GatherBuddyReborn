@@ -126,7 +126,7 @@ public partial class Interface
 
     private void DrawAutoGatherListsLine()
     {
-        if (ImGuiUtil.DrawDisabledButton(FontAwesomeIcon.Copy.ToIconString(), IconButtonSize, "Copy current auto-gather list to clipboard.",
+        if (ImGuiUtil.DrawDisabledButton(FontAwesomeIcon.Copy.ToIconString(), IconButtonSize, "将当前自动采集列表复制到剪贴板。",
                 _autoGatherListsCache.Selector.Selected == null, true))
         {
             var list = _autoGatherListsCache.Selector.Selected!;
@@ -134,18 +134,18 @@ public partial class Interface
             {
                 var s = new AutoGatherList.Config(list).ToBase64();
                 ImGui.SetClipboardText(s);
-                Communicator.PrintClipboardMessage("Auto-gather list ", list.Name);
+                Communicator.PrintClipboardMessage("自动采集列表 ", list.Name);
             }
             catch (Exception e)
             {
-                Communicator.PrintClipboardMessage("Auto-gather list ", list.Name, e);
+                Communicator.PrintClipboardMessage("自动采集列表 ", list.Name, e);
             }
         }
 
         if (GatherBuddy.AutoGather.ArtisanExporter.ArtisanAssemblyEnabled)
         {
-            if (ImGuiUtil.DrawDisabledButton("Import From Artisan", Vector2.Zero,
-                    "Import your lists from Artisan into GBR\nBrings up a dropdown to select which list to import.\nA new list will be created in GBR when you click on the name of the list in the dropdown.",
+            if (ImGuiUtil.DrawDisabledButton("从 Artisan 导入", Vector2.Zero,
+                    "从 Artisan 导入列表到 GBR\n弹出下拉菜单选择要导入的列表。\n点击下拉菜单中的列表名称后，将在 GBR 中创建新列表。",
                     !GatherBuddy.AutoGather.ArtisanExporter.ArtisanAssemblyEnabled))
             {
                 ImGui.OpenPopup($"artisanImport");
@@ -169,11 +169,11 @@ public partial class Interface
                     {
                         if (ImGui.Selectable($"{kvp.Value}##{kvp.Key}"))
                         {
-                            Communicator.Print($"Importing '{kvp.Value}' from Artisan...");
+                            Communicator.Print($"正在从 Artisan 导入 '{kvp.Value}'...");
                             GatherBuddy.AutoGather.ArtisanExporter.StartArtisanImport(kvp);
                         }
 
-                        ImGuiUtil.HoverTooltip($"{kvp.Value} ({kvp.Key})\n(Click to import to new auto-gather list)");
+                        ImGuiUtil.HoverTooltip($"{kvp.Value} ({kvp.Key})\n（点击导入到新的自动采集列表）");
                     }
                 }
 
@@ -182,7 +182,7 @@ public partial class Interface
             }
         }
 
-        if (ImGuiUtil.DrawDisabledButton("Import from TeamCraft", Vector2.Zero, "Populate list from clipboard contents (TeamCraft format)",
+        if (ImGuiUtil.DrawDisabledButton("从 TeamCraft 导入", Vector2.Zero, "从剪贴板内容填充列表（TeamCraft 格式）",
                 _autoGatherListsCache.Selector.Selected == null))
         {
             var clipboardText = ImGuiUtil.GetClipboardText();
@@ -241,23 +241,23 @@ public partial class Interface
                 }
                 catch (Exception e)
                 {
-                    Communicator.PrintClipboardMessage("Error importing auto-gather list", e.ToString());
+                    Communicator.PrintClipboardMessage("导入自动采集列表时出错", e.ToString());
                 }
             }
         }
 
         ImGui.SetCursorPosX(ImGui.GetWindowSize().X - 50);
         string agHelpText =
-            "If the config option to sort by location is not selected, items are gathered in the order of the enabled lists, then in the order of items in each list, " +
-            "but timed nodes and fish are always prioritized.\n" +
-            "You can drag and drop lists to move them.\n" +
-            "You can drag and drop items within a specific list to rearrange them.\n" +
-            "You can drag and drop an item onto a different list from the selector to move it between lists.\n" +
-            "In the Gather Window, you can hold Control and Right-Click an item to delete it from the list it belongs to.";
+            "如果未选择按位置排序的配置选项，采集物品将按启用列表的顺序进行，然后按每个列表中物品的顺序进行，" +
+            "但限时采集点和鱼类始终优先。\n" +
+            "你可以拖放列表来移动它们。\n" +
+            "你可以在特定列表内拖放物品来重新排列。\n" +
+            "你可以将物品从选择器拖放到另一个列表上，以在列表之间移动物品。\n" +
+            "在采集窗口中，你可以按住 Ctrl 并右键点击物品，将其从所属列表中删除。";
 
 
         ImGuiEx.InfoMarker(agHelpText,                    null, FontAwesomeIcon.InfoCircle.ToIconString(), false);
-        ImGuiEx.InfoMarker("Auto-Gather Support Discord", null, FontAwesomeIcon.Comments.ToIconString(),   false);
+        ImGuiEx.InfoMarker("自动采集支持 Discord", null, FontAwesomeIcon.Comments.ToIconString(),   false);
         if (ImGuiEx.HoveredAndClicked())
         {
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
@@ -278,18 +278,18 @@ public partial class Interface
             _plugin.AutoGatherListsManager.ChangeDescription(list, newDesc);
 
         var tmp = list.Enabled;
-        if (ImGui.Checkbox("Enabled##list", ref tmp) && tmp != list.Enabled)
+        if (ImGui.Checkbox("启用##list", ref tmp) && tmp != list.Enabled)
             _plugin.AutoGatherListsManager.ToggleList(list);
 
         ImGui.SameLine();
-        ImGuiUtil.Checkbox("Fallback##list",
-            "Items from fallback lists won't be auto-gathered.\n"
-          + "But if a node doesn't contain any items from regular lists or if you gathered enough of them,\n"
-          + "items from fallback lists would be gathered instead if they could be found in that node.",
+        ImGuiUtil.Checkbox("备选##list",
+            "备选列表中的物品不会被自动采集。\n"
+          + "但如果采集点没有常规列表中的物品，或者你已经采集了足够的数量，\n"
+          + "那么如果该采集点中有备选列表中的物品，就会转而采集它们。",
             list.Fallback, (v) => _plugin.AutoGatherListsManager.SetFallback(list, v));
         ImGui.SameLine();
-        ImGuiUtil.Checkbox("Remove Completed##list",
-            "Automatically remove enabled items from this list once your inventory reaches the configured quantity for them.",
+        ImGuiUtil.Checkbox("完成后移除##list",
+            "当你的背包达到配置的数量后，自动从此列表中移除已启用的物品。",
             list.RemoveCompletedItems, (v) => _plugin.AutoGatherListsManager.SetRemoveCompletedItems(list, v));
         if (!ReferenceEquals(_autoGatherListsCache.ItemFilterList, list))
         {
@@ -299,10 +299,10 @@ public partial class Interface
 
         var itemFilter = _autoGatherListsCache.ItemFilter;
         ImGui.SetNextItemWidth(130f * Scale);
-        if (ImGui.InputTextWithHint("##autoGatherItemFilter", "Search items...", ref itemFilter, 128))
+        if (ImGui.InputTextWithHint("##autoGatherItemFilter", "搜索物品...", ref itemFilter, 128))
             _autoGatherListsCache.ItemFilter = itemFilter;
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Filter items by name. Reordering is disabled while a search is active.");
+            ImGui.SetTooltip("按名称过滤物品。搜索激活时禁用重新排序。");
 
         var filterKeywords = _autoGatherListsCache.ItemFilter.Split(' ', StringSplitOptions.RemoveEmptyEntries)
             .Select(keyword => keyword.Trim())
@@ -321,15 +321,15 @@ public partial class Interface
         var bulkActionButtonSize = new Vector2(ImGui.GetFrameHeight() + 6f * Scale, ImGui.GetFrameHeight());
 
         ImGui.SameLine();
-        if (DrawAutoGatherIconButton("EnableVisibleItems", FontAwesomeIcon.Check.ToIconString(), bulkActionButtonSize, "Enable visible items in this list.", visibleItems.Count == 0))
+        if (DrawAutoGatherIconButton("EnableVisibleItems", FontAwesomeIcon.Check.ToIconString(), bulkActionButtonSize, "启用此列表中可见的物品。", visibleItems.Count == 0))
             _plugin.AutoGatherListsManager.ChangeEnabled(list, visibleItems, true);
 
         ImGui.SameLine();
-        if (DrawAutoGatherIconButton("DisableVisibleItems", FontAwesomeIcon.Ban.ToIconString(), bulkActionButtonSize, "Disable visible items in this list.", visibleItems.Count == 0))
+        if (DrawAutoGatherIconButton("DisableVisibleItems", FontAwesomeIcon.Ban.ToIconString(), bulkActionButtonSize, "禁用此列表中可见的物品。", visibleItems.Count == 0))
             _plugin.AutoGatherListsManager.ChangeEnabled(list, visibleItems, false);
 
         ImGui.SameLine();
-        ImGui.Text($"{visibleItems.Count} / {list.Items.Count} Items in List");
+        ImGui.Text($"{visibleItems.Count} / {list.Items.Count} 个物品在列表中");
         ImGui.NewLine();
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() - ImGui.GetStyle().ItemInnerSpacing.X);
         using var box = ImRaii.ListBox("##gatherWindowList", new Vector2(-1.5f * ImGui.GetStyle().ItemSpacing.X, -1));
@@ -347,7 +347,7 @@ public partial class Interface
             var       item  = list.Items[i];
             using var id    = ImRaii.PushId((int)item.ItemId);
             using var group = ImRaii.Group();
-            if (ImGuiUtil.DrawDisabledButton(FontAwesomeIcon.Trash.ToIconString(), IconButtonSize, "Delete this item from the list", false,
+            if (ImGuiUtil.DrawDisabledButton(FontAwesomeIcon.Trash.ToIconString(), IconButtonSize, "从列表中删除此物品", false,
                     true))
                 deleteIndex = i;
             ImGui.SameLine();
@@ -364,7 +364,7 @@ public partial class Interface
             }
 
             ImGui.SameLine();
-            ImGui.Text("Inventory: ");
+            ImGui.Text("背包: ");
             var invTotal = item.GetTotalCount(list.UsesRetainerInventory);
             ImGui.SameLine(0f, ImGui.CalcTextSize($"0000 / ").X - ImGui.CalcTextSize($"{invTotal} / ").X);
             ImGui.Text($"{invTotal} / ");
@@ -404,7 +404,7 @@ public partial class Interface
         }
 
         if (visibleItemIndices.Count == 0)
-            ImGui.TextDisabled("No matching items.");
+            ImGui.TextDisabled("没有匹配的物品。");
 
         if (deleteIndex >= 0)
             _plugin.AutoGatherListsManager.RemoveItem(list, deleteIndex);
@@ -412,7 +412,7 @@ public partial class Interface
         if (changeIndex >= 0)
             _plugin.AutoGatherListsManager.ChangeItem(list, gatherables[changeItemIndex], changeIndex);
 
-        if (ImGuiUtil.DrawDisabledButton(FontAwesomeIcon.Plus.ToIconString(), IconButtonSize, "Add this item at the end of the list", false,
+        if (ImGuiUtil.DrawDisabledButton(FontAwesomeIcon.Plus.ToIconString(), IconButtonSize, "将物品添加到列表末尾", false,
                 true))
             _plugin.AutoGatherListsManager.AddItem(list, gatherables[_autoGatherListsCache.NewGatherableIdx]);
 
@@ -423,7 +423,7 @@ public partial class Interface
             foreach (var i in list.Items)
                 _plugin.AutoGatherListsManager.ChangeEnabled(list, i, allEnabled);
         }
-        ImGuiUtil.HoverTooltip((allEnabled ? "Disable" : "Enable" ) + " all items in the list");
+        ImGuiUtil.HoverTooltip((allEnabled ? "禁用" : "启用" ) + " 列表中的所有物品");
 
         ImGui.SameLine();
         if (selector.Draw(_autoGatherListsCache.NewGatherableIdx, out var idx))
@@ -475,10 +475,10 @@ public partial class Interface
     private void DrawAutoGatherTab()
     {
         using var id  = ImRaii.PushId("AutoGatherLists");
-        using var tab = ImRaii.TabItem("Auto-Gather");
+        using var tab = ImRaii.TabItem("自动采集");
 
         ImGuiUtil.HoverTooltip(
-            "You read that right! Auto-gather!");
+            "没错！自动采集！");
 
         if (!tab)
             return;
@@ -504,7 +504,7 @@ public partial class Interface
 
         ImGui.SameLine();
 
-        ItemDetailsWindow.Draw("List Details", DrawAutoGatherListsLine, () =>
+        ItemDetailsWindow.Draw("列表详情", DrawAutoGatherListsLine, () =>
         {
             if (_autoGatherListsCache.Selector.Selected != null)
                 DrawAutoGatherList(_autoGatherListsCache.Selector.Selected);

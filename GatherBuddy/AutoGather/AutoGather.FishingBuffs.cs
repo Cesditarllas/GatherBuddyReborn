@@ -82,28 +82,28 @@ public partial class AutoGather
 
         if (IsFishing || IsGathering)
         {
-            GatherBuddy.Log.Debug("[Consumables] Quitting fishing to use configured fishing consumables");
+            GatherBuddy.Log.Debug("[消耗品] 退出钓鱼以使用食物/药品");
             QueueQuitFishingTasks();
             return true;
         }
 
         if (needFood)
         {
-            GatherBuddy.Log.Information($"[Consumables] Using food item {foodId}");
+            GatherBuddy.Log.Information($"[消耗品] 使用食物 {foodId}");
             EnqueueActionWithDelay(() => UseItem(foodId));
             return true;
         }
 
         if (needMed)
         {
-            GatherBuddy.Log.Information($"[Consumables] Using medicine item {potionId}");
+            GatherBuddy.Log.Information($"[消耗品] 使用药品 {potionId}");
             EnqueueActionWithDelay(() => UseItem(potionId));
             return true;
         }
 
         if (manualItemId > 0)
         {
-            GatherBuddy.Log.Information($"[Consumables] Using manual item {manualItemId}");
+            GatherBuddy.Log.Information($"[消耗品] 使用手册 {manualItemId}");
             EnqueueActionWithDelay(() => UseItem(manualItemId));
             return true;
         }

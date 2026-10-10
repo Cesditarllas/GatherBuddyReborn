@@ -321,7 +321,7 @@ public static class CollectableTurnInRouteResolver
             var npcBaseSheet = Dalamud.GameData.GetExcelSheet<ENpcBase>();
             if (npcBaseSheet == null)
             {
-                GatherBuddy.Log.Warning("[CollectableTurnInRouteResolver] ENpcBase sheet unavailable; deferring local collectables shop lookup build");
+                GatherBuddy.Log.Warning("[CollectableTurnInRouteResolver] ENpcBase 表单不可用；推迟本地收藏品商店查找构建");
                 return;
             }
 
@@ -346,7 +346,7 @@ public static class CollectableTurnInRouteResolver
         }
         catch (Exception ex)
         {
-            GatherBuddy.Log.Warning($"[CollectableTurnInRouteResolver] Failed to build local collectables shop lookup: {ex.Message}");
+            GatherBuddy.Log.Warning($"[CollectableTurnInRouteResolver] 构建本地收藏品商店查找失败: {ex.Message}");
         }
         finally
         {
@@ -433,7 +433,7 @@ public static class CollectableTurnInRouteResolver
             : menuEntry.Is<GCShop>() ? nameof(GCShop)
             : menuEntry.Is<FccShop>() ? nameof(FccShop)
             : menuEntry.Is<InclusionShop>() ? nameof(InclusionShop)
-            : "Unknown";
+            : "未知";
         return $"{typeName}:{menuEntry.RowId}";
     }
 
@@ -544,14 +544,14 @@ public static class CollectableTurnInRouteResolver
 
         var issueParts = new List<string>();
         if (routes.Count == 0)
-            issueParts.Add("no routes available");
+            issueParts.Add("无可用路线");
         if (missingNpcIds.Count > 0)
-            issueParts.Add($"{missingNpcIds.Count} missing route NPCs");
+            issueParts.Add($"{missingNpcIds.Count} 个缺失路线的NPC");
         if (duplicateNpcMappings.Count > 0)
-            issueParts.Add($"{duplicateNpcMappings.Count} NPCs with multiple shop mappings");
+            issueParts.Add($"{duplicateNpcMappings.Count} 个NPC有多个商店映射");
 
         GatherBuddy.Log.Debug(
-            $"[CollectableTurnInRouteResolver] Route diagnostics: routes={routes.Count}, collectableNpcs={collectableNpcIds.Count}, shops={lookup.Count} ({string.Join(", ", issueParts)})");
+            $"[CollectableTurnInRouteResolver] 路线诊断: routes={routes.Count}, collectableNpcs={collectableNpcIds.Count}, shops={lookup.Count} ({string.Join(", ", issueParts)})");
 
         if (missingNpcIds.Count > 0)
         {
@@ -560,7 +560,7 @@ public static class CollectableTurnInRouteResolver
                 .Select(npcId => DescribeNpc(npcId, residentSheet))
                 .ToList();
             var missingSuffix = missingNpcIds.Count > missingSample.Count ? ", ..." : string.Empty;
-            GatherBuddy.Log.Debug($"[CollectableTurnInRouteResolver] Missing route NPC sample: {string.Join(", ", missingSample)}{missingSuffix}");
+            GatherBuddy.Log.Debug($"[CollectableTurnInRouteResolver] 缺失路线的NPC示例: {string.Join(", ", missingSample)}{missingSuffix}");
         }
 
         if (duplicateNpcMappings.Count > 0)
@@ -570,7 +570,7 @@ public static class CollectableTurnInRouteResolver
                 .Select(group => $"{DescribeNpc(group.Key, residentSheet)} -> {string.Join("/", group.Select(entry => entry.ShopId).Distinct().OrderBy(shopId => shopId))}")
                 .ToList();
             var duplicateSuffix = duplicateNpcMappings.Count > duplicateSample.Count ? ", ..." : string.Empty;
-            GatherBuddy.Log.Debug($"[CollectableTurnInRouteResolver] Multi-shop NPC sample: {string.Join(", ", duplicateSample)}{duplicateSuffix}");
+            GatherBuddy.Log.Debug($"[CollectableTurnInRouteResolver] 多商店NPC示例: {string.Join(", ", duplicateSample)}{duplicateSuffix}");
         }
     }
 
@@ -606,11 +606,11 @@ public static class CollectableTurnInRouteResolver
     {
         var territorySheet = Dalamud.GameData.GetExcelSheet<TerritoryType>();
         if (territorySheet?.TryGetRow(territoryId, out var territory) != true)
-            return $"Territory {territoryId}";
+            return $"区域 {territoryId}";
 
         return territory.PlaceName.ValueNullable?.Name.ExtractText()
             ?? territory.Map.ValueNullable?.PlaceName.ValueNullable?.Name.ExtractText()
-            ?? $"Territory {territoryId}";
+            ?? $"区域 {territoryId}";
     }
 
     private static bool MatchesPreference(CollectableTurnInRouteOption option, CollectableTurnInRoute preference)

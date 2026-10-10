@@ -481,7 +481,7 @@ internal unsafe class RetainerTaskExecutor
         var inventoryManager = InventoryManager.Instance();
         if (inventoryManager == null)
         {
-            GatherBuddy.Log.Warning("[RetainerTaskExecutor] InventoryManager was unavailable while searching retainer slots");
+            GatherBuddy.Log.Warning("[RetainerTaskExecutor] 搜索雇员物品栏时 InventoryManager 不可用");
             _phase = Phase.CloseRetainerInventory;
             return CraftingTasks.TaskResult.Retry;
         }
@@ -503,7 +503,7 @@ internal unsafe class RetainerTaskExecutor
                 _foundSlotInventory = inv;
                 _foundSlotIndex = (uint)i;
                 _foundSlotRequiresQuantityInput = itemId <= 19 || wantQty < _foundSlotQty;
-                GatherBuddy.Log.Debug($"[RetainerTaskExecutor] Found item {itemId} (HQ={slotIsHQ}) in {inv} slot {i}, qty={_foundSlotQty}, mode={(_foundSlotRequiresQuantityInput ? "quantity" : "all")}");
+                GatherBuddy.Log.Debug($"[RetainerTaskExecutor] 在 {inv} 的栏位 {i} 找到物品 {itemId} (HQ={slotIsHQ}), 数量={_foundSlotQty}, 模式={(_foundSlotRequiresQuantityInput ? "指定数量" : "全部")}");
 
                 _addonRetryCount = 0;
                 _phase = Phase.DispatchRetrieveCommand;
@@ -533,7 +533,7 @@ internal unsafe class RetainerTaskExecutor
     {
         if (_foundSlotInventory == InventoryType.Invalid || _foundSlotIndex == uint.MaxValue)
         {
-            GatherBuddy.Log.Warning("[RetainerTaskExecutor] Lost tracked retainer slot before dispatching retrieve command");
+            GatherBuddy.Log.Warning("[RetainerTaskExecutor] 分派取回命令前丢失了跟踪中的雇员栏位");
             _phase = Phase.FindItemSlot;
             return CraftingTasks.TaskResult.Retry;
         }
@@ -543,9 +543,9 @@ internal unsafe class RetainerTaskExecutor
 
         if (_foundSlotRequiresQuantityInput)
         {
-            GatherBuddy.Log.Debug($"[RetainerTaskExecutor] Dispatching RetrieveQuantity for item {target.ItemId} from {_foundSlotInventory} slot {_foundSlotIndex} (want={wantQty}, slot={_foundSlotQty})");
+            GatherBuddy.Log.Debug($"[RetainerTaskExecutor] 正在从 {_foundSlotInventory} 的栏位 {_foundSlotIndex} 按数量取回物品 {target.ItemId} (需要={wantQty}, 栏位数量={_foundSlotQty})");
             if (!RetainerItemCommandDispatcher.TryRetrieveQuantity(_foundSlotInventory, _foundSlotIndex))
-                return HandleRetrieveDispatchFailure("RetrieveQuantity");
+                return HandleRetrieveDispatchFailure("按数量取回");
 
             _addonRetryCount = 0;
             _phase = Phase.WaitNumericInput;
@@ -553,9 +553,9 @@ internal unsafe class RetainerTaskExecutor
             return CraftingTasks.TaskResult.Retry;
         }
 
-        GatherBuddy.Log.Debug($"[RetainerTaskExecutor] Dispatching Retrieve for item {target.ItemId} from {_foundSlotInventory} slot {_foundSlotIndex} (want={wantQty}, slot={_foundSlotQty})");
+        GatherBuddy.Log.Debug($"[RetainerTaskExecutor] 正在从 {_foundSlotInventory} 的栏位 {_foundSlotIndex} 全部取回物品 {target.ItemId} (需要={wantQty}, 栏位数量={_foundSlotQty})");
         if (!RetainerItemCommandDispatcher.TryRetrieve(_foundSlotInventory, _foundSlotIndex))
-            return HandleRetrieveDispatchFailure("Retrieve");
+            return HandleRetrieveDispatchFailure("全部取回");
 
         if (_lookingForHQ) target.RemainingHQ -= _foundSlotQty;
         else               target.RemainingNQ -= _foundSlotQty;
@@ -578,7 +578,7 @@ internal unsafe class RetainerTaskExecutor
         if (_addonRetryCount > 20)
         {
             var target = _currentRetainerItems[_currentItemIndex];
-            GatherBuddy.Log.Warning($"[RetainerTaskExecutor] InputNumeric did not appear after RetrieveQuantity for item {target.ItemId} from {_foundSlotInventory} slot {_foundSlotIndex}");
+            GatherBuddy.Log.Warning($"[RetainerTaskExecutor] 从 {_foundSlotInventory} 的栏位 {_foundSlotIndex} 按数量取回物品 {target.ItemId} 后, InputNumeric 未出现");
             _currentItemIndex++;
             _phase = Phase.WithdrawNextItem;
             return CraftingTasks.TaskResult.Retry;
@@ -593,7 +593,7 @@ internal unsafe class RetainerTaskExecutor
         if (!GenericHelpers.TryGetAddonByName<AtkUnitBase>("InputNumeric", out var input) || !input->IsVisible)
         {
             var failedTarget = _currentRetainerItems[_currentItemIndex];
-            GatherBuddy.Log.Warning($"[RetainerTaskExecutor] InputNumeric closed before quantity entry for item {failedTarget.ItemId}");
+            GatherBuddy.Log.Warning($"[RetainerTaskExecutor] 输入物品 {failedTarget.ItemId} 的取回数量前 InputNumeric 已关闭");
             _currentItemIndex++;
             _phase = Phase.WithdrawNextItem;
             return CraftingTasks.TaskResult.Retry;
@@ -665,7 +665,7 @@ internal unsafe class RetainerTaskExecutor
         var target = _currentItemIndex < _currentRetainerItems.Count
             ? _currentRetainerItems[_currentItemIndex]
             : default;
-        GatherBuddy.Log.Warning($"[RetainerTaskExecutor] Failed to dispatch {commandName} for item {target.ItemId} from {_foundSlotInventory} slot {_foundSlotIndex}; closing current retainer inventory");
+        GatherBuddy.Log.Warning($"[RetainerTaskExecutor] 从 {_foundSlotInventory} 的栏位 {_foundSlotIndex} 为物品 {target.ItemId} 分派{commandName}命令失败, 正在关闭当前雇员物品栏");
         ClearFoundSlot();
         _phase = Phase.CloseRetainerInventory;
         Delay(150);

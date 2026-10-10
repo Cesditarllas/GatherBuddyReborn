@@ -18,7 +18,7 @@ public class Identificator
     {
         _data = GatherBuddy.GameData;
         ClientLanguage[] supportedLanguages =
-        [ClientLanguage.English, ClientLanguage.German, ClientLanguage.French, ClientLanguage.Japanese];
+        [ClientLanguage.English, ClientLanguage.German, ClientLanguage.French, ClientLanguage.Japanese, ClientLanguage.ChineseSimplified];
         var languages = supportedLanguages.Contains(GatherBuddy.Language)
             ? new[] { GatherBuddy.Language }.Concat(supportedLanguages.Where(language => language != GatherBuddy.Language)).ToArray()
             : supportedLanguages;

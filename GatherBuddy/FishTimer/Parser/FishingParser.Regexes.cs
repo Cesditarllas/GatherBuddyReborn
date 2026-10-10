@@ -1,4 +1,5 @@
-﻿﻿using System;
+using System;
+using System.ComponentModel;
 using System.Text.RegularExpressions;
 using Dalamud.Game;
 
@@ -21,7 +22,7 @@ public partial class FishingParser
                 ClientLanguage.German   => German.Value,
                 ClientLanguage.French   => French.Value,
                 ClientLanguage.Japanese => Japanese.Value,
-                // Chinese and other unsupported client languages use the English fallback.
+                (ClientLanguage)4 => ChineseSimplified.Value,
                 _                       => English.Value,
             };
         }
@@ -60,7 +61,14 @@ public partial class FishingParser
             Mooch          = new Regex(@"は釣り上げた.+を慎重に投げ込み、泳がせ釣りを試みた。",            RegexOptions.Compiled | RegexOptions.NonBacktracking | RegexOptions.ExplicitCapture),
             Undiscovered   = "未知の釣り場",
         });
+
+        private static readonly Lazy<Regexes> ChineseSimplified = new(() => new Regexes
+        {
+            Cast = new Regex(@"在(?<FishingSpot>.+)甩出了鱼线开始钓鱼。", RegexOptions.Compiled | RegexOptions.NonBacktracking | RegexOptions.ExplicitCapture),
+            AreaDiscovered = new Regex(@"将新钓场“(?<FishingSpot>.+)”记录到了钓鱼笔记中！", RegexOptions.Compiled | RegexOptions.NonBacktracking | RegexOptions.ExplicitCapture),
+            Mooch = new Regex(@"开始利用上钩的.+尝试以小钓大。", RegexOptions.Compiled | RegexOptions.Compiled | RegexOptions.NonBacktracking | RegexOptions.ExplicitCapture),
+            Undiscovered = "未知钓场",
+        });
         // @formatter:on
     }
 }
-

@@ -26,18 +26,18 @@ namespace GatherBuddy.AutoGather
         public static void DrawAutoGatherStatus()
         {
             var enabled = GatherBuddy.AutoGather.Enabled;
-            if (ImGui.Checkbox("Enabled", ref enabled))
+            if (ImGui.Checkbox("启用", ref enabled))
             {
                 GatherBuddy.AutoGather.Enabled = enabled;
             }
 
-            ImGui.Text($"Status: {GatherBuddy.AutoGather.AutoStatus}");
+            ImGui.Text($"状态: {GatherBuddy.AutoGather.AutoStatus}");
         }
 
 
         public static void DrawDebugTables()
         {
-            if (ImGui.Button("Import Node Offsets from Clipboard"))
+            if (ImGui.Button("从剪贴板导入采集点偏移数据"))
             {
                 var settings = new JsonSerializerSettings();
                 var                          text    = ImGuiUtil.GetClipboardText();
@@ -45,29 +45,29 @@ namespace GatherBuddy.AutoGather
                 foreach (var offset in vectors)
                 {
                     WorldData.NodeOffsets[offset.Original] = offset.Offset;
-                    GatherBuddy.Log.Information($"Added offset {offset} to dictionary");
+                    GatherBuddy.Log.Information($"导入偏移 {offset} 到数据");
                 }
                 WorldData.SaveOffsetsToFile();
-                GatherBuddy.Log.Information("Import complete");
+                GatherBuddy.Log.Information("已保存");
             }
             ImGui.SameLine();
-            if (ImGui.Button("Export Node Offsets to Clipboard"))
+            if (ImGui.Button("复制采集点偏移数据到剪贴板"))
             {
                 var settings = new JsonSerializerSettings();
                 var offsetString = JsonConvert.SerializeObject(WorldData.NodeOffsets.Select(x => new OffsetPair(x.Key, x.Value)).ToList(), Formatting.Indented, settings);
                 ImGui.SetClipboardText(offsetString);
-                GatherBuddy.Log.Information("Node offsets exported to clipboard");
+                GatherBuddy.Log.Information("采集点偏移数据已复制到剪贴板");
             }
             // First column: Nearby nodes table
             if (ImGui.BeginTable("##nearbyNodesTable", 7, ImGuiTableFlags.Borders | ImGuiTableFlags.RowBg | ImGuiTableFlags.Resizable))
             {
-                ImGui.TableSetupColumn("Name");
-                ImGui.TableSetupColumn("Targetable");
-                ImGui.TableSetupColumn("NodeId");
-                ImGui.TableSetupColumn("Position");
-                ImGui.TableSetupColumn("Distance");
-                ImGui.TableSetupColumn("Auto Offsets");
-                ImGui.TableSetupColumn("Action");
+                ImGui.TableSetupColumn("名称");
+                ImGui.TableSetupColumn("可选择");
+                ImGui.TableSetupColumn("采集点 ID");
+                ImGui.TableSetupColumn("位置");
+                ImGui.TableSetupColumn("距离");
+                ImGui.TableSetupColumn("自动偏移");
+                ImGui.TableSetupColumn("操作");
 
                 ImGui.TableHeadersRow();
 
@@ -79,7 +79,7 @@ namespace GatherBuddy.AutoGather
                     ImGui.TableSetColumnIndex(0);
                     ImGui.Text(node.Name.ToString());
                     ImGui.TableSetColumnIndex(1);
-                    ImGui.Text(node.IsTargetable ? "Y" : "N");
+                    ImGui.Text(node.IsTargetable ? "是" : "否");
                     ImGui.TableSetColumnIndex(2);
                     ImGui.Text(node.BaseId.ToString());
                     ImGui.TableSetColumnIndex(3);
@@ -98,7 +98,7 @@ namespace GatherBuddy.AutoGather
 
                     if (isBlacklisted && list != null)
                     {
-                        if (ImGui.Button($"Unblacklist##{node.Position}"))
+                        if (ImGui.Button($"移出黑名单##{node.Position}"))
                         {
                             list.Remove(node.Position);
                             if (list.Count == 0)
@@ -111,7 +111,7 @@ namespace GatherBuddy.AutoGather
                     }
                     else
                     {
-                        if (ImGui.Button($"Blacklist##{node.Position}"))
+                        if (ImGui.Button($"加入黑名单##{node.Position}"))
                         {
                             if (list == null)
                             {
@@ -124,11 +124,11 @@ namespace GatherBuddy.AutoGather
                         }
                     }
 
-                    if (ImGui.Button($"Navigate##{node.Position}"))
+                    if (ImGui.Button($"导航到##{node.Position}"))
                     {
                         if (GatherBuddy.AutoGather.Enabled)
                         {
-                            Communicator.PrintError("[GatherBuddyReborn] Auto-Gather is enabled! Unable to navigate.");
+                            Communicator.PrintError("[GatherBuddyReborn] 请先禁用自动采集, 无法使用手动导航");
                             return;
                         }
                         //VNavmesh_IPCSubscriber.Nav_PathfindCancelAll();
@@ -138,17 +138,17 @@ namespace GatherBuddy.AutoGather
 
                     if (WorldData.NodeOffsets.TryGetValue(node.Position, out var offset))
                     {
-                        if (ImGui.Button($"Remove Offset##{node.Position}"))
+                        if (ImGui.Button($"移出偏移##{node.Position}"))
                         {
                             WorldData.NodeOffsets.Remove(node.Position);
                             WorldData.SaveOffsetsToFile();
                         }
                         ImGui.Text(offset.ToString());
-                        if (ImGui.Button($"Navigate to Offset##{node.Position}"))
+                        if (ImGui.Button($"导航到偏移##{node.Position}"))
                         {
                             if (GatherBuddy.AutoGather.Enabled)
                             {
-                                Communicator.PrintError("[GatherBuddyReborn] Auto-Gather is enabled! Unable to navigate.");
+                                Communicator.PrintError("[GatherBuddyReborn] 请先禁用自动采集, 无法使用手动导航");
                                 return;
                             }
                             //VNavmesh_IPCSubscriber.Nav_PathfindCancelAll();
@@ -158,7 +158,7 @@ namespace GatherBuddy.AutoGather
                     }
                     else
                     {
-                        if (ImGui.Button($"Add Offset##{node.Position}"))
+                        if (ImGui.Button($"添加此偏移##{node.Position}"))
                         {
                             WorldData.AddOffset(node.Position, playerPosition);
                         }
@@ -178,10 +178,10 @@ namespace GatherBuddy.AutoGather
             var preview = Dalamud.GameData.GetExcelSheet<Mount>().First(x => x.RowId == GatherBuddy.Config.AutoGatherConfig.AutoGatherMountId)
                 .Singular.ToString().ToProperCase();
             if (string.IsNullOrEmpty(preview))
-                preview = "Mount Roulette";
-            if (ImGui.BeginCombo("Select Mount", preview))
+                preview = "无坐骑";
+            if (ImGui.BeginCombo("自动采集坐骑", preview))
             {
-                if (ImGui.Selectable("Mount Roulette", GatherBuddy.Config.AutoGatherConfig.AutoGatherMountId == 0))
+                if (ImGui.Selectable("无坐骑", GatherBuddy.Config.AutoGatherConfig.AutoGatherMountId == 0))
                 {
                     GatherBuddy.Config.AutoGatherConfig.AutoGatherMountId = 0;
                     GatherBuddy.Config.Save();
@@ -217,4 +217,3 @@ namespace GatherBuddy.AutoGather
         }
     }
 }
-

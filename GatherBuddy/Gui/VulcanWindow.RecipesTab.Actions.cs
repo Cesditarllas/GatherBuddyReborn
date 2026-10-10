@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using GatherBuddy.Crafting;
 using GatherBuddy.Plugin;
@@ -27,7 +27,7 @@ public partial class VulcanWindow
             if (GearsetStatsReader.TryResolveExistingGearsetIndex(gearsetModule, requiredJobId, out var gearsetIndex))
             {
                 gearsetModule->EquipGearset(gearsetIndex);
-                GatherBuddy.Log.Information($"[VulcanWindow] Switched to gearset {gearsetIndex} for job {requiredJobId}");
+                GatherBuddy.Log.Information($"[VulcanWindow] 已切换至职业 {requiredJobId} 的装备套装 {gearsetIndex}");
                 return;
             }
 

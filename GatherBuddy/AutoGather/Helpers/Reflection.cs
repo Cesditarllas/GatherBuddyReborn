@@ -53,7 +53,7 @@ namespace GatherBuddy.AutoGather.Helpers
                 }
                 catch (Exception e)
                 {
-                    GatherBuddy.Log.Error($"Error while getting Artisan List names: {e}");
+                    GatherBuddy.Log.Error($"获取 Artisan 清单名称时出错: {e}");
                     return listNames;
                 }
             }
@@ -77,7 +77,7 @@ namespace GatherBuddy.AutoGather.Helpers
                         var targetList = artisanCraftingLists.Cast<object>().SingleOrDefault(l => (int)l.GetFoP("ID") == listKvp.Key);
                         if (targetList == null)
                         {
-                            GatherBuddy.Log.Error($"Artisan list '{listKvp.Value}' ({listKvp.Key}) could not be found");
+                            GatherBuddy.Log.Error($"找不到 Artisan 清单 '{listKvp.Value}' ({listKvp.Key})");
                             return false;
                         }
 
@@ -85,7 +85,7 @@ namespace GatherBuddy.AutoGather.Helpers
 
                         AutoGatherList list = new AutoGatherList();
                         list.Name        = listKvp.Value;
-                        list.Description = "Imported from Artisan";
+                        list.Description = "来自 Artisan 导入的制作清单";
                         foreach (var (itemId, quantity) in matList)
                         {
                             if (!Diadem.ApprovedToRawItemIds.TryGetValue(itemId, out var mappedItemId))
@@ -103,7 +103,7 @@ namespace GatherBuddy.AutoGather.Helpers
                             list.Add(item, (uint)quantity);
                         }
                         _listsManager.AddList(list);
-                        Communicator.Print($"List '{listKvp.Value}' imported successfully!");
+                        Communicator.Print($"列表 '{listKvp.Value}' 成功导入!");
                         return true;
                     }
                     return false;
@@ -111,7 +111,7 @@ namespace GatherBuddy.AutoGather.Helpers
                 }
                 catch (Exception e)
                 {
-                    GatherBuddy.Log.Error($"Error while importing Artisan List: {e}");
+                    GatherBuddy.Log.Error($"导入 Artisan 清单时出错: {e}");
                     throw;
                 }
             }

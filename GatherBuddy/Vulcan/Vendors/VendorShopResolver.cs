@@ -133,7 +133,7 @@ public static class VendorShopResolver
 
         if (_initialized)
         {
-            GatherBuddy.Log.Debug($"[VendorShopResolver] Full AllaganTools DataShare became available after an early fallback build, rebuilding vendor shop cache ({AllVendorNpcIds.Count} NPCs; {DescribeShopDataShareAvailability(gilMap, specialMap, gcMap, inclusionMap)})");
+            GatherBuddy.Log.Debug($"[VendorShopResolver] 早期回退构建后 AllaganTools DataShare 已完整可用，重建商人商店缓存 ({AllVendorNpcIds.Count} 个 NPC; {DescribeShopDataShareAvailability(gilMap, specialMap, gcMap, inclusionMap)})");
             _initialized = false;
         }
         _initializing = true;
@@ -148,7 +148,7 @@ public static class VendorShopResolver
             var npcNames = BuildNpcNameLookup();
             if (npcNames.Count == 0)
             {
-                GatherBuddy.Log.Warning("[VendorShopResolver] ENpcResident lookup is empty; deferring vendor cache initialization");
+                GatherBuddy.Log.Warning("[VendorShopResolver] ENpcResident 查找为空，推迟商人缓存初始化");
                 return;
             }
 
@@ -163,14 +163,15 @@ public static class VendorShopResolver
             var hasAnyDataShare      = HasAnyShopDataShare(dataShareGilMap, dataShareSpecialMap, dataShareGcMap, dataShareInclusionMap);
             var dataShareAvailability = DescribeShopDataShareAvailability(dataShareGilMap, dataShareSpecialMap, dataShareGcMap, dataShareInclusionMap);
 
-            GatherBuddy.Log.Debug($"[VendorShopResolver] AllaganTools DataShare: {(hasCompleteDataShare ? "ready" : hasAnyDataShare ? "partial" : "not available")} ({dataShareAvailability})");
+            GatherBuddy.Log.Debug($"[VendorShopResolver] AllaganTools DataShare: {(hasCompleteDataShare ? "就绪" : hasAnyDataShare ? "部分可用" : "不可用")} ({dataShareAvailability})");
 
             var gilMap = MergeNpcMaps(fallbackGilMap, dataShareGilMap);
             var specialMap = MergeNpcMaps(fallbackSpecialMap, dataShareSpecialMap);
             var gcMap = MergeNpcMaps(fallbackGcMap, dataShareGcMap);
             var inclusionMap = MergeNpcMaps(fallbackInclusionMap, dataShareInclusionMap);
             if (!hasCompleteDataShare)
-                GatherBuddy.Log.Debug($"[VendorShopResolver] Merged Lumina fallback with incomplete shop maps ({dataShareAvailability})");
+            if (!hasCompleteDataShare)
+                GatherBuddy.Log.Debug($"[VendorShopResolver] 已将缺失的商店映射与 Lumina 回退数据合并 ({dataShareAvailability})");
 
             var directSpecialMap = CloneNpcMap(specialMap);
             var inclusionRoutes  = BuildSpecialShopInclusionRoutes();
@@ -185,7 +186,7 @@ public static class VendorShopResolver
 
             if (gilEntries.Count == 0 && specialEntries.Count == 0 && gcEntries.Count == 0)
             {
-                GatherBuddy.Log.Warning("[VendorShopResolver] No vendor shop entries were built; deferring vendor cache initialization");
+                GatherBuddy.Log.Warning("[VendorShopResolver] 未构建任何商人商店条目，推迟商人缓存初始化");
                 return;
             }
 
@@ -202,7 +203,7 @@ public static class VendorShopResolver
         }
         catch (Exception ex)
         {
-            GatherBuddy.Log.Warning($"[VendorShopResolver] Init failed: {ex.Message}");
+            GatherBuddy.Log.Warning($"[VendorShopResolver] 初始化失败: {ex.Message}");
         }
         finally
         {
@@ -211,7 +212,7 @@ public static class VendorShopResolver
             _initialized  = success;
             _initializing = false;
             if (!success)
-                GatherBuddy.Log.Debug("[VendorShopResolver] Vendor cache is still uninitialized and will retry when requested");
+                GatherBuddy.Log.Debug("[VendorShopResolver] 商人缓存仍未初始化，将在请求时重试");
         }
     }
 
@@ -269,7 +270,7 @@ public static class VendorShopResolver
         Dictionary<uint, HashSet<uint>>? specialMap,
         Dictionary<uint, HashSet<uint>>? gcMap,
         Dictionary<uint, HashSet<uint>>? inclusionMap)
-        => $"gil={(HasShopNpcMapData(gilMap) ? "ready" : "missing")}, special={(HasShopNpcMapData(specialMap) ? "ready" : "missing")}, gc={(HasShopNpcMapData(gcMap) ? "ready" : "missing")}, inclusion={(HasShopNpcMapData(inclusionMap) ? "ready" : "missing")}";
+        => $"gil={(HasShopNpcMapData(gilMap) ? "就绪" : "缺失")}, special={(HasShopNpcMapData(specialMap) ? "就绪" : "缺失")}, gc={(HasShopNpcMapData(gcMap) ? "就绪" : "缺失")}, inclusion={(HasShopNpcMapData(inclusionMap) ? "就绪" : "缺失")}";
 
     private static bool CoversNpcMap(
         Dictionary<uint, HashSet<uint>>? candidate,
@@ -336,7 +337,7 @@ public static class VendorShopResolver
         }
         catch (Exception ex)
         {
-            GatherBuddy.Log.Warning($"[VendorShopResolver] BuildCraftingRelevantIds failed: {ex.Message}");
+            GatherBuddy.Log.Warning($"[VendorShopResolver] BuildCraftingRelevantIds 失败: {ex.Message}");
         }
     }
 
@@ -716,7 +717,7 @@ public static class VendorShopResolver
         }
 
         if (mergedRowCount > 0)
-            GatherBuddy.Log.Debug($"[VendorShopResolver] Merged {mergedRowCount} Other rows into matching Tomestones rows, adding {mergedNpcCount} NPC mappings");
+            GatherBuddy.Log.Debug($"[VendorShopResolver] 将 {mergedRowCount} 行 Other 合并到匹配的诗学行，添加了 {mergedNpcCount} 个 NPC 映射");
 
         return mergedEntries;
     }
@@ -838,7 +839,7 @@ public static class VendorShopResolver
 
                 entries.Add(new VendorShopEntry(
                     itemId, item.Name.ExtractText(), (ushort)item.Icon,
-                    price, GilCurrencyItemId, "Gil", new List<VendorNpc>(npcs), VendorShopType.GilShop, VendorCurrencyGroup.Gil));
+                    price, GilCurrencyItemId, "金币", new List<VendorNpc>(npcs), VendorShopType.GilShop, VendorCurrencyGroup.Gil));
             }
         }
 
@@ -973,7 +974,7 @@ public static class VendorShopResolver
         var currencyItemId = GetGrandCompanySealCurrencyItemId(grandCompanyId);
         return currencyItemId != 0 && itemSheet.TryGetRow(currencyItemId, out var currencyItem)
             ? currencyItem.Name.ExtractText()
-            : "GC Seals";
+            : "军票";
     }
 
     private static int GetGrandCompanyRankTabIndex(uint requiredGrandCompanyRank)

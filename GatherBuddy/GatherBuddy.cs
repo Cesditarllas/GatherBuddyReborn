@@ -131,11 +131,11 @@ public partial class GatherBuddy : IDalamudPlugin
             UptimeManager          = new UptimeManager(GameData);
             var sigScannerWrapper  = new SigScannerWrapper(Dalamud.Interop);
             try { FishLog = new FishLog(sigScannerWrapper, Dalamud.GameData); }
-            catch (Exception e) { Log.Warning($"Failed to initialize FishLog: {e.Message}"); FishLog = null!; }
+            catch (Exception e) { Log.Warning($"初始化 FishLog 失败: {e.Message}"); FishLog = null!; }
             EventFramework         = new EventFramework();
             CurrentBait           = new CurrentBait();
             try { TugType = new SeTugType(sigScannerWrapper); }
-            catch (Exception e) { Log.Warning($"Failed to initialize TugType: {e.Message}"); TugType = null!; }
+            catch (Exception e) { Log.Warning($"初始化 TugType 失败: {e.Message}"); TugType = null!; }
             Executor               = new Executor(this);
             ContextMenu            = new ContextMenu(this, Dalamud.ContextMenu, Executor);
             GatherGroupManager     = GatherGroup.GatherGroupManager.Load();
@@ -164,7 +164,7 @@ public partial class GatherBuddy : IDalamudPlugin
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"Failed to populate repair NPCs: {ex.Message}");
+                    Log.Error($"填充修理 NPC 数据失败: {ex.Message}");
                 }
             });
 
@@ -228,7 +228,7 @@ public partial class GatherBuddy : IDalamudPlugin
             }
             catch (Exception e)
             {
-                Log.Warning($"Failed to initialize ElliCon controller support: {e.Message}");
+                Log.Warning($"初始化 ElliCon 手柄支持失败: {e.Message}");
             }
 
             Ipc = new GatherBuddyIpc(this);
@@ -262,9 +262,9 @@ public partial class GatherBuddy : IDalamudPlugin
         {
             if (plugin.Name == "GatherBuddy" && plugin.IsLoaded)
             {
-                Log.Error("First Party GatherBuddy detected. Please uninstall it to use this version.");
+                Log.Error("检测到官方 GatherBuddy, 请卸载后使用此版本");
                 Communicator.PrintError(
-                    "[GatherBuddy Reborn] First Party GatherBuddy detected. Please uninstall it and restart your game to use this version.");
+                    "[GatherBuddy Reborn] 检测到官方 GatherBuddy, 请卸载并重启游戏后使用此版本");
                 break;
             }
         }
@@ -321,7 +321,7 @@ public partial class GatherBuddy : IDalamudPlugin
         }
         catch (Exception e)
         {
-            Log.Error($"Error while running crafting update: {e}");
+            Log.Error($"执行制作更新时出错: {e}");
         }
 
         try
@@ -330,7 +330,7 @@ public partial class GatherBuddy : IDalamudPlugin
         }
         catch (Exception e)
         {
-            Log.Error($"Error while running auto gather: {e}");
+            Log.Error($"执行自动采集时出错: {e}");
         }
     }
 
@@ -341,13 +341,6 @@ public partial class GatherBuddy : IDalamudPlugin
         RaphaelSolveCoordinator?.Save();
         if (Dalamud.Framework != null)
             Dalamud.Framework.Update -= Update;
-        if (WindowSystem != null)
-            Dalamud.PluginInterface.UiBuilder.Draw -= DrawUi;
-        if (Interface != null)
-        {
-            Dalamud.PluginInterface.UiBuilder.OpenConfigUi -= Interface.Toggle;
-            Dalamud.PluginInterface.UiBuilder.OpenMainUi -= Interface.Toggle;
-        }
         CraftingGameInterop.Dispose();
         FishRecorder?.Dispose();
         ContextMenu?.Dispose();
@@ -361,6 +354,13 @@ public partial class GatherBuddy : IDalamudPlugin
         NativeItemTooltipBridge?.Dispose();
         NativeItemTooltipBridge = null;
         //Wotsit?.Dispose();
+        if (Interface != null)
+        {
+            Dalamud.PluginInterface.UiBuilder.OpenConfigUi -= Interface.Toggle;
+            Dalamud.PluginInterface.UiBuilder.OpenMainUi -= Interface.Toggle;
+        }
+        if (WindowSystem != null)
+            Dalamud.PluginInterface.UiBuilder.Draw -= DrawUi;
         Interface?.Dispose();
         WindowSystem?.RemoveAllWindows();
         DisposeCommands();

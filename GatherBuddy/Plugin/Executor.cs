@@ -105,7 +105,7 @@ public class Executor
             _visitedLocations.Clear();
         _keepVisitedLocations = true;
         if (_item == null)
-            Communicator.Print("No previous gather command registered.");
+            Communicator.Print("没有可用的上一次采集指令");
     }
 
     private void DoIdentify()
@@ -154,9 +154,9 @@ public class Executor
         }
 
         _location = null;
-        if (GatherBuddy.Config.PreferredGatheringType != GatheringType.Multiple
+        if (GatherBuddy.Config.PreferredGatheringType != GatheringType.多职业
          && _gatheringType == null
-         && item is Gatherable { GatheringType: GatheringType.Multiple })
+         && item is Gatherable { GatheringType: GatheringType.多职业 })
             _gatheringType = GatherBuddy.Config.PreferredGatheringType;
 
         (_location, _uptime) = (_keepVisitedLocations, _gatheringType) switch
@@ -209,14 +209,14 @@ public class Executor
         var job = _location.GatheringType.ToGroup();
         var (preferredName, classJobId) = job switch
         {
-            GatheringType.Fisher   => (GatherBuddy.Config.FisherSetName, 18u),
-            GatheringType.Botanist => (GatherBuddy.Config.BotanistSetName, 17u),
-            GatheringType.Miner    => (GatherBuddy.Config.MinerSetName, 16u),
-            _                      => (null, 0u),
+            GatheringType.捕鱼人 => (GatherBuddy.Config.FisherSetName, 18u),
+            GatheringType.园艺工 => (GatherBuddy.Config.BotanistSetName, 17u),
+            GatheringType.采矿工 => (GatherBuddy.Config.MinerSetName, 16u),
+            _                    => (null, 0u),
         };
         if (classJobId == 0)
         {
-            Communicator.PrintError("No job type associated with location ", _location.Name, GatherBuddy.Config.SeColorArguments, ".");
+            Communicator.PrintError("此位置没有关联任何职业: ", _location.Name, GatherBuddy.Config.SeColorArguments, "");
             return;
         }
 
@@ -241,7 +241,7 @@ public class Executor
             var gearsetModule = RaptureGearsetModule.Instance();
             if (gearsetModule == null)
             {
-                Communicator.PrintError("Could not read saved gear sets.");
+                Communicator.PrintError("无法读取已保存的套装。");
                 Dalamud.Framework.Update -= DoGearChangeOnArrival;
                 return;
             }
@@ -249,12 +249,12 @@ public class Executor
             if (!GearsetStatsReader.TryResolveExistingGearsetIndex(gearsetModule, classJobId, preferredName, out var gearsetIndex,
                     out var gearsetName))
             {
-                Communicator.PrintError("No saved gear set for ", job.ToString(), GatherBuddy.Config.SeColorArguments, " found.");
+                Communicator.PrintError("未找到 ", job.ToString(), GatherBuddy.Config.SeColorArguments, " 的已保存套装。");
                 Dalamud.Framework.Update -= DoGearChangeOnArrival;
                 return;
             }
 
-            GatherBuddy.Log.Information($"[Executor] Switching to {job} with gearset {gearsetIndex} ({gearsetName}).");
+            GatherBuddy.Log.Information($"[Executor] 正在切换到 {job}，使用套装 {gearsetIndex} ({gearsetName})。");
             gearsetModule->EquipGearset(gearsetIndex);
 
             if (_item is Fish fish)
@@ -357,15 +357,15 @@ public class Executor
                 return true;
             case GatherBuddy.AutoCommand:
                 GatherBuddy.AutoGather.Enabled = !GatherBuddy.AutoGather.Enabled;
-                Communicator.Print(GatherBuddy.AutoGather.Enabled ? "Auto-gathering enabled." : "Auto-gathering disabled.");
+                Communicator.Print(GatherBuddy.AutoGather.Enabled ? "启用自动采集" : "禁用自动采集");
                 return true;
             case GatherBuddy.AutoOnCommand:
                 GatherBuddy.AutoGather.Enabled = true;
-                Communicator.Print("Auto-gathering enabled.");
+                Communicator.Print("启用自动采集");
                 return true;
             case GatherBuddy.AutoOffCommand:
                 GatherBuddy.AutoGather.Enabled = false;
-                Communicator.Print("Auto-gathering disabled.");
+                Communicator.Print("禁用自动采集");
                 return true;
             default: return false;
         }
@@ -443,14 +443,14 @@ public class Executor
     {
         if (territory.Aetherytes.Count == 0)
         {
-            Communicator.PrintError(string.Empty, territory.Name, GatherBuddy.Config.SeColorArguments, " has no valid aetheryte.");
+            Communicator.PrintError(string.Empty, territory.Name, GatherBuddy.Config.SeColorArguments, " 没有可传送的以太之光");
             return;
         }
 
         var aetheryte = territory.Aetherytes.FirstOrDefault(a => Teleporter.IsAttuned(a.Id));
         if (aetheryte == null)
         {
-            Communicator.PrintError("Not attuned to any aetheryte in ", territory.Name, GatherBuddy.Config.SeColorArguments, ".");
+            Communicator.PrintError("没有与此区域的任何以太之光进行共鸣: ", territory.Name, GatherBuddy.Config.SeColorArguments, "");
             return;
         }
 

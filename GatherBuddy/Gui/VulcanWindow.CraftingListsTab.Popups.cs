@@ -44,7 +44,7 @@ public partial class VulcanWindow
         if (!ImGui.BeginPopupModal("ImportListPopup", ImGuiWindowFlags.None))
             return;
 
-        ImGui.TextWrapped("Paste an exported list string below and click Import.");
+        ImGui.TextWrapped("将导出的清单字符串粘贴到下方, 然后点击“导入”");
         ImGui.Spacing();
         ImGui.SetNextItemWidth(-1);
         ImGui.InputTextMultiline("##importListText", ref _importListText, 65536, VulcanUiScaling.Scaled(-1f, 120f));
@@ -56,9 +56,9 @@ public partial class VulcanWindow
         }
 
         ImGui.Spacing();
-        ImGui.Checkbox("Ephemeral##importListEphemeral", ref _importListEphemeral);
+        ImGui.Checkbox("临时##importListEphemeral", ref _importListEphemeral);
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Delete this list automatically after crafting completes.\nCan be disabled later in the list editor.");
+            ImGui.SetTooltip("制作完成后自动删除此清单\n可稍后在清单编辑器中关闭");
 
         ImGui.Spacing();
         ImGui.Separator();
@@ -66,7 +66,7 @@ public partial class VulcanWindow
 
         using (ImRaii.Disabled(string.IsNullOrWhiteSpace(_importListText)))
         {
-            if (ImGui.Button("Import", VulcanUiScaling.Scaled(120f, 0f)))
+            if (ImGui.Button("导入", VulcanUiScaling.Scaled(120f, 0f)))
             {
                 var (imported, error) = GatherBuddy.CraftingListManager.ImportList(_importListText);
                 if (imported != null)
@@ -92,7 +92,7 @@ public partial class VulcanWindow
         }
 
         ImGui.SameLine();
-        if (ImGui.Button("Cancel", VulcanUiScaling.Scaled(100f, 0f)))
+        if (ImGui.Button("取消", VulcanUiScaling.Scaled(100f, 0f)))
         {
             _importListText     = string.Empty;
             _importListEphemeral = false;
@@ -110,35 +110,35 @@ public partial class VulcanWindow
 
         if (!string.IsNullOrEmpty(_newListFolderPath))
         {
-            ImGui.TextColored(ImGuiColors.DalamudGrey3, $"Folder: {CraftingListManager.FormatFolderPath(_newListFolderPath)}");
+            ImGui.TextColored(ImGuiColors.DalamudGrey3, $"文件夹: {CraftingListManager.FormatFolderPath(_newListFolderPath)}");
             ImGui.Spacing();
         }
 
         if (_newListRecipeId.HasValue)
         {
-            ImGui.TextColored(ImGuiColors.ParsedGold, $"Add recipe: {_newListRecipeName}");
+            ImGui.TextColored(ImGuiColors.ParsedGold, $"加入配方: {_newListRecipeName}");
             ImGui.Spacing();
         }
 
-        ImGui.Text("Enter list name:");
+        ImGui.Text("输入清单名称:");
         ImGui.InputText("##newListName", ref _newListName, 256);
 
         if (!string.IsNullOrWhiteSpace(_newListName) && !GatherBuddy.CraftingListManager.IsNameUnique(_newListName))
         {
-            ImGui.TextColored(new Vector4(1, 0.7f, 0, 1), "A list with this name already exists.");
-            ImGui.TextColored(new Vector4(0.7f, 0.7f, 0.7f, 1), "It will be renamed automatically.");
+            ImGui.TextColored(new Vector4(1, 0.7f, 0, 1), "已存在同名清单");
+            ImGui.TextColored(new Vector4(0.7f, 0.7f, 0.7f, 1), "将自动重命名");
         }
 
         ImGui.Spacing();
-        ImGui.Checkbox("Ephemeral##newListEphemeral", ref _newListEphemeral);
+        ImGui.Checkbox("临时##newListEphemeral", ref _newListEphemeral);
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Delete this list automatically after crafting completes.\nCan be disabled later in the list editor.");
+            ImGui.SetTooltip("制作完成后自动删除此清单\n可稍后在清单编辑器中关闭");
 
         ImGui.Spacing();
         ImGui.Separator();
         ImGui.Spacing();
 
-        if (ImGui.Button("Create", VulcanUiScaling.Scaled(100f, 0f)) && !string.IsNullOrWhiteSpace(_newListName))
+        if (ImGui.Button("创建", VulcanUiScaling.Scaled(100f, 0f)) && !string.IsNullOrWhiteSpace(_newListName))
         {
             var newList = GatherBuddy.CraftingListManager.CreateNewList(_newListName, _newListEphemeral, _newListFolderPath);
             if (_newListRecipeId.HasValue)
@@ -159,7 +159,7 @@ public partial class VulcanWindow
         }
 
         ImGui.SameLine();
-        if (ImGui.Button("Cancel", VulcanUiScaling.Scaled(100f, 0f)))
+        if (ImGui.Button("取消", VulcanUiScaling.Scaled(100f, 0f)))
         {
             ResetCreateListPopupState();
             ImGui.CloseCurrentPopup();
@@ -175,16 +175,16 @@ public partial class VulcanWindow
 
         if (!string.IsNullOrEmpty(_newFolderParentPath))
         {
-            ImGui.TextColored(ImGuiColors.DalamudGrey3, $"Parent: {CraftingListManager.FormatFolderPath(_newFolderParentPath)}");
+            ImGui.TextColored(ImGuiColors.DalamudGrey3, $"上级文件夹: {CraftingListManager.FormatFolderPath(_newFolderParentPath)}");
             ImGui.Spacing();
         }
 
-        ImGui.Text("Enter folder name:");
+        ImGui.Text("输入文件夹名称:");
         ImGui.InputText("##newFolderName", ref _newFolderName, 256);
 
         var isAvailable = GatherBuddy.CraftingListManager.IsFolderNameAvailable(_newFolderName, _newFolderParentPath);
         if (!string.IsNullOrWhiteSpace(_newFolderName) && !isAvailable)
-            ImGui.TextColored(ImGuiColors.DalamudRed, "Folder names must be unique within the current location and cannot contain / or \\.");
+            ImGui.TextColored(ImGuiColors.DalamudRed, "当前目录下文件夹名称必须唯一, 且不能包含 / 或 \\");
 
         ImGui.Spacing();
         ImGui.Separator();
@@ -192,7 +192,7 @@ public partial class VulcanWindow
 
         using (ImRaii.Disabled(!isAvailable))
         {
-            if (ImGui.Button("Create", VulcanUiScaling.Scaled(100f, 0f)))
+            if (ImGui.Button("创建", VulcanUiScaling.Scaled(100f, 0f)))
             {
                 if (GatherBuddy.CraftingListManager.CreateFolder(_newFolderName, _newFolderParentPath))
                 {
@@ -203,7 +203,7 @@ public partial class VulcanWindow
         }
 
         ImGui.SameLine();
-        if (ImGui.Button("Cancel", VulcanUiScaling.Scaled(100f, 0f)))
+        if (ImGui.Button("取消", VulcanUiScaling.Scaled(100f, 0f)))
         {
             ResetCreateFolderPopupState();
             ImGui.CloseCurrentPopup();

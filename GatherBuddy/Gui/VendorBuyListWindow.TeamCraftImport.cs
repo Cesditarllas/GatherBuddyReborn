@@ -12,7 +12,7 @@ public sealed partial class VendorBuyListWindow
 {
     private static readonly Vector2 LegacyTeamCraftImportWindowSize = new(520f, 310f);
     private static readonly Vector2 DefaultTeamCraftImportWindowSize = VulcanUiScaling.Scaled(520f, 310f);
-    private const string TeamCraftImportWindowId = "Vendor TeamCraft Import###VendorTeamCraftImport";
+    private const string TeamCraftImportWindowId = "商店 TeamCraft 导入###VendorTeamCraftImport";
 
     private bool _showTeamCraftImport;
 
@@ -27,7 +27,7 @@ public sealed partial class VendorBuyListWindow
 
     private void OpenTeamCraftImportWindow(VendorBuyListManager manager)
     {
-        _teamCraftImportListName = "Imported from TeamCraft";
+        _teamCraftImportListName = "从 TeamCraft 导入";
         _teamCraftImportText = string.Empty;
         _teamCraftImportError = null;
         _teamCraftImportIntoExistingList = false;
@@ -75,7 +75,7 @@ public sealed partial class VendorBuyListWindow
             return;
         }
 
-        ImGui.TextColored(ImGuiColors.DalamudGrey3, "Paste the TeamCraft 'Vendors' text section below.");
+        ImGui.TextColored(ImGuiColors.DalamudGrey3, "在下方粘贴 TeamCraft 的 'Vendors' 文本段");
         ImGui.Spacing();
         ImGui.Separator();
         ImGui.Spacing();
@@ -84,15 +84,15 @@ public sealed partial class VendorBuyListWindow
         ImGui.BeginChild("##vendorTeamCraftImportContent", new Vector2(0, -footerHeight), false);
         if (manager.Lists.Count > 0)
         {
-            ImGui.Text("Destination");
-            if (ImGui.RadioButton("New List##vendorTeamCraftNewList", !_teamCraftImportIntoExistingList))
+            ImGui.Text("目标");
+            if (ImGui.RadioButton("新清单##vendorTeamCraftNewList", !_teamCraftImportIntoExistingList))
             {
                 _teamCraftImportIntoExistingList = false;
                 _teamCraftImportError = null;
                 _focusTeamCraftImportListName = true;
             }
             ImGui.SameLine();
-            if (ImGui.RadioButton("Existing List##vendorTeamCraftExistingList", _teamCraftImportIntoExistingList))
+            if (ImGui.RadioButton("已有清单##vendorTeamCraftExistingList", _teamCraftImportIntoExistingList))
             {
                 _teamCraftImportIntoExistingList = true;
                 _teamCraftImportError = null;
@@ -103,9 +103,9 @@ public sealed partial class VendorBuyListWindow
         if (_teamCraftImportIntoExistingList)
         {
             var selectedList = GetTeamCraftImportTargetList(manager);
-            ImGui.Text("Target List");
+            ImGui.Text("目标清单");
             ImGui.SetNextItemWidth(-1);
-            if (ImGui.BeginCombo("##vendorTeamCraftImportTargetList", selectedList?.Name ?? "Select a list"))
+            if (ImGui.BeginCombo("##vendorTeamCraftImportTargetList", selectedList?.Name ?? "选择清单"))
             {
                 foreach (var list in manager.Lists)
                 {
@@ -123,7 +123,7 @@ public sealed partial class VendorBuyListWindow
         }
         else
         {
-            ImGui.Text("List Name");
+            ImGui.Text("清单名称");
             if (_focusTeamCraftImportListName)
             {
                 ImGui.SetKeyboardFocusHere();
@@ -135,7 +135,7 @@ public sealed partial class VendorBuyListWindow
         }
 
         ImGui.Spacing();
-        ImGui.Text("Vendor Items");
+        ImGui.Text("商店物品");
         ImGui.SetNextItemWidth(-1);
         var errorHeight = _teamCraftImportError != null
             ? ImGui.GetTextLineHeightWithSpacing() + ImGui.GetStyle().ItemSpacing.Y
@@ -159,7 +159,7 @@ public sealed partial class VendorBuyListWindow
         using (ImRaii.Disabled(string.IsNullOrWhiteSpace(_teamCraftImportText)
             || (_teamCraftImportIntoExistingList && selectedTargetList == null)))
         {
-            if (ImGui.Button("Import", VulcanUiScaling.Scaled(120f, 0f)))
+            if (ImGui.Button("导入", VulcanUiScaling.Scaled(120f, 0f)))
             {
                 var result = manager.ImportTeamCraftList(
                     _teamCraftImportText,
@@ -177,7 +177,7 @@ public sealed partial class VendorBuyListWindow
         }
 
         ImGui.SameLine();
-        if (ImGui.Button("Cancel", VulcanUiScaling.Scaled(100f, 0f)))
+        if (ImGui.Button("取消", VulcanUiScaling.Scaled(100f, 0f)))
         {
             ResetTeamCraftImportWindowState();
         }

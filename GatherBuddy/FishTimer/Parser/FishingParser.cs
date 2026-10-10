@@ -79,7 +79,7 @@ public unsafe partial class FishingParser : IDisposable
 
         if (!GatherBuddy.GameData.Fishes.TryGetValue(itemId, out var fish))
         {
-            GatherBuddy.Log.Error($"Unknown fish id {itemId} caught.");
+            GatherBuddy.Log.Error($"捕获了未知鱼类 ID {itemId}");
             return;
         }
 

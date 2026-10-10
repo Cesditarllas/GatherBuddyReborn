@@ -35,7 +35,7 @@ public partial class VulcanWindow
 
         if (GatherBuddy.ControllerSupport != null && !_mbRequestFocus)
         {
-            var handle = GatherBuddy.ControllerSupport.TabNavigation.TabItem("Marketboard##marketboardTab", 8, 9);
+            var handle = GatherBuddy.ControllerSupport.TabNavigation.TabItem("市场板##marketboardTab", 8, 9);
             tabItem = handle;
             tabOpen = handle;
         }
@@ -45,11 +45,11 @@ public partial class VulcanWindow
             if (_mbRequestFocus)
             {
                 bool dummy = true;
-                handle = ImRaii.TabItem("Marketboard##marketboardTab", ref dummy, ImGuiTabItemFlags.SetSelected);
+                handle = ImRaii.TabItem("市场板##marketboardTab", ref dummy, ImGuiTabItemFlags.SetSelected);
             }
             else
             {
-                handle = ImRaii.TabItem("Marketboard##marketboardTab");
+                handle = ImRaii.TabItem("市场板##marketboardTab");
             }
             tabItem = handle;
             tabOpen = handle.Success;
@@ -64,7 +64,7 @@ public partial class VulcanWindow
             var svc = GatherBuddy.MarketboardService;
             if (svc == null)
             {
-                ImGui.TextColored(ImGuiColors.DalamudGrey, "Marketboard service unavailable.");
+                ImGui.TextColored(ImGuiColors.DalamudGrey, "市场板服务不可用");
                 return;
             }
 
@@ -78,7 +78,7 @@ public partial class VulcanWindow
             if ((DateTime.UtcNow - _mbScopeRefresh).TotalMinutes > 5 || _mbScopeOptions.Count == 0)
                 RefreshScopeOptions(svc);
 
-            if (ImGui.SmallButton("Clear All##mbclear"))
+            if (ImGui.SmallButton("全部清空##mbclear"))
             {
                 svc.Clear();
                 _mbSelectedItemId   = 0;
@@ -88,7 +88,7 @@ public partial class VulcanWindow
                 _mbFilteredSnapshot = new();
             }
             ImGui.SameLine(0, VulcanUiScaling.Scaled(6f));
-            if (ImGui.SmallButton("Refresh All##mbrefreshall"))
+            if (ImGui.SmallButton("全部刷新##mbrefreshall"))
                 svc.RefreshAll();
 
             ImGui.Separator();
@@ -150,16 +150,16 @@ public partial class VulcanWindow
     private void DrawMarketboardHistoryList(MarketboardService svc)
     {
         ImGui.SetNextItemWidth(-1);
-        if (ImGui.InputTextWithHint("##mbsearch", "Search...", ref _mbSearch, 128))
+        if (ImGui.InputTextWithHint("##mbsearch", "搜索...", ref _mbSearch, 128))
             _mbFilterDirty = true;
 
         ImGui.Spacing();
 
         if (_mbHistorySnapshot.Count == 0)
         {
-            ImGui.TextColored(ImGuiColors.DalamudGrey, "No lookups yet.");
-            ImGui.TextColored(ImGuiColors.DalamudGrey, "Right-click any item in the");
-            ImGui.TextColored(ImGuiColors.DalamudGrey, "Materials window to search.");
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "还没有任何查询");
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "在材料窗口中右键物品");
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "即可查询市场板");
             return;
         }
 
@@ -167,7 +167,7 @@ public partial class VulcanWindow
 
         if (_mbFilteredSnapshot.Count == 0)
         {
-            ImGui.TextColored(ImGuiColors.DalamudGrey, "No results match your search.");
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "没有符合搜索条件的结果");
             return;
         }
 
@@ -214,12 +214,12 @@ public partial class VulcanWindow
             }
             else if (hasErr || data == null)
             {
-                statusLabel = " [N/A]";
+                statusLabel = " [无数据]";
                 statusColor = ImGuiColors.DalamudGrey;
             }
             else
             {
-                statusLabel = $"  {data.MinPrice:N0}g";
+                statusLabel = $"  {data.MinPrice:N0} 金币";
                 statusColor = new Vector4(0.4f, 1f, 0.4f, 1f);
             }
 
@@ -233,7 +233,7 @@ public partial class VulcanWindow
                 : ImGui.BeginPopupContextItem($"##mbctx_{itemId}");
             if (isCtxOpen)
             {
-                if (ImGui.Selectable("Remove from history"))
+                if (ImGui.Selectable("从历史记录中移除"))
                 {
                     svc.RemoveFromHistory(itemId);
                     if (_mbSelectedItemId == itemId) { _mbSelectedItemId = 0; _mbDetailLastItemId = 0; }
@@ -256,7 +256,7 @@ public partial class VulcanWindow
             var h = ImGui.GetContentRegionAvail().Y;
             ImGui.SetCursorPosY(ImGui.GetCursorPosY() + h / 2f - ImGui.GetTextLineHeight());
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() + VulcanUiScaling.Scaled(8f));
-            ImGui.TextColored(ImGuiColors.DalamudGrey, "Select an item to view prices.");
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "选择一个物品查看价格信息");
             return;
         }
 
@@ -295,14 +295,14 @@ public partial class VulcanWindow
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (largeIcon.Y - lineH * 2f) / 2f);
         ImGui.TextColored(ImGuiColors.ParsedGold, name);
 
-        var currentScopeLabel = (isDcScope ? $"DC: " : string.Empty) + scope;
+        var currentScopeLabel = (isDcScope ? $"数据中心: " : string.Empty) + scope;
         ImGui.SetNextItemWidth(VulcanUiScaling.Scaled(160f));
         if (ImGui.BeginCombo("##mbdetailscope", currentScopeLabel))
         {
             for (var i = 0; i < _mbScopeOptions.Count; i++)
             {
                 var isdc = i < _mbScopeIsDc.Count && _mbScopeIsDc[i];
-                var lbl  = isdc ? $"DC: {_mbScopeOptions[i]}" : _mbScopeOptions[i];
+                var lbl  = isdc ? $"数据中心: {_mbScopeOptions[i]}" : _mbScopeOptions[i];
                 if (ImGui.Selectable(lbl, _mbDetailScopeIndex == i) && _mbDetailScopeIndex != i)
                 {
                     _mbDetailScopeIndex = i;
@@ -313,15 +313,15 @@ public partial class VulcanWindow
         }
 
         ImGui.SameLine(0, VulcanUiScaling.Scaled(8f));
-        if (ImGui.SmallButton("Refresh##mbrefresh"))
+        if (ImGui.SmallButton("刷新##mbrefresh"))
             svc.ForceRefresh(itemId, scope);
         ImGui.SameLine(0, VulcanUiScaling.Scaled(4f));
         if (ImGui.SmallButton("Universalis##mbweb"))
         {
             try { Process.Start(new ProcessStartInfo($"https://universalis.app/market/{itemId}") { UseShellExecute = true }); }
-            catch (Exception ex) { GatherBuddy.Log.Warning($"[Marketboard] Failed to open Universalis URL: {ex.Message}"); }
+            catch (Exception ex) { GatherBuddy.Log.Warning($"[市场板] 打开 Universalis 失败: {ex.Message}"); }
         }
-        if (ImGui.IsItemHovered()) ImGui.SetTooltip($"Open https://universalis.app/market/{itemId}");
+        if (ImGui.IsItemHovered()) ImGui.SetTooltip($"打开 https://universalis.app/market/{itemId}");
 
         ImGui.Spacing();
         ImGui.Separator();
@@ -329,15 +329,15 @@ public partial class VulcanWindow
 
         if (pending)
         {
-            ImGui.TextColored(ImGuiColors.DalamudOrange, "Fetching market data...");
+            ImGui.TextColored(ImGuiColors.DalamudOrange, "正在获取市场数据...");
             return;
         }
 
         if (hasErr || data == null)
         {
-            ImGui.TextColored(ImGuiColors.DalamudGrey, "No market data available.");
-            ImGui.TextColored(ImGuiColors.DalamudGrey3, "Item may not be tradeable,");
-            ImGui.TextColored(ImGuiColors.DalamudGrey3, "or the request failed.");
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "没有可用的市场数据");
+            ImGui.TextColored(ImGuiColors.DalamudGrey3, "物品可能不可交易,");
+            ImGui.TextColored(ImGuiColors.DalamudGrey3, "或请求失败");
         }
         else
         {
@@ -349,11 +349,11 @@ public partial class VulcanWindow
 
             var fetchTime = svc.GetFetchTime(itemId, scope);
             var age       = DateTime.UtcNow - fetchTime;
-            var ageText   = age.TotalSeconds < 60 ? "just now"
-                : age.TotalMinutes < 60 ? $"{(int)age.TotalMinutes}m ago"
-                : $"{(int)age.TotalHours}h ago";
+            var ageText   = age.TotalSeconds < 60 ? "刚刚更新"
+                : age.TotalMinutes < 60 ? $"{(int)age.TotalMinutes} 分钟前"
+                : $"{(int)age.TotalHours} 小时前";
 
-            ImGui.TextColored(ImGuiColors.DalamudGrey3, $"Updated: {ageText}");
+            ImGui.TextColored(ImGuiColors.DalamudGrey3, $"更新时间: {ageText}");
         }
     }
 
@@ -388,7 +388,7 @@ public partial class VulcanWindow
 
         if (items.Count == 0)
         {
-            ImGui.TextColored(ImGuiColors.DalamudGrey, "  No listings.");
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "  暂无上架记录");
             return;
         }
 
@@ -397,10 +397,10 @@ public partial class VulcanWindow
         if (!ImGui.BeginTable($"##mb{label}tbl", colCount, tableFlags, new Vector2(-1, 0)))
             return;
 
-        ImGui.TableSetupColumn("Price", ImGuiTableColumnFlags.WidthFixed, VulcanUiScaling.Scaled(120f));
-        ImGui.TableSetupColumn("Qty", ImGuiTableColumnFlags.WidthFixed, VulcanUiScaling.Scaled(55f));
+        ImGui.TableSetupColumn("价格", ImGuiTableColumnFlags.WidthFixed, VulcanUiScaling.Scaled(120f));
+        ImGui.TableSetupColumn("数量", ImGuiTableColumnFlags.WidthFixed, VulcanUiScaling.Scaled(55f));
         if (showWorld)
-            ImGui.TableSetupColumn("World", ImGuiTableColumnFlags.WidthStretch, 1f);
+            ImGui.TableSetupColumn("服务器", ImGuiTableColumnFlags.WidthStretch, 1f);
         ImGui.TableHeadersRow();
 
         var count = Math.Min(items.Count, maxCount);
@@ -409,7 +409,7 @@ public partial class VulcanWindow
             var l = items[i];
             ImGui.TableNextRow();
             ImGui.TableSetColumnIndex(0);
-            ImGui.TextColored(i == 0 ? ColGold : priceColor, $"{l.PricePerUnit:N0} gil");
+            ImGui.TextColored(i == 0 ? ColGold : priceColor, $"{l.PricePerUnit:N0} 金币");
             ImGui.TableSetColumnIndex(1);
             ImGui.TextColored(ColGrey, $"\u00d7{l.Quantity}");
             if (showWorld)

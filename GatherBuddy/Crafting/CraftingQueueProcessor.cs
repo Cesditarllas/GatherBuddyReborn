@@ -201,7 +201,7 @@ public class CraftingQueueProcessor
                         if (IsInventoryFull())
                         {
                             _craftHangSince = DateTime.MinValue;
-                            PauseForInventoryFull("Queue paused because crafting cannot continue with a full inventory.");
+                            PauseForInventoryFull("队列已暂停，因为背包已满，无法继续制作。");
                             break;
                         }
                         GatherBuddy.Log.Warning("[CraftingQueueProcessor] Craft hang detected: game idle but craft never started, auto-recovering to WaitingForJobSwitch");
@@ -558,7 +558,7 @@ public class CraftingQueueProcessor
 
         if (IsInventoryFull())
         {
-            PauseForInventoryFull("Queue paused because crafting cannot start with a full inventory.");
+            PauseForInventoryFull("队列已暂停，因为背包已满，无法开始制作。");
             return;
         }
 
@@ -735,7 +735,7 @@ public class CraftingQueueProcessor
         {
             if (IsInventoryFull())
             {
-                PauseForInventoryFull("Queue paused because the inventory filled during crafting.");
+                PauseForInventoryFull("队列已暂停，因为制作过程中背包已满。");
                 return;
             }
             GatherBuddy.Log.Warning($"[CraftingQueueProcessor] Craft cancelled at index {_currentQueueIndex}");
@@ -782,12 +782,12 @@ public class CraftingQueueProcessor
 
         _craftHangSince = DateTime.MinValue;
         var recipe = RecipeManager.GetRecipe(failure.RecipeId);
-        var itemName = recipe != null ? recipe.Value.ItemResult.Value.Name.ExtractText() : $"Recipe {failure.RecipeId}";
+        var itemName = recipe != null ? recipe.Value.ItemResult.Value.Name.ExtractText() : $"配方 {failure.RecipeId}";
         var priorFailures = _missingIngredientFailures.GetValueOrDefault(failure.RecipeId);
         var failureContext = failure.Reason switch
         {
-            CraftingGameInterop.CraftPreparationFailureReason.MissingMaterialsUnableToQuickSynth => "quick synthesis material pre-check",
-            _ => "RecipeNote ingredient assignment",
+            CraftingGameInterop.CraftPreparationFailureReason.MissingMaterialsUnableToQuickSynth => "简易制作材料预检",
+            _ => "配方笔记材料分配",
         };
 
         if (priorFailures == 0 && PlanningSnapshot?.CraftOrderMode != CraftOrderMode.LevelAndDifficulty)
@@ -827,9 +827,9 @@ public class CraftingQueueProcessor
     {
         var recipeId = recipeItem.RecipeId;
         var recipe = RecipeManager.GetRecipe(recipeId);
-        var itemName = recipe != null ? recipe.Value.ItemResult.Value.Name.ExtractText() : $"Recipe {recipeId}";
+        var itemName = recipe != null ? recipe.Value.ItemResult.Value.Name.ExtractText() : $"配方 {recipeId}";
 
-        string failureReason = "unknown";
+        string failureReason = "未知";
         if (_raphaelCoordinator != null)
         {
             var request = BuildRaphaelRequestForItem(recipeItem);
@@ -912,15 +912,15 @@ public class CraftingQueueProcessor
     {
         return jobId switch
         {
-            8 => "Carpenter",
-            9 => "Blacksmith",
-            10 => "Armorer",
-            11 => "Goldsmith",
-            12 => "Leatherworker",
-            13 => "Weaver",
-            14 => "Alchemist",
-            15 => "Culinarian",
-            _ => $"Job {jobId}"
+            8 => "木工",
+            9 => "锻铁匠",
+            10 => "铸甲匠",
+            11 => "雕金匠",
+            12 => "制革匠",
+            13 => "裁衣匠",
+            14 => "炼金术士",
+            15 => "烹调师",
+            _ => $"职业 {jobId}"
         };
     }
 
@@ -931,30 +931,30 @@ public class CraftingQueueProcessor
             var gearsetModule = RaptureGearsetModule.Instance();
             if (gearsetModule == null)
             {
-                GatherBuddy.Log.Error("Failed to get gearset module");
+                GatherBuddy.Log.Error("无法获取套装模块");
                 return;
             }
 
             if (GearsetStatsReader.TryResolveExistingGearsetIndex(gearsetModule, jobId, out var gearsetIndex))
             {
                 gearsetModule->EquipGearset(gearsetIndex);
-                GatherBuddy.Log.Information($"Equipped gearset {gearsetIndex} for job {jobId}");
+                GatherBuddy.Log.Information($"已装备职业 {jobId} 的装备套装 {gearsetIndex}");
                 return;
             }
 
             var jobName = GetJobName(jobId);
-            GatherBuddy.Log.Error($"[CraftingQueueProcessor] No gearset found for {jobName} (Job ID: {jobId})");
+            GatherBuddy.Log.Error($"[CraftingQueueProcessor] 未找到 {jobName} (职业 ID: {jobId}) 的套装");
             if (PlanningSnapshot?.CraftOrderMode == CraftOrderMode.LevelAndDifficulty && CurrentRecipeItem != null)
             {
                 SkipRemainingRecipeInstances(CurrentRecipeItem.RecipeId);
                 return;
             }
-            Dalamud.Chat.PrintError($"[GatherBuddy] Cannot continue crafting: No gearset found for {jobName}. Please create a gearset for this job.");
+            Dalamud.Chat.PrintError($"[GatherBuddy] 无法继续制作: 未找到 {jobName} 的套装。请为此职业创建套装。");
             CompleteQueue();
         }
         catch (Exception ex)
         {
-            GatherBuddy.Log.Error($"Failed to switch job: {ex.Message}");
+            GatherBuddy.Log.Error($"切换职业失败: {ex.Message}");
         }
     }
 
@@ -1215,8 +1215,8 @@ public class CraftingQueueProcessor
         var previousQueueCount = QueueItems.Count;
         _executionPlan.RefreshForRetainerWithdrawal();
 
-        LogRetainerPlanDifferences("leaf material", previousMaterials, MaterialTargets);
-        LogRetainerPlanDifferences("craftable pull", previousPrecraftItems, RetainerPrecraftTargets);
+        LogRetainerPlanDifferences("基础材料", previousMaterials, MaterialTargets);
+        LogRetainerPlanDifferences("可制作提取", previousPrecraftItems, RetainerPrecraftTargets);
 
         if (previousQueueCount != QueueItems.Count)
         {

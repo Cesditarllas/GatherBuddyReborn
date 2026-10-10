@@ -19,7 +19,7 @@ public class CraftingStatusWindow : Window
     private int _cachedEstimateActionDelayMs = -1;
 
     public CraftingStatusWindow() 
-        : base("Crafting Status###GatherBuddyCraftingStatus", ImGuiWindowFlags.AlwaysAutoResize)
+        : base("制作状态###GatherBuddyCraftingStatus", ImGuiWindowFlags.AlwaysAutoResize)
     {
         IsOpen = false;
         ShowCloseButton = true;
@@ -86,7 +86,7 @@ public class CraftingStatusWindow : Window
         var isFocused = ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows);
         if (isFocused)
         {
-            GatherBuddy.ControllerSupport?.UpdateFocusedWindow("Crafting Status###GatherBuddyCraftingStatus");
+            GatherBuddy.ControllerSupport?.UpdateFocusedWindow("制作状态###GatherBuddyCraftingStatus");
             _wasFocusedLastFrame = true;
         }
         else if (_wasFocusedLastFrame)
@@ -100,12 +100,12 @@ public class CraftingStatusWindow : Window
         var totalCount = _queueProcessor.QueueCount;
         var currentItem = _queueProcessor.CurrentRecipeItem;
 
-        ImGui.TextColored(new System.Numerics.Vector4(0.0f, 1.0f, 0.8f, 1.0f), "Crafting Queue Active");
+        ImGui.TextColored(new System.Numerics.Vector4(0.0f, 1.0f, 0.8f, 1.0f), "制作队列运行中");
         ImGui.Separator();
         ImGui.Spacing();
 
-        ImGui.Text($"State: {GetStateDisplayName(currentState)}");
-        ImGui.Text($"Progress: {Math.Min(currentIndex + 1, totalCount)} / {totalCount}");
+        ImGui.Text($"状态: {GetStateDisplayName(currentState)}");
+        ImGui.Text($"进度: {Math.Min(currentIndex + 1, totalCount)} / {totalCount}");
 
         if (_queueProcessor.Paused && !string.IsNullOrWhiteSpace(_queueProcessor.PauseReason))
         {
@@ -120,16 +120,16 @@ public class CraftingStatusWindow : Window
             if (recipeSheet != null && recipeSheet.TryGetRow(currentItem.RecipeId, out var recipe))
             {
                 var itemName = recipe.ItemResult.Value.Name.ExtractText();
-                ImGui.Text($"Current Recipe: {itemName}");
+                ImGui.Text($"当前配方: {itemName}");
             }
         }
 
         if (ShouldShowRemainingEstimate(currentState))
         {
             var remainingMs = GetRemainingEstimate(currentIndex);
-            ImGui.Text($"Estimated Time Remaining: ~{CraftingTimeEstimator.FormatDuration(remainingMs)}");
+            ImGui.Text($"预计剩余时间: ~{CraftingTimeEstimator.FormatDuration(remainingMs)}");
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Estimate based on the active craft path for each queue item. Macros, Standard Solver, and Progress Only are simulated, while Raphael uses cached solution length when available and falls back to a provisional default until ready. Excludes time spent gathering, repairing, or switching jobs.");
+                ImGui.SetTooltip("根据队列各项制作路径估算。宏、标准求解器和仅推进度通过模拟计算，Raphael 在有缓存方案时使用方案长度，否则暂用默认值。不含采集、修理和切换职业的耗时。");
         }
         else if (!ShouldRetainRemainingEstimateCache(currentState))
         {
@@ -142,9 +142,9 @@ public class CraftingStatusWindow : Window
 
         if (currentState == CraftingQueueProcessor.QueueState.Complete)
         {
-            ImGui.TextColored(new System.Numerics.Vector4(0.0f, 1.0f, 0.0f, 1.0f), "Queue Complete!");
+            ImGui.TextColored(new System.Numerics.Vector4(0.0f, 1.0f, 0.0f, 1.0f), "队列完成!");
             ImGui.Spacing();
-            if (ImGui.Button("Close"))
+            if (ImGui.Button("关闭"))
             {
                 IsOpen = false;
                 _queueProcessor = null;
@@ -152,28 +152,28 @@ public class CraftingStatusWindow : Window
         }
         else
         {
-            ImGui.TextDisabled(_queueProcessor.Paused ? "Queue is paused." : "Queue is processing...");
+            ImGui.TextDisabled(_queueProcessor.Paused ? "队列已暂停" : "队列处理中...");
             ImGui.Spacing();
             ImGui.Separator();
             ImGui.Spacing();
             
             if (!_queueProcessor.Paused)
             {
-                if (ImGui.Button("Pause"))
+                if (ImGui.Button("暂停"))
                 {
                     _queueProcessor.Pause();
                 }
             }
             else
             {
-                if (ImGui.Button("Resume"))
+                if (ImGui.Button("继续"))
                 {
                     _queueProcessor.Resume();
                 }
             }
             
             ImGui.SameLine();
-            if (ImGui.Button("Stop"))
+            if (ImGui.Button("停止"))
             {
                 CraftingGatherBridge.StopQueue();
             }
@@ -184,19 +184,19 @@ public class CraftingStatusWindow : Window
 
             var delay = GatherBuddy.Config.VulcanExecutionDelayMs;
             ImGui.SetNextItemWidth(VulcanUiScaling.Scaled(150f));
-            if (ImGui.SliderInt("Action Delay (ms)", ref delay, 0, 1000))
+            if (ImGui.SliderInt("操作延迟 (ms)", ref delay, 0, 1000))
             {
                 GatherBuddy.Config.VulcanExecutionDelayMs = Math.Clamp(delay, 0, 1000);
                 GatherBuddy.Config.Save();
             }
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Delay between each crafting action");
+                ImGui.SetTooltip("每个制作操作之间的延迟时间");
 
             ImGui.Spacing();
             ImGui.Separator();
             ImGui.Spacing();
             
-            if (ImGui.Button("Open Vulcan Window"))
+            if (ImGui.Button("打开 Vulcan 窗口"))
             {
                 if (GatherBuddy.VulcanWindow != null)
                 {
@@ -281,17 +281,17 @@ public class CraftingStatusWindow : Window
     {
         return state switch
         {
-            CraftingQueueProcessor.QueueState.Idle => "Idle",
-            CraftingQueueProcessor.QueueState.NavigatingToRetainerBell => "Navigating to Retainer Bell",
-            CraftingQueueProcessor.QueueState.WaitingForGather => "Gathering Materials",
-            CraftingQueueProcessor.QueueState.WaitingForJobSwitch => "Switching Job",
-            CraftingQueueProcessor.QueueState.Repairing => "Repairing Equipment",
-            CraftingQueueProcessor.QueueState.ExtractingMateria => "Extracting Materia",
-            CraftingQueueProcessor.QueueState.WaitingForRaphaelSolution => "Solving with Raphael",
-            CraftingQueueProcessor.QueueState.ReadyForCraft => "Ready to Craft",
-            CraftingQueueProcessor.QueueState.Crafting => "Crafting",
-            CraftingQueueProcessor.QueueState.Complete => "Complete",
-            _ => "Unknown"
+            CraftingQueueProcessor.QueueState.Idle => "空闲",
+            CraftingQueueProcessor.QueueState.NavigatingToRetainerBell => "前往雇员铃",
+            CraftingQueueProcessor.QueueState.WaitingForGather => "采集材料中",
+            CraftingQueueProcessor.QueueState.WaitingForJobSwitch => "切换职业中",
+            CraftingQueueProcessor.QueueState.Repairing => "修理装备中",
+            CraftingQueueProcessor.QueueState.ExtractingMateria => "精制魔晶石中",
+            CraftingQueueProcessor.QueueState.WaitingForRaphaelSolution => "使用 Raphael 求解中",
+            CraftingQueueProcessor.QueueState.ReadyForCraft => "准备制作",
+            CraftingQueueProcessor.QueueState.Crafting => "制作中",
+            CraftingQueueProcessor.QueueState.Complete => "完成",
+            _ => "未知"
         };
     }
     

@@ -1,4 +1,3 @@
-using System;
 using GatherBuddy.Data;
 using GatherBuddy.Utility;
 using LuminaWeather = Lumina.Excel.Sheets.Weather;
@@ -11,7 +10,7 @@ public readonly struct Weather : IComparable<Weather>
     public readonly uint   Id;
     public readonly int    Icon;
 
-    public static readonly Weather Invalid = new(0, "Invalid");
+    public static readonly Weather Invalid = new(0, "无效");
 
     public override string ToString()
         => Name;

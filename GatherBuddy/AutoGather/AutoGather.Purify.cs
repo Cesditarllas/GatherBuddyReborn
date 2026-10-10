@@ -21,9 +21,9 @@ namespace GatherBuddy.AutoGather
                 {
                     GatherBuddy.Config.AutoGatherConfig.DoReduce = false;
                     Communicator.PrintError(
-                        "[GatherBuddyReborn] Aetherial reduction is enabled, but the relevant quest has not been completed yet. The feature has been disabled.");
+                        "[GatherBuddyReborn] 无法自动精选, 尚未完成任务。此功能已停用。");
                 }
-                GatherBuddy.Log.Debug($"[Reduction] Skipping reduction - quest not complete. AR MultiMode: {_autoRetainerMultiModeEnabled}, Original Character: {_originalCharacterNameWorld ?? "null"}");
+                GatherBuddy.Log.Debug($"[精选] 跳过精选 - 任务未完成。AR 多模式: {_autoRetainerMultiModeEnabled}，原始角色: {_originalCharacterNameWorld ?? "null"}");
                 return false;
             }
 
@@ -53,7 +53,7 @@ namespace GatherBuddy.AutoGather
 
         private unsafe void ReduceItems(bool reduceAll, Action? onComplete = null)
         {
-            AutoStatus = "Aetherial reduction";
+            AutoStatus = "正在精选收藏品...";
             var delay = (int)GatherBuddy.Config.AutoGatherConfig.ExecutionDelay;
             TaskManager.Enqueue(StopNavigation);
             if (PurifyItemSelectorAddon == null)
@@ -63,11 +63,11 @@ namespace GatherBuddy.AutoGather
                 TaskManager.DelayNext(500);
             }
 
-            TaskManager.Enqueue(ReduceFirstItem,                                3000, true, "Reduce first item");
-            TaskManager.Enqueue(() => !Dalamud.Conditions[ConditionFlag.Occupied39], 5000, true, "Wait until first item reduction is complete");
+            TaskManager.Enqueue(ReduceFirstItem,                                3000, true, "精选第一个物品");
+            TaskManager.Enqueue(() => !Dalamud.Conditions[ConditionFlag.Occupied39], 5000, true, "等待第一个物品精选完成");
             TaskManager.DelayNext(delay);
-            TaskManager.Enqueue(StartAutoReduction,                             1000, true, "Start auto reduction");
-            TaskManager.Enqueue(() => !Dalamud.Conditions[ConditionFlag.Occupied39], 180000, true, "Wait until all items have been reduced");
+            TaskManager.Enqueue(StartAutoReduction,                             1000, true, "开始自动精选");
+            TaskManager.Enqueue(() => !Dalamud.Conditions[ConditionFlag.Occupied39], 180000, true, "等待所有物品精选完成");
             TaskManager.DelayNext(delay);
             TaskManager.Enqueue(() =>
             {

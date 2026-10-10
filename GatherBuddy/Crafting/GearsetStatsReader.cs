@@ -32,43 +32,43 @@ public static unsafe class GearsetStatsReader
             var currentJob = Dalamud.Objects.LocalPlayer?.ClassJob.RowId ?? 0;
             if (currentJob != jobId)
             {
-                var message = "Switch to the selected job before updating its saved gearset.";
-                GatherBuddy.Log.Debug($"[GearsetStatsReader] {message} RequestedJob={jobId}, CurrentJob={currentJob}");
+                var message = "请先切换至所选职业, 再更新已保存的装备套装";
+                GatherBuddy.Log.Debug($"[GearsetStatsReader] {message}, 请求职业={jobId}, 当前职业={currentJob}");
                 return message;
             }
 
             var gearsetModule = RaptureGearsetModule.Instance();
             if (gearsetModule == null)
             {
-                GatherBuddy.Log.Warning("[GearsetStatsReader] Could not update gearset: gearset module is unavailable.");
-                return "Failed to update the saved gearset: gearset module unavailable.";
+                GatherBuddy.Log.Warning("[GearsetStatsReader] 装备套装模块不可用, 无法更新装备套装");
+                return "装备套装模块不可用, 更新已保存的装备套装失败";
             }
 
             if (!TryResolveRefreshTarget(gearsetModule, jobId, out var gearsetIndex, out var usedCurrentGearset))
             {
-                var message = "No saved gearset was found for the selected job.";
-                GatherBuddy.Log.Debug($"[GearsetStatsReader] {message} JobId={jobId}");
+                var message = "所选职业没有已保存的装备套装";
+                GatherBuddy.Log.Debug($"[GearsetStatsReader] {message}, 职业 ID={jobId}");
                 return message;
             }
 
             var updateResult = gearsetModule->UpdateGearset(gearsetIndex);
             if (updateResult < 0)
             {
-                GatherBuddy.Log.Warning($"[GearsetStatsReader] Failed to update gearset {gearsetIndex} for job {jobId}. Result={updateResult}");
-                return $"Failed to update saved gearset {gearsetIndex}.";
+                GatherBuddy.Log.Warning($"[GearsetStatsReader] 更新职业 {jobId} 的装备套装 {gearsetIndex} 失败, 结果={updateResult}");
+                return $"更新已保存的装备套装 {gearsetIndex} 失败";
             }
 
             var targetDescription = usedCurrentGearset
-                ? $"active saved gearset {gearsetIndex}"
-                : $"first matching saved gearset {gearsetIndex}";
-            var successMessage = $"Updated {targetDescription} from currently equipped items.";
+                ? $"当前启用的已保存装备套装 {gearsetIndex}"
+                : $"首个匹配的已保存装备套装 {gearsetIndex}";
+            var successMessage = $"已使用当前装备更新{targetDescription}";
             GatherBuddy.Log.Information($"[GearsetStatsReader] {successMessage}");
             return successMessage;
         }
         catch (Exception ex)
         {
-            GatherBuddy.Log.Warning($"[GearsetStatsReader] Failed to update saved gearset for job {jobId}: {ex.Message}");
-            return "Failed to update the saved gearset.";
+            GatherBuddy.Log.Warning($"[GearsetStatsReader] 更新职业 {jobId} 的已保存装备套装失败: {ex.Message}");
+            return "更新已保存的装备套装失败";
         }
     }
 
@@ -269,7 +269,7 @@ public static unsafe class GearsetStatsReader
         var slotCategoryId = (int)item.EquipSlotCategory.RowId;
         if (slotCategoryId <= 0 || slotCategoryId > MaxEquipSlotCategoryId)
         {
-            GatherBuddy.Log.Debug($"[GearsetStatsReader] Missing slot cap data for item {item.RowId} and stat {paramId}: slot category {slotCategoryId} is out of range.");
+            GatherBuddy.Log.Debug($"[GearsetStatsReader] 物品 {item.RowId} 的属性 {paramId} 缺少上限数据: 装备栏位分类 {slotCategoryId} 超出范围");
             return false;
         }
 
@@ -283,20 +283,20 @@ public static unsafe class GearsetStatsReader
         var baseParamSheet = Dalamud.GameData.GetExcelSheet<RawRow>(name: "BaseParam");
         if (baseParamSheet == null)
         {
-            GatherBuddy.Log.Debug($"[GearsetStatsReader] Missing BaseParam sheet while calculating cap for item {item.RowId} and stat {paramId}.");
+            GatherBuddy.Log.Debug($"[GearsetStatsReader] 计算物品 {item.RowId} 的属性 {paramId} 上限时缺少 BaseParam 表");
             return false;
         }
 
         if (!baseParamSheet.TryGetRow(paramId, out var baseParamRow))
         {
-            GatherBuddy.Log.Debug($"[GearsetStatsReader] Missing BaseParam row {paramId} while calculating cap for item {item.RowId}.");
+            GatherBuddy.Log.Debug($"[GearsetStatsReader] 计算物品 {item.RowId} 的属性上限时缺少 BaseParam 行 {paramId}");
             return false;
         }
 
         var slotModifier = baseParamRow.ReadInt16Column(slotCategoryId + 3);
         if (slotModifier <= 0)
         {
-            GatherBuddy.Log.Debug($"[GearsetStatsReader] Missing slot modifier for item {item.RowId}, stat {paramId}, slot category {slotCategoryId}.");
+            GatherBuddy.Log.Debug($"[GearsetStatsReader] 物品 {item.RowId}、属性 {paramId}、装备栏位分类 {slotCategoryId} 缺少栏位修正值");
             return false;
         }
 

@@ -80,11 +80,11 @@ public class GatherWindow : Window
     {
         var sb = new StringBuilder();
         sb.Append(loc == null
-            ? "Unknown Location\nUnknown Territory\nUnknown Aetheryte\n"
-            : $"{loc.Name}\n{loc.Territory.Name}\n{loc.ClosestAetheryte?.Name ?? "No Aetheryte"}\n");
+            ? "未知位置\n未知地图\n未知以太之光\n"
+            : $"{loc.Name}\n{loc.Territory.Name}\n{loc.ClosestAetheryte?.Name ?? "未知以太之光"}\n");
 
         sb.Append(time.Equals(TimeInterval.Always)
-            ? "Always Up"
+            ? "常驻"
             : $"{time.Start}\n{time.End}\n{time.DurationString()}\n{TimeInterval.DurationString(time.Start > GatherBuddy.Time.ServerTime ? time.Start : time.End, GatherBuddy.Time.ServerTime, false)}");
 
         return sb.ToString();
@@ -369,7 +369,7 @@ public class GatherWindow : Window
     {
         var       colorId = GatherBuddy.AutoGather.Enabled ? ColorId.GatherWindowAvailable.Value() : ColorId.GatherWindowText.Value();
         using var color = ImRaii.PushColor(ImGuiCol.Text, colorId);
-        if (ImGui.Selectable($"Auto-Gather: {GatherBuddy.AutoGather.AutoStatus}###toggle-button"))
+        if (ImGui.Selectable($"自动采集: {GatherBuddy.AutoGather.AutoStatus}###toggle-button"))
         {
             GatherBuddy.AutoGather.Enabled = !GatherBuddy.AutoGather.Enabled;
         }
@@ -378,9 +378,9 @@ public class GatherWindow : Window
             _plugin.Interface.Toggle();
         }
         color.Pop();
-        ImGuiUtil.HoverTooltip("Click to enable/disable auto-gather. Right click to toggle interface");
+        ImGuiUtil.HoverTooltip("左键启用或禁用自动采集，右键显示或隐藏主界面");
         if (GatherBuddy.AutoGather.CurrentRequestedTarget is { } target)
-            ImGui.Text($"Target: {target.Name[GatherBuddy.Language]}");
+            ImGui.Text($"当前目标：{target.Name[GatherBuddy.Language]}");
         using var table = ImRaii.Table("##table", GatherBuddy.Config.ShowGatherWindowTimers ? 2 : 1);
         if (!table)
             return;

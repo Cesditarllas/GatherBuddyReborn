@@ -1,5 +1,4 @@
-﻿using System;
-using GatherBuddy.Utility;
+﻿using GatherBuddy.Utility;
 using Lumina.Excel.Sheets;
 
 namespace GatherBuddy.Structs;
@@ -8,9 +7,9 @@ public class Bait : IComparable<Bait>
 {
     public const uint FishingTackleRow = 30;
 
-    public static Bait Unknown { get; } = new(0, "Unknown", 60027);
+    public static Bait Unknown { get; } = new(0, "未知鱼饵", 60027);
 
-    public readonly string Name = "Unknown";
+    public readonly string Name = "未知";
     public          uint   Id   { get; private set; }
     public          ushort Icon { get; private set; }
 

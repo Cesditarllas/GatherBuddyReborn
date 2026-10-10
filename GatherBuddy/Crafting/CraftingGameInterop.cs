@@ -29,7 +29,7 @@ public static class CraftingGameInterop
     private static string GetItemName(uint itemId)
         => Dalamud.GameData.GetExcelSheet<Item>()?.TryGetRow(itemId, out var item) == true
             ? item.Name.ExtractText()
-            : $"Item {itemId}";
+            : $"物品 {itemId}";
 
     public sealed record CraftPreparationFailure(
         uint RecipeId,
@@ -1317,8 +1317,8 @@ public static class CraftingGameInterop
             return;
 
         _quickSynthCloseFailureHandled = true;
-        var pauseReason = "Quick Synthesis completed, but its window did not close automatically. Close the Quick Synthesis window, then resume the queue.";
-        GatherBuddy.Log.Warning($"[Crafting] Quick synthesis exit was not acknowledged within {QuickSynthesisCloseTimeout.TotalSeconds:0} seconds. {pauseReason}");
+        var pauseReason = "简易制作已完成，但其窗口未自动关闭。请关闭简易制作窗口，然后恢复队列。";
+        GatherBuddy.Log.Warning($"[Crafting] 简易制作退出在 {QuickSynthesisCloseTimeout.TotalSeconds:0} 秒内未得到确认。{pauseReason}");
         CraftingGatherBridge.PauseQueue(pauseReason);
     }
 

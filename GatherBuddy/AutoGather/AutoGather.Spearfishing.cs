@@ -123,7 +123,7 @@ namespace GatherBuddy.AutoGather
                 return;
 
             _lastSwimmingShadowsMarkerLog = now;
-            GatherBuddy.Log.Verbose($"Swimming Shadows marker could not be associated uniquely with {shadowSpot.Name}.");
+            GatherBuddy.Log.Verbose($"鱼影标记无法唯一对应到 {shadowSpot.Name}。");
         }
 
         private static bool IsMarkerNearSpot(Vector3 markerPosition, FishingSpot spot)

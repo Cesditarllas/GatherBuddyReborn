@@ -272,7 +272,7 @@ namespace GatherBuddy.AutoGather.Helpers
                 BountifulYield         = AutoGather.CalculateBountifulBonus(slot.Item),
                 BountyYield            = Player.Level >= 71 ? 3 : 2,
                 IsCrystal              = slot.Item.IsCrystal,
-                OptimizeForCost        = slot.Item.NodeType == Enums.NodeType.Regular,
+                OptimizeForCost        = slot.Item.NodeType == Enums.NodeType.常规,
                 AvailableActions       = SolverActions.Where(a => a.Filter(slot)).ToList(),
                 GPRegenPerTick         = gpQuest ? (Player.Level switch { >= 83 => 8u, >= 80 => 7u, _ => 6u }) : 5u,
                 GPRegenPerHit          = (gpQuest && Player.Level >= 80) ? 6u : 5u,
@@ -295,11 +295,11 @@ namespace GatherBuddy.AutoGather.Helpers
                     | (Player.Status.Any(s => s.StatusId == Actions.BountifulII.EffectId) ? EffectType.Bountiful : EffectType.None)
             };
 
-            if (slot.Item.NodeType is Enums.NodeType.Unspoiled or Enums.NodeType.Legendary or Enums.NodeType.Clouded)
+            if (slot.Item.NodeType is Enums.NodeType.未知 or Enums.NodeType.传说 or Enums.NodeType.梦幻)
             {
                 await Task.Run(() => SolveInternal(state));
             }
-            else if (slot.Item.NodeType is Enums.NodeType.Regular)
+            else if (slot.Item.NodeType is Enums.NodeType.常规)
             {
                 await SolveForRegularNodes(state);
             }
@@ -310,7 +310,7 @@ namespace GatherBuddy.AutoGather.Helpers
 
             global.BestActions.Reverse();
             timer.Stop();
-            GatherBuddy.Log.Debug($"Rotation solver: simulated {global.Iterations} sequences in {timer.ElapsedTicks * 1000m / Stopwatch.Frequency:F3} ms. Yield: {global.BestYield / 1000m}. Sequence: {string.Join(", ", global.BestActions.Select(a => GetActionName(global, a)))}.");
+            GatherBuddy.Log.Debug($"采集技能求解器: 在 {timer.ElapsedTicks * 1000m / Stopwatch.Frequency:F3} 毫秒内模拟了 {global.Iterations} 个序列。产出: {global.BestYield / 1000m}。序列: {string.Join(", ", global.BestActions.Select(a => GetActionName(global, a)))}.");
 
             return global.BestActions;
         }
@@ -473,7 +473,7 @@ namespace GatherBuddy.AutoGather.Helpers
 
                     await Task.WhenAll(tasks.Select(t => Task.Run(() => SolveInternal(t.state))).ToList());
 
-                    GatherBuddy.Log.Debug($"Rotation solver: yield / 100gp {string.Join("; ", tasks.Select(t => $"{t.tag}: {t.state.Global.BestYield / 1000m}"))}; filler: {fillerYield / 1000m}.");
+                    GatherBuddy.Log.Debug($"采集技能求解器: 每 100 GP 产出 {string.Join("; ", tasks.Select(t => $"{t.tag}: {t.state.Global.BestYield / 1000m}"))}; 填充: {fillerYield / 1000m}.");
 
                     bestSimulatedYield = tasks.Skip(1).Select(t => t.state.Global.BestYield).Max();
                     state.Global.Iterations = tasks.Select(t => t.state.Global.Iterations).Aggregate(0UL, (sum, next) => sum + next);
@@ -481,7 +481,7 @@ namespace GatherBuddy.AutoGather.Helpers
                 else
                 {
                     await Task.Run(() => SolveInternal(state));
-                    GatherBuddy.Log.Debug($"Rotation solver: yield / 100gp current: {state.Global.BestYield / 1000m}; filler: {fillerYield / 1000m}.");
+                    GatherBuddy.Log.Debug($"采集技能求解器: 每 100 GP 当前产出: {state.Global.BestYield / 1000m}; 填充: {fillerYield / 1000m}.");
                 }
             }
 
@@ -540,7 +540,7 @@ namespace GatherBuddy.AutoGather.Helpers
             {
                 if (!Dalamud.Framework.IsInFrameworkUpdateThread)
                 {
-                    GatherBuddy.Log.Error("BUG: RotationSolver.TheGivingLandCooldown is accessed from a worker thread.");
+                    GatherBuddy.Log.Error("BUG: 从工作线程访问了 RotationSolver.TheGivingLandCooldown");
                     return 0f;
                 }
                 var recastGroup = Actions.GivingLand.Actions.Botanist.CooldownGroup - 1;
@@ -553,7 +553,7 @@ namespace GatherBuddy.AutoGather.Helpers
         {
             if (!Dalamud.Framework.IsInFrameworkUpdateThread)
             {
-                GatherBuddy.Log.Error("BUG: RotationSolver.CalculateBoonChance is accessed from a worker thread.");
+                GatherBuddy.Log.Error("BUG: 从工作线程访问了 RotationSolver.CalculateBoonChance");
                 return 0;
             }
             var basePerception = WorldData.IlvConvertTable[(int)glvl].BasePerception;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -65,7 +65,7 @@ public partial class VulcanWindow : Window, IDisposable
     public CraftingListDefinition? CurrentCraftingList
         => _editingList;
 
-    public VulcanWindow() : base("Vulcan - Crafting###VulcanWindow")
+    public VulcanWindow() : base("Vulcan - 制作###VulcanWindow")
     {
         Flags |= ImGuiWindowFlags.NoScrollbar;
         SizeConstraints = new WindowSizeConstraints
@@ -307,7 +307,7 @@ public partial class VulcanWindow : Window, IDisposable
         var isFocused = ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows);
         if (isFocused)
         {
-            GatherBuddy.ControllerSupport?.UpdateFocusedWindow("Vulcan - Crafting###VulcanWindow");
+            GatherBuddy.ControllerSupport?.UpdateFocusedWindow("Vulcan - 制作###VulcanWindow");
             _wasFocusedLastFrame = true;
         }
         else if (_wasFocusedLastFrame)
@@ -352,18 +352,18 @@ public partial class VulcanWindow : Window, IDisposable
         var artisanToggleBlocked = artisanInstalled && !artisanToggleState.CanToggle && !artisanToggleInProgress;
 
         ImGui.AlignTextToFramePadding();
-        ImGui.Text("Crafting System");
+        ImGui.Text("制作系统");
         ImGui.SameLine();
 
         var buttonLabel = artisanToggleInProgress
             ? _pendingArtisanEnabledState == true
-                ? "Enabling Artisan..."
-                : "Disabling Artisan..."
+                ? "正在启用 Artisan..."
+                : "正在禁用 Artisan..."
             : artisanInstalled
                 ? artisanLoaded
-                    ? "Disable Artisan"
-                    : "Enable Artisan"
-                : "Artisan Missing";
+                    ? "禁用 Artisan"
+                    : "启用 Artisan"
+                : "未找到 Artisan";
         using (ImRaii.Disabled(!artisanInstalled || artisanToggleInProgress || artisanToggleBlocked))
         {
             if (ImGui.SmallButton($"{buttonLabel}##toggleArtisan"))
@@ -371,7 +371,7 @@ public partial class VulcanWindow : Window, IDisposable
         }
 
         ImGui.SameLine();
-        if (ImGui.SmallButton("Collectables##openCollectables"))
+        if (ImGui.SmallButton("收藏品##openCollectables"))
         {
             if (GatherBuddy.CollectablesWindow == null)
             {
@@ -384,19 +384,19 @@ public partial class VulcanWindow : Window, IDisposable
             }
         }
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Open the shared collectables turn-in and purchase automation window.");
+            ImGui.SetTooltip("打开共享收藏品缴纳与购买自动化窗口");
 
         ImGui.SameLine();
         var hasActiveCraftStatus = GatherBuddy.CraftingStatusWindow?.HasActiveQueue == true;
         using (ImRaii.Disabled(!hasActiveCraftStatus))
         {
-            if (ImGui.SmallButton("Craft Status##openCraftStatus"))
+            if (ImGui.SmallButton("制作状态##openCraftStatus"))
                 GatherBuddy.CraftingStatusWindow?.OpenOrRestore();
         }
         if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
             ImGui.SetTooltip(hasActiveCraftStatus
-                ? "Reopen or restore the Craft Status window for the active crafting queue."
-                : "No active crafting queue.");
+                ? "重新打开或恢复当前制作队列的状态窗口"
+                : "没有活动的制作队列");
 
     }
 
@@ -415,25 +415,25 @@ public partial class VulcanWindow : Window, IDisposable
         if (_artisanToggleTask is { IsFaulted: true })
         {
             var exception = _artisanToggleTask.Exception?.GetBaseException();
-            GatherBuddy.Log.Error($"[VulcanWindow] Failed to {(_pendingArtisanEnabledState.Value ? "enable" : "disable")} Artisan: {exception?.Message ?? "unknown error"}");
+            GatherBuddy.Log.Error($"[VulcanWindow] 失败: {(_pendingArtisanEnabledState.Value ? "启用" : "禁用")} Artisan: {exception?.Message ?? "未知错误"}");
             if (exception != null)
                 GatherBuddy.Log.Debug($"[VulcanWindow] Artisan toggle exception: {exception}");
-            Communicator.PrintError($"Failed to {(_pendingArtisanEnabledState.Value ? "enable" : "disable")} Artisan.");
+            Communicator.PrintError($"失败: {(_pendingArtisanEnabledState.Value ? "启用" : "禁用")} Artisan.");
             ClearPendingArtisanToggle();
             return false;
         }
 
         if (_artisanToggleTask is { IsCanceled: true })
         {
-            GatherBuddy.Log.Warning($"[VulcanWindow] Artisan toggle was cancelled while trying to {(_pendingArtisanEnabledState.Value ? "enable" : "disable")} Artisan.");
-            Communicator.PrintError($"Failed to {(_pendingArtisanEnabledState.Value ? "enable" : "disable")} Artisan.");
+            GatherBuddy.Log.Warning($"[VulcanWindow] Artisan toggle was cancelled while trying to {(_pendingArtisanEnabledState.Value ? "启用" : "禁用")} Artisan.");
+            Communicator.PrintError($"失败: {(_pendingArtisanEnabledState.Value ? "启用" : "禁用")} Artisan.");
             ClearPendingArtisanToggle();
             return false;
         }
 
         if (artisanLoaded == _pendingArtisanEnabledState.Value)
         {
-            GatherBuddy.Log.Debug($"[VulcanWindow] Artisan {(artisanLoaded ? "enabled" : "disabled")} successfully.");
+            GatherBuddy.Log.Debug($"[VulcanWindow] Artisan {(artisanLoaded ? "已启用" : "已禁用")} successfully.");
             ClearPendingArtisanToggle();
             return false;
         }
@@ -441,8 +441,8 @@ public partial class VulcanWindow : Window, IDisposable
         if ((DateTime.UtcNow - _artisanToggleRequestedAt).TotalSeconds <= ArtisanToggleTimeoutSeconds)
             return true;
 
-        GatherBuddy.Log.Warning($"[VulcanWindow] Timed out waiting for Artisan to {(_pendingArtisanEnabledState.Value ? "enable" : "disable")}.");
-        Communicator.PrintError($"Timed out trying to {(_pendingArtisanEnabledState.Value ? "enable" : "disable")} Artisan.");
+        GatherBuddy.Log.Warning($"[VulcanWindow] Timed out waiting for Artisan to {(_pendingArtisanEnabledState.Value ? "启用" : "禁用")}.");
+        Communicator.PrintError($"超时: {(_pendingArtisanEnabledState.Value ? "启用" : "禁用")} Artisan.");
         ClearPendingArtisanToggle();
         return false;
     }
@@ -451,15 +451,15 @@ public partial class VulcanWindow : Window, IDisposable
     {
         if (!DalamudPluginToggleHelper.TrySetPluginEnabled(ArtisanPluginName, enable, out var toggleTask, out var failureReason))
         {
-            GatherBuddy.Log.Warning($"[VulcanWindow] Failed to invoke reflected Artisan toggle for state {(enable ? "enabled" : "disabled")}: {failureReason ?? "unknown reason"}.");
-            Communicator.PrintError(failureReason ?? $"Failed to {(enable ? "enable" : "disable")} Artisan.");
+            GatherBuddy.Log.Warning($"[VulcanWindow] 失败: 调用反射的 Artisan 切换以设置状态 {(enable ? "已启用" : "已禁用")}: {failureReason ?? "未知原因"}。");
+            Communicator.PrintError(failureReason ?? $"失败: {(enable ? "启用" : "禁用")} Artisan.");
             return;
         }
 
         _pendingArtisanEnabledState = enable;
         _artisanToggleRequestedAt = DateTime.UtcNow;
         _artisanToggleTask = toggleTask;
-        GatherBuddy.Log.Debug($"[VulcanWindow] Requested to {(enable ? "enable" : "disable")} Artisan via reflected Dalamud plugin manager access.");
+        GatherBuddy.Log.Debug($"[VulcanWindow] Requested to {(enable ? "启用" : "禁用")} Artisan via reflected Dalamud plugin manager access.");
     }
 
     private void ClearPendingArtisanToggle()

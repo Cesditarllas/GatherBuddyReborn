@@ -36,13 +36,13 @@ public partial class VulcanWindow
 
         if (GatherBuddy.ControllerSupport != null)
         {
-            var handle = GatherBuddy.ControllerSupport.TabNavigation.TabItem("Macros##macrosTab", 3, 9);
+            var handle = GatherBuddy.ControllerSupport.TabNavigation.TabItem("宏##macrosTab", 3, 10);
             tabItem = handle;
             tabOpen = handle;
         }
         else
         {
-            var handle = ImRaii.TabItem("Macros##macrosTab");
+            var handle = ImRaii.TabItem("宏##macrosTab");
             tabItem = handle;
             tabOpen = handle.Success;
         }
@@ -53,14 +53,14 @@ public partial class VulcanWindow
                 return;
 
             var skipUnusable = GatherBuddy.Config.SkipMacroStepIfUnable;
-            if (ImGui.Checkbox("Skip step if unable##skipUnusable", ref skipUnusable))
+            if (ImGui.Checkbox("无法使用技能时跳过宏步骤##skipUnusable", ref skipUnusable))
             {
                 GatherBuddy.Config.SkipMacroStepIfUnable = skipUnusable;
                 GatherBuddy.Config.Save();
             }
             ImGui.SameLine(0, VulcanUiScaling.Scaled(20f));
             var fallbackEnabled = GatherBuddy.Config.MacroFallbackEnabled;
-            if (ImGui.Checkbox("Fallback solver when macro exhausts##fallbackEnabled", ref fallbackEnabled))
+            if (ImGui.Checkbox("宏执行完毕时使用备用求解器继续制作##fallbackEnabled", ref fallbackEnabled))
             {
                 GatherBuddy.Config.MacroFallbackEnabled = fallbackEnabled;
                 GatherBuddy.Config.Save();
@@ -101,57 +101,57 @@ public partial class VulcanWindow
     private void DrawImportPanel()
     {
         ImGui.Spacing();
-        ImGui.TextColored(ImGuiColors.DalamudYellow, "Import Macro");
-        ImGui.TextWrapped("Paste a crafting macro from Teamcraft or Artisan. /ac lines, plain one-action-per-line imports, and Artisan JSON exports are supported.");
+        ImGui.TextColored(ImGuiColors.DalamudYellow, "导入宏");
+        ImGui.TextWrapped("粘贴来自 Teamcraft 或 Artisan 的制作宏, 支持 /ac 行、每行一个操作纯文本导入以及 Artisan JSON 导出");
 
         ImGui.Spacing();
         ImGui.Separator();
         ImGui.Spacing();
 
-        if (ImGui.Button("Browse on Teamcraft##browseTC", VulcanUiScaling.Scaled(200f, 0f)))
+        if (ImGui.Button("浏览 TeamCraft##browseTC", VulcanUiScaling.Scaled(200f, 0f)))
         {
             try
             {
                 Dalamud.Commands.ProcessCommand("/bw overlay teamcraft disabled off");
                 Dalamud.Commands.ProcessCommand("/bw overlay teamcraft url https://ffxivteamcraft.com/community-rotations");
-                GatherBuddy.Log.Information("Opening Teamcraft in Browsingway overlay");
+                GatherBuddy.Log.Information("在 Browsingway 覆盖层中打开 TeamCraft");
             }
             catch (Exception ex)
             {
-                GatherBuddy.Log.Warning($"Could not open Browsingway overlay: {ex.Message}");
+                GatherBuddy.Log.Warning($"无法打开 Browsingway 覆盖层: {ex.Message}");
                 ImGui.OpenPopup("BrowsingwayError");
             }
         }
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip(
-                "Opens Teamcraft community rotations in Browsingway overlay.\n\n" +
-                "SETUP REQUIRED:\n" +
-                "1. Install Browsingway plugin\n" +
-                "2. Run /bw config\n" +
-                "3. Create a new overlay (+ button)\n" +
-                "4. Set Command Name to 'teamcraft'\n" +
-                "5. Close config and click this button\n\n" +
-                "Alternatively, browse https://ffxivteamcraft.com/community-rotations\n" +
-                "in your web browser.");
+                "在 Browsingway 覆盖层中打开 Teamcraft 社区宏\n\n" +
+                "需要设置:\n" +
+                "1. 安装 Browsingway 插件\n" +
+                "2. 执行 /bw config\n" +
+                "3. 创建一个新的覆盖层 (+ 按钮)\n" +
+                "4. 将命令名称设置为 'teamcraft'\n" +
+                "5. 关闭配置并点击此按钮\n\n" +
+                "完成后使用\"隐藏覆盖层\"按钮关闭覆盖层\n\n" +
+                "或者直接在浏览器中访问 https://ffxivteamcraft.com/community-rotations");
 
         ImGui.SameLine();
-        if (ImGui.Button("Hide Overlay##hideTC", VulcanUiScaling.Scaled(120f, 0f)))
+        if (ImGui.Button("隐藏覆盖层##hideTC", VulcanUiScaling.Scaled(120f, 0f)))
         {
             try
             {
                 Dalamud.Commands.ProcessCommand("/bw overlay teamcraft disabled on");
-                GatherBuddy.Log.Information("Hiding Teamcraft overlay");
+                GatherBuddy.Log.Information("隐藏 Teamcraft 覆盖层");
             }
             catch (Exception ex)
             {
-                GatherBuddy.Log.Warning($"Could not hide Browsingway overlay: {ex.Message}");
+                GatherBuddy.Log.Warning($"无法隐藏 Browsingway 覆盖层: {ex.Message}");
             }
         }
 
         if (ImGui.BeginPopup("BrowsingwayError"))
         {
-            ImGui.TextColored(ImGuiColors.DalamudYellow, "Browsingway plugin not found or not loaded.");
-            ImGui.TextWrapped("You can browse Teamcraft in your web browser and paste macros below.");
+            ImGui.TextColored(ImGuiColors.DalamudYellow, "Browsingway 插件未找到或未加载");
+            ImGui.TextWrapped("可在浏览器中打开 TeamCraft, 然后在下方粘贴宏");
             ImGui.EndPopup();
         }
 
@@ -159,26 +159,26 @@ public partial class VulcanWindow
         ImGui.Separator();
         ImGui.Spacing();
 
-        ImGui.Text("Name:");
+        ImGui.Text("名称:");
         ImGui.SetNextItemWidth(-1);
-        ImGui.InputTextWithHint("##macroName", "Enter macro name...", ref _inGameMacroName, 100);
+        ImGui.InputTextWithHint("##macroName", "输入宏名称...", ref _inGameMacroName, 100);
 
         ImGui.Spacing();
-        ImGui.Text("Macro Text:");
+        ImGui.Text("宏文本:");
         ImGui.SetNextItemWidth(-1);
         ImGui.InputTextMultiline("##macroText", ref _inGameMacroText, 500000, VulcanUiScaling.Scaled(-1f, 200f));
 
         ImGui.Spacing();
         using (ImRaii.Disabled(string.IsNullOrWhiteSpace(_inGameMacroText)))
         {
-            if (ImGui.Button("Parse & Preview##parseBtn", VulcanUiScaling.Scaled(150f, 0f)))
+            if (ImGui.Button("解析 & 预览##parseBtn", VulcanUiScaling.Scaled(150f, 0f)))
                 ParseInGameMacro();
         }
 
         if (_inGameMacroError != null)
         {
             ImGui.Spacing();
-            ImGui.TextColored(ImGuiColors.DalamudRed, $"Error: {_inGameMacroError}");
+            ImGui.TextColored(ImGuiColors.DalamudRed, $"错误: {_inGameMacroError}");
         }
 
         if (_previewInGameMacro != null)
@@ -192,36 +192,36 @@ public partial class VulcanWindow
 
     private void DrawInGameMacroPreview(UserMacro macro)
     {
-        ImGui.TextColored(ImGuiColors.ParsedGreen, "Preview");
-        ImGui.TextColored(ImGuiColors.DalamudGrey3, $"{macro.Name}  —  {macro.Actions.Count} actions");
+        ImGui.TextColored(ImGuiColors.ParsedGreen, "预览");
+        ImGui.TextColored(ImGuiColors.DalamudGrey3, $"{macro.Name}  —  {macro.Actions.Count} 个技能");
         ImGui.Spacing();
 
-        ImGui.Text("Minimum Stats (optional):");
+        ImGui.Text("最低属性 (可选):");
         ImGui.SetNextItemWidth(VulcanUiScaling.Scaled(110f));
-        ImGui.InputInt("Craftsmanship##previewMinCraft", ref _previewMinCraft);
+        ImGui.InputInt("作业精度##previewMinCraft", ref _previewMinCraft);
         ImGui.SameLine();
         ImGui.SetNextItemWidth(VulcanUiScaling.Scaled(110f));
-        ImGui.InputInt("Control##previewMinCtrl", ref _previewMinCtrl);
+        ImGui.InputInt("加工精度##previewMinCtrl", ref _previewMinCtrl);
         ImGui.SameLine();
         ImGui.SetNextItemWidth(VulcanUiScaling.Scaled(90f));
-        ImGui.InputInt("CP##previewMinCP", ref _previewMinCP);
+        ImGui.InputInt("制作力##previewMinCP", ref _previewMinCP);
         _previewMinCraft = Math.Max(0, _previewMinCraft);
-        _previewMinCtrl  = Math.Max(0, _previewMinCtrl);
-        _previewMinCP    = Math.Max(0, _previewMinCP);
+        _previewMinCtrl = Math.Max(0, _previewMinCtrl);
+        _previewMinCP = Math.Max(0, _previewMinCP);
 
         ImGui.Spacing();
-        if (ImGui.Button("Import##importInGameBtn", VulcanUiScaling.Scaled(120f, 0f)))
+        if (ImGui.Button("导入##importInGameBtn", VulcanUiScaling.Scaled(120f, 0f)))
         {
             macro.MinCraftsmanship = _previewMinCraft;
-            macro.MinControl       = _previewMinCtrl;
-            macro.MinCP            = _previewMinCP;
+            macro.MinControl = _previewMinCtrl;
+            macro.MinCP = _previewMinCP;
             ImportInGameMacro(macro);
         }
         ImGui.SameLine();
-        if (ImGui.Button("Cancel##cancelInGameBtn", VulcanUiScaling.Scaled(90f, 0f)))
+        if (ImGui.Button("取消##cancelInGameBtn", VulcanUiScaling.Scaled(90f, 0f)))
         {
             _previewInGameMacro = null;
-            _inGameMacroError   = null;
+            _inGameMacroError = null;
         }
     }
 
@@ -234,10 +234,10 @@ public partial class VulcanWindow
         {
             var macroName = string.IsNullOrWhiteSpace(_inGameMacroName) ? null : _inGameMacroName;
             var macro = MacroParser.ParseInGameMacro(_inGameMacroText, macroName);
-            
+
             if (macro == null || macro.Actions.Count == 0)
             {
-                _inGameMacroError = "Failed to parse macro. Ensure it contains recognizable crafting action names or a supported Artisan JSON export.";
+                _inGameMacroError = "解析宏失败, 请确认包含可识别的制作技能名或受支持的 Artisan JSON 导出";
             }
             else
             {
@@ -249,8 +249,8 @@ public partial class VulcanWindow
         }
         catch (Exception ex)
         {
-            _inGameMacroError = $"Failed to parse macro: {ex.Message}";
-            GatherBuddy.Log.Error($"Failed to parse in-game macro: {ex.Message}");
+            _inGameMacroError = $"解析宏失败: {ex.Message}";
+            GatherBuddy.Log.Error($"解析游戏内宏失败: {ex.Message}");
         }
     }
 
@@ -260,19 +260,19 @@ public partial class VulcanWindow
         {
             var macroLibrary = CraftingGameInterop.UserMacroLibrary;
             macroLibrary.AddMacro(macro, 0);
-            
-            GatherBuddy.Log.Information($"Imported in-game macro: {macro.Name}");
-            
-            _selectedMacroId    = macro.Id;
+
+            GatherBuddy.Log.Information($"已导入游戏内宏: {macro.Name}");
+
+            _selectedMacroId = macro.Id;
             _previewInGameMacro = null;
-            _inGameMacroText    = string.Empty;
-            _inGameMacroName    = string.Empty;
-            _inGameMacroError   = null;
+            _inGameMacroText = string.Empty;
+            _inGameMacroName = string.Empty;
+            _inGameMacroError = null;
         }
         catch (Exception ex)
         {
-            _inGameMacroError = $"Failed to import macro: {ex.Message}";
-            GatherBuddy.Log.Error($"Failed to import in-game macro: {ex.Message}");
+            _inGameMacroError = $"导入宏失败: {ex.Message}";
+            GatherBuddy.Log.Error($"导入游戏内宏失败: {ex.Message}");
         }
     }
 
@@ -281,19 +281,19 @@ public partial class VulcanWindow
     {
         ImGui.Spacing();
         ImGui.SetNextItemWidth(-1);
-        ImGui.InputTextWithHint("##macroSearch", "Search macros...", ref _macroSearch, 128);
+        ImGui.InputTextWithHint("##macroSearch", "搜索宏...", ref _macroSearch, 128);
         ImGui.Spacing();
         ImGui.Separator();
         ImGui.Spacing();
 
         var macroLibrary = CraftingGameInterop.UserMacroLibrary;
-        var allMacros    = macroLibrary.GetAllMacros();
+        var allMacros = macroLibrary.GetAllMacros();
 
         if (allMacros.Count == 0)
         {
             ImGui.Spacing();
-            ImGui.TextColored(ImGuiColors.DalamudGrey, "No macros yet.");
-            ImGui.TextColored(ImGuiColors.DalamudGrey, "Use the import panel to add one.");
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "尚未添加任何宏");
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "请使用导入面板来添加");
             return;
         }
 
@@ -306,7 +306,7 @@ public partial class VulcanWindow
 
         if (filtered.Count == 0)
         {
-            ImGui.TextColored(ImGuiColors.DalamudGrey, "No macros match your search.");
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "没有符合搜索条件的宏");
             return;
         }
 
@@ -316,7 +316,7 @@ public partial class VulcanWindow
 
         foreach (var macro in filtered)
         {
-            var isSelected  = _selectedMacroId == macro.Id;
+            var isSelected = _selectedMacroId == macro.Id;
             var firstIconId = macro.Actions.Count > 0 ? GetSkillIconId(macro.Actions[0]) : 0u;
 
             if (firstIconId > 0)
@@ -346,8 +346,8 @@ public partial class VulcanWindow
                 _selectedMacroId = isSelected ? null : macro.Id;
 
             var statsLine = macro.MinCraftsmanship > 0 || macro.MinControl > 0 || macro.MinCP > 0
-                ? $"{macro.Actions.Count} actions  |  Min: {macro.MinCraftsmanship}/{macro.MinControl}/{macro.MinCP}"
-                : $"{macro.Actions.Count} actions";
+                ? $"{macro.Actions.Count} 个技能  |  最低属性: {macro.MinCraftsmanship}/{macro.MinControl}/{macro.MinCP}"
+                : $"{macro.Actions.Count} 个技能";
             if (ImGui.IsItemHovered())
                 ImGui.SetTooltip(statsLine);
         }
@@ -381,7 +381,7 @@ public partial class VulcanWindow
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (largeIconSize.Y - lineH * 2f) / 2f);
         ImGui.TextColored(ImGuiColors.ParsedGold, macro.Name);
         ImGui.TextColored(ImGuiColors.DalamudGrey3,
-            string.IsNullOrEmpty(macro.Author) ? macro.Source : $"by {macro.Author}");
+            string.IsNullOrEmpty(macro.Author) ? macro.Source : $"作者: {macro.Author}");
 
         ImGui.Spacing();
         ImGui.Separator();
@@ -389,46 +389,46 @@ public partial class VulcanWindow
 
         if (_editingMacroStatsId != macro.Id)
         {
-            _editingMacroStatsId  = macro.Id;
+            _editingMacroStatsId = macro.Id;
             _editingMacroMinCraft = macro.MinCraftsmanship;
-            _editingMacroMinCtrl  = macro.MinControl;
-            _editingMacroMinCP    = macro.MinCP;
+            _editingMacroMinCtrl = macro.MinControl;
+            _editingMacroMinCP = macro.MinCP;
         }
 
-        ImGui.TextColored(ImGuiColors.DalamudYellow, "Minimum Stats");
+        ImGui.TextColored(ImGuiColors.DalamudYellow, "最低属性");
         ImGui.Spacing();
         ImGui.SetNextItemWidth(VulcanUiScaling.Scaled(110f));
-        ImGui.InputInt("Craftsmanship##editMinCraft", ref _editingMacroMinCraft);
+        ImGui.InputInt("作业精度##editMinCraft", ref _editingMacroMinCraft);
         ImGui.SameLine();
         ImGui.SetNextItemWidth(VulcanUiScaling.Scaled(110f));
-        ImGui.InputInt("Control##editMinCtrl", ref _editingMacroMinCtrl);
+        ImGui.InputInt("加工精度##editMinCtrl", ref _editingMacroMinCtrl);
         ImGui.SameLine();
         ImGui.SetNextItemWidth(VulcanUiScaling.Scaled(90f));
-        ImGui.InputInt("CP##editMinCP", ref _editingMacroMinCP);
+        ImGui.InputInt("制作力##editMinCP", ref _editingMacroMinCP);
         _editingMacroMinCraft = Math.Max(0, _editingMacroMinCraft);
-        _editingMacroMinCtrl  = Math.Max(0, _editingMacroMinCtrl);
-        _editingMacroMinCP    = Math.Max(0, _editingMacroMinCP);
+        _editingMacroMinCtrl = Math.Max(0, _editingMacroMinCtrl);
+        _editingMacroMinCP = Math.Max(0, _editingMacroMinCP);
         ImGui.SameLine();
-        if (ImGui.SmallButton("Save##saveStats"))
+        if (ImGui.SmallButton("保存##saveStats"))
         {
             macro.MinCraftsmanship = _editingMacroMinCraft;
-            macro.MinControl       = _editingMacroMinCtrl;
-            macro.MinCP            = _editingMacroMinCP;
+            macro.MinControl = _editingMacroMinCtrl;
+            macro.MinCP = _editingMacroMinCP;
             MacroValidator.InvalidateByMacroId(macro.Id);
             macroLibrary.Save();
-            GatherBuddy.Log.Debug($"[MacrosTab] Saved min stats for macro '{macro.Name}'");
+            GatherBuddy.Log.Debug($"[MacrosTab] 已保存宏 '{macro.Name}' 的最低属性");
         }
 
         ImGui.Spacing();
-        ImGui.TextColored(ImGuiColors.DalamudGrey, $"Created: {macro.CreatedAt.ToLocalTime():yyyy-MM-dd HH:mm}");
+        ImGui.TextColored(ImGuiColors.DalamudGrey, $"创建时间: {macro.CreatedAt.ToLocalTime():yyyy-MM-dd HH:mm}");
         if (!string.IsNullOrEmpty(macro.TeamcraftUrl))
-            ImGui.TextColored(ImGuiColors.DalamudGrey, $"URL: {macro.TeamcraftUrl}");
+            ImGui.TextColored(ImGuiColors.DalamudGrey, $"链接: {macro.TeamcraftUrl}");
 
         ImGui.Spacing();
         ImGui.Separator();
         ImGui.Spacing();
 
-        ImGui.TextColored(ImGuiColors.ParsedGold, $"Actions ({macro.Actions.Count})");
+        ImGui.TextColored(ImGuiColors.ParsedGold, $"技能数量 ({macro.Actions.Count})");
         ImGui.Spacing();
 
         var actionIconSize = VulcanUiScaling.Scaled(24f, 24f);
@@ -437,9 +437,16 @@ public partial class VulcanWindow
 
         for (var i = 0; i < macro.Actions.Count; i++)
         {
-            var actionId  = macro.Actions[i];
+            var actionId = macro.Actions[i];
             var skillName = ((VulcanSkill)actionId).ToString();
-            var iconId    = GetSkillIconId(actionId);
+
+            // 使用字典映射中文技能名
+            var skillEnum = (VulcanSkill)actionId;
+            var skillNameZh = VulcanSkillNamesZh.TryGetValue(skillEnum, out var zhName)
+                ? zhName
+                : skillEnum.ToString();
+
+            var iconId = GetSkillIconId(actionId);
 
             if (iconId > 0)
             {
@@ -458,18 +465,18 @@ public partial class VulcanWindow
 
             ImGui.SameLine(0, VulcanUiScaling.Scaled(6f));
             ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (actionIconSize.Y - ImGui.GetTextLineHeight()) / 2f);
-            ImGui.Text($"{i + 1}. {skillName}");
+            ImGui.Text($"{i + 1}. {skillNameZh}");
         }
 
         ImGui.EndChild();
 
         ImGui.Separator();
         ImGui.Spacing();
-        if (ImGui.Button($"Delete##deleteMacro_{macro.Id}", VulcanUiScaling.Scaled(100f, 0f)))
+        if (ImGui.Button($"删除##deleteMacro_{macro.Id}", VulcanUiScaling.Scaled(100f, 0f)))
         {
             macroLibrary.RemoveMacro(macro.Id);
             _selectedMacroId = null;
-            GatherBuddy.Log.Debug($"[MacrosTab] Deleted macro '{macro.Name}'");
+            GatherBuddy.Log.Debug($"[MacrosTab] 已删除宏 '{macro.Name}'");
         }
     }
 
@@ -477,7 +484,7 @@ public partial class VulcanWindow
     {
         if (_skillIconCache.TryGetValue(skillId, out var cached))
             return cached;
-        
+
         uint iconId = 0;
         try
         {
@@ -496,10 +503,59 @@ public partial class VulcanWindow
         }
         catch (Exception ex)
         {
-            GatherBuddy.Log.Debug($"[MacrosTab] Failed to get icon for skill {skillId}: {ex.Message}");
+            GatherBuddy.Log.Debug($"[MacrosTab] 获取技能图标失败 {skillId}: {ex.Message}");
         }
-        
+
         _skillIconCache[skillId] = iconId;
         return iconId;
     }
+
+    public static readonly Dictionary<VulcanSkill, string> VulcanSkillNamesZh = new()
+    {
+        { VulcanSkill.None, "无" },
+        { VulcanSkill.TouchCombo, "加工连段" },
+        { VulcanSkill.TouchComboRefined, "加工连段 (精炼加工路线)" },
+
+        { VulcanSkill.BasicSynthesis, "制作" },
+        { VulcanSkill.CarefulSynthesis, "模范制作" },
+        { VulcanSkill.RapidSynthesis, "高速制作" },
+        { VulcanSkill.Groundwork, "坯料制作" },
+        { VulcanSkill.IntensiveSynthesis, "集中制作" },
+        { VulcanSkill.PrudentSynthesis, "俭约制作" },
+        { VulcanSkill.MuscleMemory, "坚信" },
+
+        { VulcanSkill.BasicTouch, "加工" },
+        { VulcanSkill.StandardTouch, "中级加工" },
+        { VulcanSkill.AdvancedTouch, "上级加工" },
+        { VulcanSkill.HastyTouch, "仓促" },
+        { VulcanSkill.PreparatoryTouch, "坯料加工" },
+        { VulcanSkill.PreciseTouch, "集中加工" },
+        { VulcanSkill.PrudentTouch, "俭约加工" },
+        { VulcanSkill.TrainedFinesse, "工匠的神技" },
+        { VulcanSkill.Reflect, "闲静" },
+        { VulcanSkill.RefinedTouch, "精炼加工" },
+        { VulcanSkill.DaringTouch, "冒进" },
+
+        { VulcanSkill.ByregotsBlessing, "比尔格的祝福" },
+        { VulcanSkill.TrainedEye, "工匠的神速技巧" },
+        { VulcanSkill.DelicateSynthesis, "精密制作" },
+
+        { VulcanSkill.Veneration, "崇敬" },
+        { VulcanSkill.Innovation, "改革" },
+        { VulcanSkill.GreatStrides, "阔步" },
+        { VulcanSkill.TricksOfTrade, "秘诀" },
+        { VulcanSkill.MastersMend, "精修" },
+        { VulcanSkill.Manipulation, "掌握" },
+        { VulcanSkill.WasteNot, "俭约" },
+        { VulcanSkill.WasteNot2, "长期俭约" },
+        { VulcanSkill.Observe, "观察" },
+        { VulcanSkill.CarefulObservation, "设计变动" },
+        { VulcanSkill.FinalAppraisal, "最终确认" },
+        { VulcanSkill.HeartAndSoul, "专心致志" },
+        { VulcanSkill.QuickInnovation, "快速改革" },
+        { VulcanSkill.ImmaculateMend, "巧夺天工" },
+        { VulcanSkill.TrainedPerfection, "工匠的绝技" },
+
+        { VulcanSkill.MaterialMiracle, "奇迹之材" },
+    };
 }

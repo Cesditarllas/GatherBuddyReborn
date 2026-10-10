@@ -169,8 +169,8 @@ public sealed class VendorPurchaseManager : IDisposable
         _lastActionTime = DateTime.MinValue;
         _stateStartTime = DateTime.UtcNow;
         _statusText = continueCurrentVendorInteraction
-            ? $"Continuing purchase of {requestedQuantity:N0}x {entry.ItemName} from {vendor.Name}"
-            : $"Navigating to {vendor.Name} for {requestedQuantity:N0}x {entry.ItemName}";
+            ? $"继续从 {vendor.Name} 购买 {requestedQuantity:N0}x {entry.ItemName}"
+            : $"正在导航到 {vendor.Name} 以购买 {requestedQuantity:N0}x {entry.ItemName}";
         _state = continueCurrentVendorInteraction
             ? State.OpeningShop
             : State.WaitingForNavigation;
@@ -203,7 +203,7 @@ public sealed class VendorPurchaseManager : IDisposable
         }
         catch (Exception ex)
         {
-            Fail($"Vendor purchase failed for {_request.ItemName}: {ex.Message}");
+            Fail($"为 {_request.ItemName} 进行的商人采购失败: {ex.Message}");
         }
     }
 
@@ -222,7 +222,7 @@ public sealed class VendorPurchaseManager : IDisposable
             _request.Quantity,
             _completedQuantity,
             _request.Vendor,
-            $"Cancelled purchase of {_request.ItemName} from {_request.Vendor.Name}.",
+            $"已取消从 {_request.Vendor.Name} 购买 {_request.ItemName}",
             false);
         ResetState();
         PurchaseFinished?.Invoke(result);
@@ -296,11 +296,11 @@ public sealed class VendorPurchaseManager : IDisposable
         var remainingQuantity = GetRemainingQuantity();
         var message = wasLimitedByScripReserve
             ? _completedQuantity > 0
-                ? $"Purchased {_completedQuantity:N0}/{_request.Quantity:N0}x {_request.ItemName} from {_request.Vendor.Name}. Stopped to keep {reserveAmount:N0} {availability.CurrencyName} in reserve with {availability.AvailableAmount:N0} remaining and {spendableAmount:N0} spendable (cost {_request.Cost:N0} each)."
-                : $"Skipping {_request.ItemName} from {_request.Vendor.Name}. Keeping {reserveAmount:N0} {availability.CurrencyName} in reserve leaves {spendableAmount:N0} spendable, but {_request.Cost:N0} are needed for 1x."
+                ? $"已从 {_request.Vendor.Name} 购买 {_completedQuantity:N0}/{_request.Quantity:N0}x {_request.ItemName}。停止购买以保留 {reserveAmount:N0} {availability.CurrencyName}，当前剩余 {availability.AvailableAmount:N0}，可花费 {spendableAmount:N0}（单价 {_request.Cost:N0}）"
+                : $"跳过 {_request.ItemName}（商人 {_request.Vendor.Name}）。保留 {reserveAmount:N0} {availability.CurrencyName} 后仅剩 {spendableAmount:N0} 可花费，但 1x 需要 {_request.Cost:N0}"
             : _completedQuantity > 0
-                ? $"Purchased {_completedQuantity:N0}/{_request.Quantity:N0}x {_request.ItemName} from {_request.Vendor.Name}. Could not afford the remaining {remainingQuantity:N0}x with {availability.AvailableAmount:N0} {availability.CurrencyName} remaining (cost {_request.Cost:N0} each)."
-                : $"Not enough {availability.CurrencyName} to buy {_request.ItemName} from {_request.Vendor.Name}. Need {_request.Cost:N0} for 1x and only {availability.AvailableAmount:N0} are available.";
+                ? $"已从 {_request.Vendor.Name} 购买 {_completedQuantity:N0}/{_request.Quantity:N0}x {_request.ItemName}。剩余 {remainingQuantity:N0}x 无法负担，仅有 {availability.AvailableAmount:N0} {availability.CurrencyName}（单价 {_request.Cost:N0}）"
+                : $"没有足够的 {availability.CurrencyName} 从 {_request.Vendor.Name} 购买 {_request.ItemName}。1x 需要 {_request.Cost:N0}，但只有 {availability.AvailableAmount:N0} 可用";
 
         if (_completedQuantity > 0)
         {
@@ -344,7 +344,7 @@ public sealed class VendorPurchaseManager : IDisposable
         _state = State.OpeningShop;
         _stateStartTime = DateTime.UtcNow;
         _lastActionTime = DateTime.MinValue;
-        _statusText = $"Preparing next batch of {_request.ItemName} ({_completedQuantity:N0}/{_request.Quantity:N0})";
+        _statusText = $"正在准备下一批 {_request.ItemName} ({_completedQuantity:N0}/{_request.Quantity:N0})";
     }
 
     private bool TryAdvancePurchaseProgress()
@@ -366,7 +366,7 @@ public sealed class VendorPurchaseManager : IDisposable
 
         if (_completedQuantity >= _request.Quantity)
         {
-            Complete($"Purchased {_completedQuantity:N0}x {_request.ItemName} from {_request.Vendor.Name}.");
+            Complete($"已从 {_request.Vendor.Name} 购买 {_completedQuantity:N0}x {_request.ItemName}");
             return true;
         }
 
@@ -382,7 +382,7 @@ public sealed class VendorPurchaseManager : IDisposable
         var navigator = GatherBuddy.VendorNavigator;
         if (navigator.IsFailed)
         {
-            Fail($"Failed to navigate to {_request.Vendor.Name} for {_request.ItemName}.");
+            Fail($"未能导航到 {_request.Vendor.Name} 以购买 {_request.ItemName}");
             return;
         }
 
@@ -393,7 +393,7 @@ public sealed class VendorPurchaseManager : IDisposable
         _stateStartTime = DateTime.UtcNow;
         _lastActionTime = DateTime.MinValue;
         _interactionAttempts = 0;
-        _statusText = $"Opening {_request.Vendor.Name}'s shop";
+        _statusText = $"正在打开 {_request.Vendor.Name} 的商店";
     }
 
     private unsafe void UpdateOpeningShop()
@@ -408,7 +408,7 @@ public sealed class VendorPurchaseManager : IDisposable
             _state = State.PurchasingItem;
             _stateStartTime = DateTime.UtcNow;
             _lastActionTime = DateTime.MinValue;
-            _statusText = $"Selecting {_request.ItemName} in the gil shop ({_completedQuantity:N0}/{_request.Quantity:N0})";
+            _statusText = $"正在金币商店中选择 {_request.ItemName} ({_completedQuantity:N0}/{_request.Quantity:N0})";
             return;
         }
 
@@ -419,7 +419,7 @@ public sealed class VendorPurchaseManager : IDisposable
             _state = State.PurchasingItem;
             _stateStartTime = DateTime.UtcNow;
             _lastActionTime = DateTime.MinValue;
-            _statusText = $"Selecting {_request.ItemName} in the inclusion shop ({_completedQuantity:N0}/{_request.Quantity:N0})";
+            _statusText = $"正在综合商店中选择 {_request.ItemName} ({_completedQuantity:N0}/{_request.Quantity:N0})";
             return;
         }
 
@@ -430,7 +430,7 @@ public sealed class VendorPurchaseManager : IDisposable
             _state = State.PurchasingItem;
             _stateStartTime = DateTime.UtcNow;
             _lastActionTime = DateTime.MinValue;
-            _statusText = $"Selecting {_request.ItemName} in the grand-company shop ({_completedQuantity:N0}/{_request.Quantity:N0})";
+            _statusText = $"正在国防联军商店中选择 {_request.ItemName} ({_completedQuantity:N0}/{_request.Quantity:N0})";
             return;
         }
 
@@ -442,7 +442,7 @@ public sealed class VendorPurchaseManager : IDisposable
                 _state = State.PurchasingItem;
                 _stateStartTime = DateTime.UtcNow;
                 _lastActionTime = DateTime.MinValue;
-                _statusText = $"Selecting {_request.ItemName} in the direct special shop ({_completedQuantity:N0}/{_request.Quantity:N0})";
+                _statusText = $"正在直接特殊商店中选择 {_request.ItemName} ({_completedQuantity:N0}/{_request.Quantity:N0})";
                 return;
             }
 
@@ -451,7 +451,7 @@ public sealed class VendorPurchaseManager : IDisposable
                 _state = State.PurchasingItem;
                 _stateStartTime = DateTime.UtcNow;
                 _lastActionTime = DateTime.MinValue;
-                _statusText = $"Selecting {_request.ItemName} in the direct special shop ({_completedQuantity:N0}/{_request.Quantity:N0})";
+                _statusText = $"正在直接特殊商店中选择 {_request.ItemName} ({_completedQuantity:N0}/{_request.Quantity:N0})";
                 return;
             }
         }
@@ -461,7 +461,7 @@ public sealed class VendorPurchaseManager : IDisposable
             if (VendorInteractionHelper.TryClickTalk())
             {
                 _lastActionTime = DateTime.UtcNow;
-                _statusText = $"Advancing dialogue with {_request.Vendor.Name}";
+                _statusText = $"正在推进与 {_request.Vendor.Name} 的对话";
                 return;
             }
 
@@ -469,7 +469,7 @@ public sealed class VendorPurchaseManager : IDisposable
             {
                 _lastActionTime = DateTime.UtcNow;
                 _stateStartTime = DateTime.UtcNow;
-                _statusText = $"Selecting {_request.ItemName}'s vendor route";
+                _statusText = $"正在选择 {_request.ItemName} 的商人路线";
                 return;
             }
 
@@ -482,7 +482,7 @@ public sealed class VendorPurchaseManager : IDisposable
 
         if (_interactionAttempts == 0 || (DateTime.UtcNow - _lastActionTime) >= InteractionCooldown)
         {
-            if (AttemptVendorInteraction("Opening shop"))
+            if (AttemptVendorInteraction("正在打开商店"))
                 return;
         }
 
@@ -490,11 +490,11 @@ public sealed class VendorPurchaseManager : IDisposable
         {
             if (_interactionAttempts >= MaxInteractionTries)
             {
-                Fail($"Timed out opening {_request.Vendor.Name}'s {DescribeShopLabel(_request)} for {_request.ItemName}.");
+                Fail($"为 {_request.ItemName} 打开 {_request.Vendor.Name} 的 {DescribeShopLabel(_request)} 超时");
                 return;
             }
 
-            AttemptVendorInteraction("Retrying shop interaction");
+            AttemptVendorInteraction("正在重试商店交互");
             _stateStartTime = DateTime.UtcNow;
         }
     }
@@ -507,7 +507,7 @@ public sealed class VendorPurchaseManager : IDisposable
         var remainingQuantity = GetRemainingQuantity();
         if (remainingQuantity == 0)
         {
-            Complete($"Purchased {_request.Quantity:N0}x {_request.ItemName} from {_request.Vendor.Name}.");
+            Complete($"已从 {_request.Vendor.Name} 购买 {_request.Quantity:N0}x {_request.ItemName}");
             return;
         }
 
@@ -526,7 +526,7 @@ public sealed class VendorPurchaseManager : IDisposable
         if (!GenericHelpers.TryGetAddonByName("Shop", out AtkUnitBase* shop))
         {
             if ((DateTime.UtcNow - _stateStartTime) > ShopOpenTimeout)
-                Fail($"The gil shop closed before {_request.ItemName} could be selected.");
+                Fail($"在选择 {_request.ItemName} 之前金币商店已关闭");
             return;
         }
 
@@ -537,7 +537,7 @@ public sealed class VendorPurchaseManager : IDisposable
         var targetItem = reader.Items.FirstOrDefault(item => item.ItemId == _request.ItemId);
         if (targetItem == null)
         {
-            Fail($"Could not find {_request.ItemName} in {_request.Vendor.Name}'s gil shop.");
+            Fail($"在 {_request.Vendor.Name} 的金币商店中找不到 {_request.ItemName}");
             return;
         }
         if (!TryPrepareBatchQuantity(remainingQuantity))
@@ -548,7 +548,7 @@ public sealed class VendorPurchaseManager : IDisposable
         _state = State.ConfirmingPurchase;
         _stateStartTime = DateTime.UtcNow;
         _lastActionTime = DateTime.UtcNow;
-        _statusText = $"Confirming purchase of {_currentBatchQuantity:N0}x {_request.ItemName} ({_completedQuantity:N0}/{_request.Quantity:N0})";
+        _statusText = $"正在确认购买 {_currentBatchQuantity:N0}x {_request.ItemName} ({_completedQuantity:N0}/{_request.Quantity:N0})";
     }
 
     private bool TryRecoverMissingInclusionShopItem(out string? failureMessage)
@@ -603,7 +603,7 @@ public sealed class VendorPurchaseManager : IDisposable
             _activeInclusionSubPageIndex = candidateSubPageIndex;
             _inclusionSubPageSelected = true;
             _lastActionTime = DateTime.UtcNow;
-            _statusText = $"Scanning inclusion subpage {candidateSubPageIndex} for {_request.ItemName} ({_completedQuantity:N0}/{_request.Quantity:N0})";
+            _statusText = $"正在扫描综合商店子页面 {candidateSubPageIndex} 以寻找 {_request.ItemName} ({_completedQuantity:N0}/{_request.Quantity:N0})";
             GatherBuddy.Log.Debug($"[VendorPurchaseManager] Scanning fallback InclusionShop page={GetDisplayInclusionPageIndex()} subpage={candidateSubPageIndex} for requested item {_request.ItemId}.");
             return true;
         }
@@ -624,12 +624,12 @@ public sealed class VendorPurchaseManager : IDisposable
     private string BuildInclusionRecoveryFailureMessage()
     {
         if (_request == null)
-            return "Could not recover the InclusionShop item selection.";
+            return "无法恢复综合商店物品选择";
 
         var scannedSubPages = 1 + _inclusionRecoverySubPageCandidateIndex;
         var visibleRows     = VendorInteractionHelper.DescribeVisibleInclusionShopItems();
         GatherBuddy.Log.Error($"[VendorPurchaseManager] Failed to find requested item {_request.ItemId} after scanning {scannedSubPages} InclusionShop subpages on page={GetDisplayInclusionPageIndex()}. Last checked subpage={DescribeInclusionSubPageIndex(_activeInclusionSubPageIndex)}. Visible rows: {visibleRows}");
-        return $"Could not find {_request.ItemName} in {_request.Vendor.Name}'s inclusion shop after scanning {scannedSubPages} subpages on page {GetDisplayInclusionPageIndex()}.";
+        return $"在扫描页面 {GetDisplayInclusionPageIndex()} 的 {scannedSubPages} 个子页面后，在 {_request.Vendor.Name} 的综合商店中找不到 {_request.ItemName}";
     }
 
     private int GetDisplayInclusionPageIndex()
@@ -683,7 +683,7 @@ public sealed class VendorPurchaseManager : IDisposable
 
         if (_request.Vendor.ShopItemIndex < 0)
         {
-            Fail($"No special-shop item index is available for {_request.ItemName}.");
+            Fail($"没有可用于 {_request.ItemName} 的特殊商店物品索引");
             return;
         }
 
@@ -696,7 +696,7 @@ public sealed class VendorPurchaseManager : IDisposable
         if (activeAddonName.Length == 0)
         {
             if ((DateTime.UtcNow - _stateStartTime) > ShopOpenTimeout)
-                Fail($"The direct special shop closed before {_request.ItemName} could be selected.");
+                Fail($"在选择 {_request.ItemName} 之前直接特殊商店已关闭");
             return;
         }
 
@@ -717,7 +717,7 @@ public sealed class VendorPurchaseManager : IDisposable
         _state = State.ConfirmingPurchase;
         _stateStartTime = DateTime.UtcNow;
         _lastActionTime = DateTime.UtcNow;
-        _statusText = $"Confirming purchase of {_currentBatchQuantity:N0}x {_request.ItemName} ({_completedQuantity:N0}/{_request.Quantity:N0})";
+        _statusText = $"正在确认购买 {_currentBatchQuantity:N0}x {_request.ItemName} ({_completedQuantity:N0}/{_request.Quantity:N0})";
     }
 
     private unsafe void UpdatePurchasingSpecialCurrencyItem()
@@ -732,14 +732,14 @@ public sealed class VendorPurchaseManager : IDisposable
 
         if (_request.Vendor.ShopItemIndex < 0)
         {
-            Fail($"No inclusion-shop item index is available for {_request.ItemName}.");
+            Fail($"没有可用于 {_request.ItemName} 的综合商店物品索引");
             return;
         }
 
         if (!GenericHelpers.TryGetAddonByName("InclusionShop", out AtkUnitBase* shop) || !shop->IsVisible)
         {
             if ((DateTime.UtcNow - _stateStartTime) > ShopOpenTimeout)
-                Fail($"The inclusion shop closed before {_request.ItemName} could be selected.");
+                Fail($"在选择 {_request.ItemName} 之前综合商店已关闭");
             return;
         }
 
@@ -752,7 +752,7 @@ public sealed class VendorPurchaseManager : IDisposable
             {
                 _inclusionPageSelected = true;
                 _lastActionTime = DateTime.UtcNow;
-                _statusText = $"Selecting {_request.ItemName}'s inclusion page ({_completedQuantity:N0}/{_request.Quantity:N0})";
+                _statusText = $"正在选择 {_request.ItemName} 的综合商店页面 ({_completedQuantity:N0}/{_request.Quantity:N0})";
                 return;
             }
 
@@ -769,7 +769,7 @@ public sealed class VendorPurchaseManager : IDisposable
             {
                 _inclusionSubPageSelected = true;
                 _lastActionTime = DateTime.UtcNow;
-                _statusText = $"Selecting {_request.ItemName}'s inclusion subpage ({_completedQuantity:N0}/{_request.Quantity:N0})";
+                _statusText = $"正在选择 {_request.ItemName} 的综合商店子页面 ({_completedQuantity:N0}/{_request.Quantity:N0})";
                 return;
             }
 
@@ -807,7 +807,7 @@ public sealed class VendorPurchaseManager : IDisposable
         _state = State.ConfirmingPurchase;
         _stateStartTime = DateTime.UtcNow;
         _lastActionTime = DateTime.UtcNow;
-        _statusText = $"Confirming purchase of {_currentBatchQuantity:N0}x {_request.ItemName} ({_completedQuantity:N0}/{_request.Quantity:N0})";
+        _statusText = $"正在确认购买 {_currentBatchQuantity:N0}x {_request.ItemName} ({_completedQuantity:N0}/{_request.Quantity:N0})";
     }
 
     private unsafe void UpdatePurchasingGrandCompanyItem()
@@ -818,7 +818,7 @@ public sealed class VendorPurchaseManager : IDisposable
         if (!GenericHelpers.TryGetAddonByName("GrandCompanyExchange", out AtkUnitBase* shop) || !shop->IsVisible)
         {
             if ((DateTime.UtcNow - _stateStartTime) > ShopOpenTimeout)
-                Fail($"The grand-company shop closed before {_request.ItemName} could be selected.");
+                Fail($"在选择 {_request.ItemName} 之前国防联军商店已关闭");
             return;
         }
 
@@ -840,7 +840,7 @@ public sealed class VendorPurchaseManager : IDisposable
             {
                 _gcRankSelected = true;
                 _lastActionTime = DateTime.UtcNow;
-                _statusText = $"Selecting {_request.ItemName}'s GC rank tab ({_completedQuantity:N0}/{_request.Quantity:N0})";
+                _statusText = $"正在选择 {_request.ItemName} 的国防联军军衔选项卡 ({_completedQuantity:N0}/{_request.Quantity:N0})";
                 return;
             }
             else if (rankError != null)
@@ -869,7 +869,7 @@ public sealed class VendorPurchaseManager : IDisposable
             {
                 _gcCategorySelected = true;
                 _lastActionTime = DateTime.UtcNow;
-                _statusText = $"Selecting {_request.ItemName}'s GC category tab ({_completedQuantity:N0}/{_request.Quantity:N0})";
+                _statusText = $"正在选择 {_request.ItemName} 的国防联军分类选项卡 ({_completedQuantity:N0}/{_request.Quantity:N0})";
                 return;
             }
             else if (categoryError != null)
@@ -886,7 +886,7 @@ public sealed class VendorPurchaseManager : IDisposable
         var currentGrandCompanyId = GetCurrentGrandCompanyId();
         if (currentGrandCompanyId == 0)
         {
-            Fail("Could not determine the current Grand Company for the requested shop.");
+            Fail("无法确定请求商店对应的当前国防联军");
             return;
         }
 
@@ -915,8 +915,8 @@ public sealed class VendorPurchaseManager : IDisposable
         _stateStartTime = DateTime.UtcNow;
         _lastActionTime = DateTime.UtcNow;
         _statusText = opensCurrencyExchange
-            ? $"Setting quantity for {_currentBatchQuantity:N0}x {_request.ItemName} ({_completedQuantity:N0}/{_request.Quantity:N0})"
-            : $"Confirming purchase of {_currentBatchQuantity:N0}x {_request.ItemName} ({_completedQuantity:N0}/{_request.Quantity:N0})";
+            ? $"设置 {_currentBatchQuantity:N0}x {_request.ItemName} 的数量 ({_completedQuantity:N0}/{_request.Quantity:N0})"
+            : $"确认购买 {_currentBatchQuantity:N0}x {_request.ItemName} ({_completedQuantity:N0}/{_request.Quantity:N0})";
     }
 
     private void UpdateConfirmingPurchase()
@@ -933,7 +933,7 @@ public sealed class VendorPurchaseManager : IDisposable
             {
                 _grandCompanyQuantityPrepared = true;
                 _lastActionTime = DateTime.UtcNow;
-                _statusText = $"Confirming purchase of {_currentBatchQuantity:N0}x {_request.ItemName} ({_completedQuantity:N0}/{_request.Quantity:N0})";
+                _statusText = $"正在确认购买 {_currentBatchQuantity:N0}x {_request.ItemName} ({_completedQuantity:N0}/{_request.Quantity:N0})";
                 return;
             }
 
@@ -949,7 +949,7 @@ public sealed class VendorPurchaseManager : IDisposable
             _state = State.WaitingForPurchaseComplete;
             _stateStartTime = DateTime.UtcNow;
             _lastActionTime = DateTime.UtcNow;
-            _statusText = $"Waiting for {_currentBatchQuantity:N0}x {_request.ItemName} to reach inventory or armoury ({_completedQuantity:N0}/{_request.Quantity:N0})";
+            _statusText = $"正在等待 {_currentBatchQuantity:N0}x {_request.ItemName} 到达背包或兵装库 ({_completedQuantity:N0}/{_request.Quantity:N0})";
             return;
         }
 
@@ -957,7 +957,7 @@ public sealed class VendorPurchaseManager : IDisposable
             return;
 
         if ((DateTime.UtcNow - _stateStartTime) > ConfirmTimeout)
-            Fail($"Timed out waiting for the {_request.ItemName} purchase confirmation.");
+            Fail($"等待 {_request.ItemName} 购买确认超时");
     }
 
     private void UpdateWaitingForPurchaseComplete()
@@ -980,7 +980,7 @@ public sealed class VendorPurchaseManager : IDisposable
         }
 
         if ((DateTime.UtcNow - _stateStartTime) > PurchaseTimeout)
-            Fail($"Timed out waiting for {_request.ItemName} to be added to inventory or armoury.");
+            Fail($"等待 {_request.ItemName} 添加到背包或兵装库超时");
     }
 
     private bool AttemptVendorInteraction(string reason)
@@ -1114,15 +1114,15 @@ public sealed class VendorPurchaseManager : IDisposable
     private static string DescribeShopLabel(VendorPurchaseRequest request)
         => request.ShopType switch
         {
-            VendorShopType.GilShop         => "gil shop",
-            VendorShopType.GrandCompanySeals => "grand-company shop",
+            VendorShopType.GilShop         => "金币商店",
+            VendorShopType.GrandCompanySeals => "国防联军商店",
             VendorShopType.SpecialCurrency => request.Vendor.MenuShopType switch
             {
-                VendorMenuShopType.InclusionShop => "inclusion shop",
-                VendorMenuShopType.SpecialShop   => "special shop",
-                _                                => "special-currency shop",
+                VendorMenuShopType.InclusionShop => "综合商店",
+                VendorMenuShopType.SpecialShop   => "特殊商店",
+                _                                => "特殊货币商店",
             },
-            _                              => "shop",
+            _                              => "商店",
         };
 
     private static unsafe byte GetCurrentGrandCompanyId()

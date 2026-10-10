@@ -26,7 +26,7 @@ public class MacroParser
     {
         if (string.IsNullOrWhiteSpace(macroText))
         {
-            GatherBuddy.Log.Warning("[MacroParser] Empty macro text provided");
+            GatherBuddy.Log.Warning("[MacroParser] 未提供宏文本");
             return null;
         }
 
@@ -49,28 +49,28 @@ public class MacroParser
                 if (actionId > 0)
                 {
                     actions.Add(actionId);
-                    GatherBuddy.Log.Debug($"[MacroParser] Parsed action: {actionName} -> {actionId}");
+                    GatherBuddy.Log.Debug($"[MacroParser] 解析动作: {actionName} -> {actionId}");
                 }
                 else
                 {
-                    GatherBuddy.Log.Warning($"[MacroParser] Unknown action: {actionName}");
+                    GatherBuddy.Log.Warning($"[MacroParser] 未知动作: {actionName}");
                 }
             }
         }
 
         if (actions.Count == 0)
         {
-            GatherBuddy.Log.Warning("[MacroParser] No valid actions found in macro");
+            GatherBuddy.Log.Warning("[MacroParser] 宏中未找到有效动作");
             return null;
         }
 
-        GatherBuddy.Log.Information($"[MacroParser] Parsed {actions.Count} actions from macro");
+        GatherBuddy.Log.Information($"[MacroParser] 从宏解析 {actions.Count} 个动作");
 
         return new UserMacro
         {
-            Name = string.IsNullOrWhiteSpace(name) ? "Imported Macro" : name,
+            Name = string.IsNullOrWhiteSpace(name) ? "导入宏" : name,
             Actions = actions,
-            Source = "In-Game Macro",
+            Source = "游戏内宏",
             CreatedAt = DateTime.UtcNow
         };
     }
@@ -87,7 +87,7 @@ public class MacroParser
             var root = document.RootElement;
             if (!root.TryGetProperty("Steps", out var steps) || steps.ValueKind != JsonValueKind.Array)
             {
-                GatherBuddy.Log.Debug("[MacroParser] JSON input did not contain an Artisan Steps array");
+                GatherBuddy.Log.Debug("[MacroParser] JSON 输入不包含 Artisan Steps 数组");
                 return false;
             }
 
@@ -98,29 +98,29 @@ public class MacroParser
                 if (!step.TryGetProperty("Action", out var actionElement) || !actionElement.TryGetUInt32(out var actionId))
                 {
                     skippedCount++;
-                    GatherBuddy.Log.Debug("[MacroParser] Skipping Artisan step without a numeric Action value");
+                    GatherBuddy.Log.Debug("[MacroParser] 跳过不含数字 Action 值的 Artisan 步骤");
                     continue;
                 }
 
                 if (!TryConvertImportedActionId(actionId, out var convertedActionId))
                 {
                     skippedCount++;
-                    GatherBuddy.Log.Warning($"[MacroParser] Unsupported Artisan action id {actionId}; skipping step");
+                    GatherBuddy.Log.Warning($"[MacroParser] 不支持的 Artisan 动作 ID {actionId}, 跳过步骤");
                     continue;
                 }
 
                 actions.Add(convertedActionId);
-                GatherBuddy.Log.Debug($"[MacroParser] Imported Artisan action id {actionId} -> {convertedActionId}");
+                GatherBuddy.Log.Debug($"[MacroParser] 导入 Artisan 动作 ID {actionId} -> {convertedActionId}");
             }
 
             if (actions.Count == 0)
             {
-                GatherBuddy.Log.Warning("[MacroParser] Artisan export did not contain any supported actions");
+                GatherBuddy.Log.Warning("[MacroParser] Artisan 导出不含任何受支持的动作");
                 return true;
             }
 
             var name = string.IsNullOrWhiteSpace(nameOverride)
-                ? ReadStringProperty(root, "Name") ?? "Imported Macro"
+                ? ReadStringProperty(root, "Name") ?? "导入宏"
                 : nameOverride;
 
             macro = new UserMacro
@@ -130,19 +130,19 @@ public class MacroParser
                 MinCraftsmanship = ReadIntProperty(root, "Options", "MinCraftsmanship"),
                 MinControl = ReadIntProperty(root, "Options", "MinControl"),
                 MinCP = ReadIntProperty(root, "Options", "MinCP"),
-                Source = "Artisan Export",
+                Source = "Artisan 导出",
                 CreatedAt = DateTime.UtcNow
             };
 
             GatherBuddy.Log.Information(
                 skippedCount > 0
-                    ? $"[MacroParser] Parsed {actions.Count} actions from Artisan export and skipped {skippedCount} unsupported steps"
-                    : $"[MacroParser] Parsed {actions.Count} actions from Artisan export");
+                    ? $"[MacroParser] 从 Artisan 导出解析 {actions.Count} 个动作, 跳过 {skippedCount} 个不支持的步骤"
+                    : $"[MacroParser] 从 Artisan 导出解析 {actions.Count} 个动作");
             return true;
         }
         catch (JsonException ex)
         {
-            GatherBuddy.Log.Debug($"[MacroParser] Input was not valid Artisan export JSON: {ex.Message}");
+            GatherBuddy.Log.Debug($"[MacroParser] 输入不是有效的 Artisan 导出 JSON: {ex.Message}");
             return false;
         }
     }
@@ -160,7 +160,7 @@ public class MacroParser
         }
         else if (firstToken.StartsWith("/", StringComparison.Ordinal))
         {
-            GatherBuddy.Log.Debug($"[MacroParser] Ignoring non-action command line: {line}");
+            GatherBuddy.Log.Debug($"[MacroParser] 忽略非动作指令行: {line}");
             return null;
         }
 
@@ -168,11 +168,11 @@ public class MacroParser
         var actionName = _whitespaceRegex.Replace(remaining.Replace("\"", string.Empty), " ").Trim();
         if (string.IsNullOrEmpty(actionName))
         {
-            GatherBuddy.Log.Debug($"[MacroParser] Ignoring line without an action name: {line}");
+            GatherBuddy.Log.Debug($"[MacroParser] 忽略不含动作名称的行: {line}");
             return null;
         }
 
-        GatherBuddy.Log.Debug($"[MacroParser] Extracted action candidate '{actionName}' from line '{line}'");
+        GatherBuddy.Log.Debug($"[MacroParser] 从行 '{line}' 提取动作候选 '{actionName}'");
         return actionName;
     }
 
@@ -266,15 +266,15 @@ public class MacroParser
                 lookup.TryAdd(normalized, skill);
                 lookup.TryAdd(NormalizeName(skill.ToString()), skill);
 
-                GatherBuddy.Log.Debug($"[MacroParser] Registered '{name}' -> {skill} ({language})");
+                GatherBuddy.Log.Debug($"[MacroParser] 注册 '{name}' -> {skill} ({language})");
             }
             catch (Exception ex)
             {
-                GatherBuddy.Log.Debug($"[MacroParser] Failed to register skill {skill}: {ex.Message}");
+                GatherBuddy.Log.Debug($"[MacroParser] 注册技能 {skill} 失败: {ex.Message}");
             }
         }
 
-        GatherBuddy.Log.Information($"[MacroParser] Built {language} lookup with {lookup.Count} entries");
+        GatherBuddy.Log.Information($"[MacroParser] 构建含 {lookup.Count} 条目的 {language} 查找表");
         return lookup;
     }
 }

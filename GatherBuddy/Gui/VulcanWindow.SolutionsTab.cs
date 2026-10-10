@@ -28,13 +28,13 @@ public partial class VulcanWindow
 
         if (GatherBuddy.ControllerSupport != null)
         {
-            var handle = GatherBuddy.ControllerSupport.TabNavigation.TabItem("Solutions##solutionsTab", 5, 9);
+            var handle = GatherBuddy.ControllerSupport.TabNavigation.TabItem("方案##solutionsTab", 5, 10);
             tabItem = handle;
             tabOpen = handle;
         }
         else
         {
-            var handle = ImRaii.TabItem("Solutions##solutionsTab");
+            var handle = ImRaii.TabItem("方案##solutionsTab");
             tabItem = handle;
             tabOpen = handle.Success;
         }
@@ -57,17 +57,17 @@ public partial class VulcanWindow
             var raphaelConfig = GatherBuddy.Config.RaphaelSolverConfig;
 
             ImGui.SetNextItemWidth(VulcanUiScaling.Scaled(220f));
-            ImGui.InputTextWithHint("##solutionsSearch", "Search items...", ref _solutionsSearch, 128);
+            ImGui.InputTextWithHint("##solutionsSearch", "搜索物品...", ref _solutionsSearch, 128);
             ImGui.SameLine();
             using (ImRaii.Disabled(coordinator.PendingSolves <= 0))
             {
-                if (ImGui.Button("Stop Queue", VulcanUiScaling.Scaled(90f, 0f)))
+                if (ImGui.Button("停止队列", VulcanUiScaling.Scaled(90f, 0f)))
                     coordinator.CancelAllPendingSolves();
             }
             if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
-                ImGui.SetTooltip("Cancel queued and active Raphael solves while keeping completed cached solutions.");
+                ImGui.SetTooltip("取消排队中和活动中的 Raphael 求解，保留已缓存的方案。");
             ImGui.SameLine();
-            if (ImGui.Button("Clear All", VulcanUiScaling.Scaled(90f, 0f)))
+            if (ImGui.Button("全部清空", VulcanUiScaling.Scaled(90f, 0f)))
             {
                 coordinator.Clear();
                 _selectedSolutionKey = null;
@@ -75,20 +75,20 @@ public partial class VulcanWindow
             }
             ImGui.SameLine();
             var autoClear = raphaelConfig.AutoClearSolutionCache;
-            if (ImGui.Checkbox("Auto-clear on queue start", ref autoClear))
+            if (ImGui.Checkbox("队列开始时自动清空", ref autoClear))
             {
                 raphaelConfig.AutoClearSolutionCache = autoClear;
                 GatherBuddy.Config.Save();
             }
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Clears cached solutions each time a new crafting queue starts.\nDisable to reuse solutions across queue runs when your stats haven't changed.");
+                ImGui.SetTooltip("每次新队列开始时清空缓存的求解结果。\n禁用此选项可在属性未变化时跨队列复用结果。");
 
             var activeColor = coordinator.ActiveSolves > 0 ? ImGuiColors.HealerGreen : ImGuiColors.DalamudGrey;
             var pendingColor = coordinator.PendingSolves > 0 ? ImGuiColors.DalamudOrange : ImGuiColors.DalamudGrey;
             ImGui.SameLine();
-            ImGui.TextColored(activeColor, $"Active: {coordinator.ActiveSolves}");
+            ImGui.TextColored(activeColor, $"活动: {coordinator.ActiveSolves}");
             ImGui.SameLine();
-            ImGui.TextColored(pendingColor, $"Pending: {coordinator.PendingSolves}");
+            ImGui.TextColored(pendingColor, $"等待: {coordinator.PendingSolves}");
 
             ImGui.Separator();
             ImGui.Spacing();
@@ -103,8 +103,8 @@ public partial class VulcanWindow
             if (filtered.Count == 0)
             {
                 ImGui.TextColored(ImGuiColors.DalamudGrey, _solutionsList.Count == 0
-                    ? "No cached solutions. Start a queue with Raphael solver to generate solutions."
-                    : "No solutions match your search.");
+                    ? "暂无缓存方案, 使用 Raphael 求解器开始队列后会生成方案"
+                    : "没有符合搜索条件的方案");
                 return;
             }
 
@@ -141,7 +141,7 @@ public partial class VulcanWindow
             var (name, iconId) = GetSolutionItemInfo(solution.Request.RecipeId);
             var isSelected = _selectedSolutionKey == solution.Key;
             var req = solution.Request;
-            var statsLine = $"Lv{req.Level}  {req.Craftsmanship}/{req.Control}/{req.CP}  {solution.ActionIds.Count} steps";
+            var statsLine = $"Lv{req.Level}  {req.Craftsmanship}/{req.Control}/{req.CP}  {solution.ActionIds.Count} 步";
 
             if (iconId > 0)
             {
@@ -173,7 +173,7 @@ public partial class VulcanWindow
         if (_selectedSolutionKey == null)
         {
             ImGui.Spacing();
-            ImGui.TextColored(ImGuiColors.DalamudGrey, "Select a solution to view details.");
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "选择一个方案查看详情");
             return;
         }
 
@@ -203,43 +203,45 @@ public partial class VulcanWindow
         var lineH = ImGui.GetTextLineHeightWithSpacing();
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (largeIconSize.Y - lineH * 2f) / 2f);
         ImGui.TextColored(ImGuiColors.ParsedGold, name);
-        ImGui.TextColored(ImGuiColors.DalamudGrey3, $"Recipe {req.RecipeId}");
+        ImGui.TextColored(ImGuiColors.DalamudGrey3, $"配方 {req.RecipeId}");
 
         ImGui.Spacing();
         ImGui.Separator();
         ImGui.Spacing();
 
-        ImGui.TextColored(ImGuiColors.DalamudYellow, "Solve Parameters");
+        ImGui.TextColored(ImGuiColors.DalamudYellow, "求解参数");
         ImGui.Spacing();
 
-        ImGui.Text($"Level:          {req.Level}");
-        ImGui.Text($"Craftsmanship:  {req.Craftsmanship}");
+        ImGui.Text($"等级:          {req.Level}");
+        ImGui.Text($"作业精度:  {req.Craftsmanship}");
         ImGui.SameLine(VulcanUiScaling.Scaled(180f));
-        ImGui.Text($"Control:  {req.Control}");
+        ImGui.Text($"加工精度:  {req.Control}");
         ImGui.SameLine(VulcanUiScaling.Scaled(340f));
         ImGui.Text($"CP:  {req.CP}");
-        ImGui.Text($"Manipulation:   {(req.Manipulation ? "Yes" : "No")}");
+        ImGui.Text($"掌握:   {(req.Manipulation ? "是" : "否")}");
         ImGui.SameLine(VulcanUiScaling.Scaled(180f));
-        ImGui.Text($"Specialist:  {(req.Specialist ? "Yes" : "No")}");
-        ImGui.Text($"Initial Quality: {req.InitialQuality}");
+        ImGui.Text($"专家:  {(req.Specialist ? "是" : "否")}");
+        ImGui.Text($"初始品质: {req.InitialQuality}");
         ImGui.Spacing();
-        ImGui.TextColored(ImGuiColors.DalamudGrey, $"Generated: {solution.GeneratedAt.ToLocalTime():yyyy-MM-dd HH:mm:ss}");
+        ImGui.TextColored(ImGuiColors.DalamudGrey, $"生成时间: {solution.GeneratedAt.ToLocalTime():yyyy-MM-dd HH:mm:ss}");
 
         ImGui.Spacing();
         ImGui.Separator();
         ImGui.Spacing();
 
-        ImGui.TextColored(ImGuiColors.ParsedGold, $"Actions ({solution.ActionIds.Count})");
+        ImGui.TextColored(ImGuiColors.ParsedGold, $"技能 ({solution.ActionIds.Count})");
         ImGui.Spacing();
 
         var actionIconSize = VulcanUiScaling.Scaled(24f, 24f);
         var remainH = ImGui.GetContentRegionAvail().Y;
-        ImGui.BeginChild("##solActions", new Vector2(-1, remainH), false);
+        ImGui.BeginChild("##sol技能", new Vector2(-1, remainH), false);
 
         for (var i = 0; i < solution.ActionIds.Count; i++)
         {
             var actionId = solution.ActionIds[i];
-            var skillName = ((VulcanSkill)actionId).ToString();
+            var skillName = VulcanSkillNamesZh.TryGetValue((VulcanSkill)actionId, out var zhName)
+                ? zhName
+                : ((VulcanSkill)actionId).ToString();
             var skillIconId = GetSkillIconId(actionId);
 
             if (skillIconId > 0)
@@ -289,7 +291,7 @@ public partial class VulcanWindow
             GatherBuddy.Log.Debug($"[SolutionsTab] Failed to get item info for recipe {recipeId}: {ex.Message}");
         }
 
-        var fallback = ($"Recipe {recipeId}", 0u);
+        var fallback = ($"配方 {recipeId}", 0u);
         _solutionItemCache[recipeId] = fallback;
         return fallback;
     }

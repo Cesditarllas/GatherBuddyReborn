@@ -51,12 +51,14 @@ internal static class SeStringBuilderExtension
     public static SeStringBuilder DelayString(this SeStringBuilder builder, TimeInterval uptime)
     {
         if (uptime.Start > GatherBuddy.Time.ServerTime)
-            return builder.AddText("will be up in ")
+            return builder.AddText("将在 ")
                 .AddColoredText(TimeInterval.DurationString(uptime.Start, GatherBuddy.Time.ServerTime, false),
-                    GatherBuddy.Config.SeColorArguments);
+                    GatherBuddy.Config.SeColorArguments)
+                .AddText(" 后出现");
 
-        return builder.AddText("will be up for the next ")
-            .AddColoredText(TimeInterval.DurationString(uptime.End, GatherBuddy.Time.ServerTime, false), GatherBuddy.Config.SeColorArguments);
+        return builder.AddText("在接下来的 ")
+            .AddColoredText(TimeInterval.DurationString(uptime.End, GatherBuddy.Time.ServerTime, false), GatherBuddy.Config.SeColorArguments)
+            .AddText(" 内出现");
     }
 }
 
@@ -110,13 +112,13 @@ public static class Communicator
     {
         if (e != null)
         {
-            name = name.Length > 0 ? name : "<Unnamed>";
-            GatherBuddy.Log.Error($"Could not save {objectType}{name} to Clipboard:\n{e}");
-            PrintError($"Could not save {objectType}", name, GatherBuddy.Config.SeColorNames, " to Clipboard.");
+            name = name.Length > 0 ? name : "<未命名>";
+            GatherBuddy.Log.Error($"无法将 {objectType}{name} 保存到剪贴板:\n{e}");
+            PrintError($"无法保存 {objectType}", name, GatherBuddy.Config.SeColorNames, " 到剪贴板");
         }
         else if (GatherBuddy.Config.PrintClipboardMessages)
         {
-            Print(objectType, name.Length > 0 ? name : "<Unnamed>", GatherBuddy.Config.SeColorNames, " saved to Clipboard.");
+            Print(objectType, name.Length > 0 ? name : "<未命名>", GatherBuddy.Config.SeColorNames, " 保存到剪贴板");
         }
     }
 
@@ -129,11 +131,11 @@ public static class Communicator
             return;
 
         if (uptime.Start > GatherBuddy.Time.ServerTime)
-            Print("Next up in ",                     TimeInterval.DurationString(uptime.Start, GatherBuddy.Time.ServerTime, false),
-                GatherBuddy.Config.SeColorArguments, ".");
+            Print("下次出现 ",                     TimeInterval.DurationString(uptime.Start, GatherBuddy.Time.ServerTime, false),
+                GatherBuddy.Config.SeColorArguments, "");
         else
-            Print("Currently up for the next ",      TimeInterval.DurationString(uptime.End, GatherBuddy.Time.ServerTime, false),
-                GatherBuddy.Config.SeColorArguments, ".");
+            Print("在接下来的 ",      TimeInterval.DurationString(uptime.End, GatherBuddy.Time.ServerTime, false),
+                GatherBuddy.Config.SeColorArguments, " 持续出现");
     }
 
     public static void PrintCoordinates(SeString link)
@@ -177,21 +179,21 @@ public static class Communicator
     {
         if (item == null)
         {
-            Print("Could not find item corresponding to \"", name, GatherBuddy.Config.SeColorNames, "\".");
-            GatherBuddy.Log.Verbose($"Could not find item corresponding to \"{name}\".");
+            Print("找不到匹配的物品: \"", name, GatherBuddy.Config.SeColorNames, "\".");
+            GatherBuddy.Log.Verbose($"找不到与 \"{name}\" 对应的物品");
             return;
         }
 
         if (GatherBuddy.Config.IdentifiedGatherableFormat.Length > 0)
             Print(FormatIdentifiedItemMessage(GatherBuddy.Config.IdentifiedGatherableFormat, name, item));
-        GatherBuddy.Log.Verbose(Configuration.DefaultIdentifiedGatherableFormat, item.ItemId, item.Name[ClientLanguage.English], name);
+        GatherBuddy.Log.Verbose(Configuration.DefaultIdentifiedGatherableFormat, item.ItemId, item.Name[(ClientLanguage)4], name);
     }
 
     public static void PrintAlarmMessage(Alarm alarm, ILocation location, TimeInterval uptime)
     {
         if (GatherBuddy.Config.AlarmFormat.Length > 0)
             Print(FormatAlarmMessage(GatherBuddy.Config.AlarmFormat, alarm, location, uptime));
-        GatherBuddy.Log.Verbose(Configuration.DefaultAlarmFormat, alarm.Name, alarm.Item.Name[ClientLanguage.English], string.Empty,
+        GatherBuddy.Log.Verbose(Configuration.DefaultAlarmFormat, alarm.Name, alarm.Item.Name[(ClientLanguage)4], string.Empty,
             location.Name); // Duration string too ugly.
     }
 
@@ -199,50 +201,50 @@ public static class Communicator
     public static void LocationNotFound(IGatherable? item, GatheringType? type)
     {
         SeStringBuilder sb = new();
-        sb.AddText("No associated location or attuned aetheryte found for ");
+        sb.AddText("未找到该物品对应的采集地点或可传送以太之光: ");
         if (item != null)
             sb.AddFullItemLink(item.ItemId, item.Name[GatherBuddy.Language]);
         else
-            sb.AddColoredText("Unknown", GatherBuddy.Config.SeColorNames);
+            sb.AddColoredText("未知物品", GatherBuddy.Config.SeColorNames);
 
         if (type != null)
-            sb.AddText(" with condition ")
+            sb.AddText(", 条件为: ")
                 .AddColoredText(type.Value.ToString(), GatherBuddy.Config.SeColorArguments);
-        sb.AddText(".");
+        sb.AddText("。");
         Print(sb.BuiltString);
         GatherBuddy.Log.Verbose(sb.BuiltString.TextValue);
     }
 
     public static void NoItemName(string command, string itemType)
     {
-        PrintError(new SeStringBuilder().AddText($"Please supply a (partial) {itemType} name, ")
+        PrintError(new SeStringBuilder().AddText($"请提供一个(部分) {itemType} 名称, ")
             .AddColoredText("alarm", GatherBuddy.Config.SeColorArguments)
-            .AddText(" or ")
+            .AddText(" 或 ")
             .AddColoredText("next", GatherBuddy.Config.SeColorArguments)
-            .AddText(" for ")
+            .AddText(" 用于指令 ")
             .AddColoredText(command, GatherBuddy.Config.SeColorCommands)
-            .AddText(".").BuiltString);
+            .AddText("。").BuiltString);
     }
 
     public static void NoBaitFound(Bait bait)
     {
-        PrintError(new SeStringBuilder().AddText("Bait ")
+        PrintError(new SeStringBuilder().AddText("钓饵: ")
             .AddFullItemLink(bait.Id, bait.Name)
-            .AddText(" could not be equipped because you do not carry it.").BuiltString);
+            .AddText(" 无法装备, 因为你未携带此物品。").BuiltString);
     }
 
     public static void NoGatherGroup(string groupName)
-        => PrintError("The gather group ", groupName, GatherBuddy.Config.SeColorNames, " does not exist.");
+        => PrintError("采集组: ", groupName, GatherBuddy.Config.SeColorNames, " 不存在。");
 
     public static void NoGatherGroupItem(string groupName, int minute)
     {
         SeStringBuilder sb = new();
-        sb.AddText("The gather group ")
+        sb.AddText("采集组: ")
             .AddColoredText(groupName, GatherBuddy.Config.SeColorNames)
-            .AddText(" has no item corresponding to the eorzea time ")
+            .AddText(" 在艾欧泽亚时间 ")
             .AddColoredText($"{minute / RealTime.MinutesPerHour:D2}:{minute % RealTime.MinutesPerHour:D2}",
                 GatherBuddy.Config.SeColorArguments)
-            .AddText(".");
+            .AddText(" 没有对应的采集项目。");
         PrintError(sb.BuiltString);
     }
 

@@ -1,4 +1,3 @@
-using System.Linq;
 using Lumina.Excel.Sheets;
 
 namespace GatherBuddy.Structs;
@@ -20,7 +19,7 @@ public readonly struct CumulativeWeatherRates
         for (var i = 0; i < Rates.Length; ++i)
         {
             if (Rates[i].Weather.Id == Weather.Invalid.Id)
-                data.Log.Error("Invalid Weather requested.");
+                data.Log.Error("请求了无效的天气");
             Rates[i].CumulativeRate += lastRate;
             lastRate                =  Rates[i].CumulativeRate;
         }

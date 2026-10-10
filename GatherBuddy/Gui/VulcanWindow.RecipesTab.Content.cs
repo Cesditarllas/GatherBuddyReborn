@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -19,14 +19,14 @@ public partial class VulcanWindow
     private void DrawFilterPanel()
     {
         ImGui.Spacing();
-        if (DrawSearchInputWithInlineClear("##recipeSearch", "Search...", ref _recipeSearchText, 256))
+        if (DrawSearchInputWithInlineClear("##recipeSearch", "搜索...", ref _recipeSearchText, 256))
             _filtersDirty = true;
 
         ImGui.Spacing();
         ImGui.Separator();
         ImGui.Spacing();
 
-        ImGui.TextColored(new Vector4(0.7f, 0.9f, 1.0f, 1.0f), "Crafting Jobs");
+        ImGui.TextColored(new Vector4(0.7f, 0.9f, 1.0f, 1.0f), "制作职业");
         ImGui.Spacing();
 
         var columns = 4;
@@ -45,7 +45,7 @@ public partial class VulcanWindow
             ImGui.PushStyleColor(ImGuiCol.Button, selectedColor);
         
         ImGui.PushID("jobAll");
-        if (ImGui.Button("All", new Vector2(btnSide, btnSide)))
+        if (ImGui.Button("全部", new Vector2(btnSide, btnSide)))
         {
             _selectedJobFilters.Clear();
             _filtersDirty = true;
@@ -106,46 +106,46 @@ public partial class VulcanWindow
         ImGui.Separator();
         ImGui.Spacing();
 
-        ImGui.TextColored(new Vector4(0.7f, 0.9f, 1.0f, 1.0f), "Level Range");
+        ImGui.TextColored(new Vector4(0.7f, 0.9f, 1.0f, 1.0f), "等级范围");
         ImGui.Spacing();
 
-        if (ImGui.Checkbox("Item Equip Level", ref _filterByEquipLevel))
+        if (ImGui.Checkbox("物品装等", ref _filterByEquipLevel))
             _filtersDirty = true;
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Filter and sort by item equip level instead of craft level");
+            ImGui.SetTooltip("按物品装备等级筛选和排序, 而不是按制作等级");
         ImGui.Spacing();
 
         var sliderWidth = VulcanUiScaling.Scaled(150f);
         ImGui.SetNextItemWidth(sliderWidth);
-        if (ImGui.SliderInt("##minLevel", ref _minLevel, 1, 100, "Min: %d", ImGuiSliderFlags.AlwaysClamp))
+        if (ImGui.SliderInt("##minLevel", ref _minLevel, 1, 100, "最低: %d", ImGuiSliderFlags.AlwaysClamp))
         {
             _minLevel = Math.Clamp(_minLevel, 1, _maxLevel);
             _filtersDirty = true;
         }
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip("Ctrl+Click to type a value");
+            ImGui.SetTooltip("按住 Ctrl 并点击可直接输入数值");
         }
 
         ImGui.SetNextItemWidth(sliderWidth);
-        if (ImGui.SliderInt("##maxLevel", ref _maxLevel, 1, 100, "Max: %d", ImGuiSliderFlags.AlwaysClamp))
+        if (ImGui.SliderInt("##maxLevel", ref _maxLevel, 1, 100, "最高: %d", ImGuiSliderFlags.AlwaysClamp))
         {
             _maxLevel = Math.Clamp(_maxLevel, _minLevel, 100);
             _filtersDirty = true;
         }
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip("Ctrl+Click to type a value");
+            ImGui.SetTooltip("按住 Ctrl 并点击可直接输入数值");
         }
 
         ImGui.Spacing();
         ImGui.Separator();
         ImGui.Spacing();
 
-        ImGui.TextColored(new Vector4(0.7f, 0.9f, 1.0f, 1.0f), "Filters");
+        ImGui.TextColored(new Vector4(0.7f, 0.9f, 1.0f, 1.0f), "筛选");
         ImGui.Spacing();
 
-        if (ImGui.Checkbox("Leveling Only", ref _filterBrowserLevelingOnly))
+        if (ImGui.Checkbox("仅练级", ref _filterBrowserLevelingOnly))
         {
             if (_filterBrowserLevelingOnly)
             {
@@ -159,52 +159,52 @@ public partial class VulcanWindow
             _filtersDirty = true;
         }
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Only show recipes from the level-based crafting log lists.");
+            ImGui.SetTooltip("只显示生产笔记中按等级分类的配方");
         
-        if (ImGui.Checkbox("Hide Crafted", ref _hideCrafted))
+        if (ImGui.Checkbox("隐藏已制作", ref _hideCrafted))
         {
             _filtersDirty = true;
         }
-        if (ImGui.Checkbox("Housing", ref _filterBrowserHousingRecipes))
+        if (ImGui.Checkbox("房屋", ref _filterBrowserHousingRecipes))
         {
             if (_filterBrowserHousingRecipes)
                 _filterBrowserLevelingOnly = false;
             _filtersDirty = true;
         }
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Only show recipes whose result item is in the housing item category range.");
+            ImGui.SetTooltip("只显示成品属于房屋类物品分类的配方");
 
-        if (ImGui.Checkbox("Dyes", ref _filterBrowserDyeRecipes))
+        if (ImGui.Checkbox("染剂", ref _filterBrowserDyeRecipes))
         {
             if (_filterBrowserDyeRecipes)
                 _filterBrowserLevelingOnly = false;
             _filtersDirty = true;
         }
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Only show recipes whose result item is a dye.");
+            ImGui.SetTooltip("只显示成品为染剂的配方");
 
-        if (ImGui.Checkbox("Collectables", ref _filterBrowserCollectables))
+        if (ImGui.Checkbox("收藏品", ref _filterBrowserCollectables))
         {
             if (_filterBrowserCollectables)
                 _filterBrowserLevelingOnly = false;
             _filtersDirty = true;
         }
 
-        if (ImGui.Checkbox("Master Recipes", ref _filterBrowserMasterRecipes))
+        if (ImGui.Checkbox("秘籍", ref _filterBrowserMasterRecipes))
         {
             if (_filterBrowserMasterRecipes)
                 _filterBrowserLevelingOnly = false;
             _filtersDirty = true;
         }
 
-        if (ImGui.Checkbox("Expert Recipes", ref _filterBrowserExpertRecipes))
+        if (ImGui.Checkbox("高难度", ref _filterBrowserExpertRecipes))
         {
             if (_filterBrowserExpertRecipes)
                 _filterBrowserLevelingOnly = false;
             _filtersDirty = true;
         }
 
-        if (ImGui.Checkbox("Quest Recipes", ref _filterBrowserQuestRecipes))
+        if (ImGui.Checkbox("任务", ref _filterBrowserQuestRecipes))
         {
             if (_filterBrowserQuestRecipes)
                 _filterBrowserLevelingOnly = false;
@@ -216,7 +216,7 @@ public partial class VulcanWindow
         ImGui.Spacing();
 
         var count = _filteredRecipes?.Count ?? 0;
-        ImGui.TextColored(new Vector4(0.6f, 0.6f, 0.6f, 1), $"{count} recipes");
+        ImGui.TextColored(new Vector4(0.6f, 0.6f, 0.6f, 1), $"{count} 个配方");
 
         ImGui.Spacing();
         ImGui.Separator();
@@ -225,7 +225,7 @@ public partial class VulcanWindow
         var hasLists = GatherBuddy.CraftingListManager.Lists.Count > 0;
         using (ImRaii.Disabled(_filteredUncraftedRecipeCount == 0 || !hasLists))
         {
-            if (ImGui.Button($"Bulk add {_filteredUncraftedRecipeCount} Recipe{(_filteredUncraftedRecipeCount == 1 ? string.Empty : "s")}...", new Vector2(-1, 0)))
+            if (ImGui.Button($"批量添加 {_filteredUncraftedRecipeCount} 个配方...", new Vector2(-1, 0)))
             {
                 _bulkAddFilteredListSearch = string.Empty;
                 ImGui.OpenPopup("BulkAddFilteredRecipesPopup");
@@ -234,14 +234,14 @@ public partial class VulcanWindow
 
         if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
         {
-            const string description = "Adds every currently filtered, uncrafted recipe to the crafting list you will select once.";
+            const string description = "将当前筛选出的所有未制作配方添加到您选择的制作清单中";
             if (!hasLists)
             {
-                ImGui.SetTooltip($"{description}\n\nCreate a crafting list first.");
+                ImGui.SetTooltip($"{description}\n\n请先创建一个制作清单");
             }
             else if (_filteredUncraftedRecipeCount == 0)
             {
-                ImGui.SetTooltip($"{description}\n\nNo uncrafted recipes match the current filters.");
+                ImGui.SetTooltip($"{description}\n\n当前筛选条件下没有未制作的配方");
             }
             else
             {
@@ -252,10 +252,10 @@ public partial class VulcanWindow
         ImGui.SetNextWindowSize(VulcanUiScaling.Scaled(320f, 0f), ImGuiCond.Appearing);
         if (ImGui.BeginPopup("BulkAddFilteredRecipesPopup"))
         {
-            ImGui.TextWrapped($"Bulk add {_filteredUncraftedRecipeCount} currently filtered, uncrafted recipe(s) to:");
+            ImGui.TextWrapped($"将当前筛选结果中 {_filteredUncraftedRecipeCount} 个尚未制作的配方批量加入:");
             ImGui.Spacing();
             ImGui.SetNextItemWidth(-1);
-            ImGui.InputTextWithHint("##BulkAddFilteredListSearch", "Search lists...", ref _bulkAddFilteredListSearch, 128);
+            ImGui.InputTextWithHint("##BulkAddFilteredListSearch", "搜索清单...", ref _bulkAddFilteredListSearch, 128);
 
             var filteredLists = string.IsNullOrWhiteSpace(_bulkAddFilteredListSearch)
                 ? GatherBuddy.CraftingListManager.Lists.OrderBy(list => list.Name, StringComparer.OrdinalIgnoreCase).ToList()
@@ -269,7 +269,7 @@ public partial class VulcanWindow
             ImGui.BeginChild("##BulkAddFilteredListScroll", new Vector2(0, popupHeight), true);
             if (filteredLists.Count == 0)
             {
-                ImGui.TextDisabled("No matches");
+                ImGui.TextDisabled("没有匹配项");
             }
             else
             {
@@ -308,7 +308,7 @@ public partial class VulcanWindow
         GatherBuddy.CraftingListManager.SaveList(list);
         RefreshOpenCraftingList(list.ID);
         GatherBuddy.Log.Information($"[VulcanWindow] Added {addedCount} filtered uncrafted recipes to list '{list.Name}'");
-        Communicator.Print($"Added {addedCount} filtered uncrafted recipe(s) to '{list.Name}'.");
+        Communicator.Print($"已将 {addedCount} 个筛选出的未制作配方加入 '{list.Name}'");
     }
 
     private void DrawResultsList()
@@ -316,23 +316,23 @@ public partial class VulcanWindow
         if (_filteredRecipes == null || _filteredRecipes.Count == 0)
         {
             ImGui.Spacing();
-            ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1), "No recipes match filters.");
+            ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1), "没有符合筛选条件的配方");
             return;
         }
 
         var sortControlsWidth = VulcanUiScaling.Scaled(180f);
-        ImGui.TextColored(new Vector4(0.6f, 0.6f, 0.6f, 1), $"  {_filteredRecipes.Count} recipes");
+        ImGui.TextColored(new Vector4(0.6f, 0.6f, 0.6f, 1), $"  {_filteredRecipes.Count} 个配方");
         ImGui.SameLine(Math.Max(ImGui.GetCursorPosX(), ImGui.GetContentRegionMax().X - sortControlsWidth));
         
         var sortLabel = _sortColumn switch
         {
-            SortColumn.Level => _filterByEquipLevel ? "Equip Lv" : "Level",
+            SortColumn.Level => _filterByEquipLevel ? "装备等级" : "等级",
             SortColumn.Crafted => "Crafted",
             _ => "Sort"
         };
         var sortIcon = _sortDirection == SortDirection.Ascending ? FontAwesomeIcon.ArrowUp : FontAwesomeIcon.ArrowDown;
         
-        ImGui.TextColored(new Vector4(0.7f, 0.7f, 0.7f, 1), "Sort:");
+        ImGui.TextColored(new Vector4(0.7f, 0.7f, 0.7f, 1), "排序:");
         ImGui.SameLine();
         
         if (ImGui.Button($"{sortLabel}##sortBtn", new Vector2(VulcanUiScaling.Scaled(90f), 0)))
@@ -436,10 +436,10 @@ public partial class VulcanWindow
             
             if (isPopupOpen)
             {
-                if (ImGui.MenuItem("Search Market Board"))
+                if (ImGui.MenuItem("搜索市场板"))
                     OpenToMarketboardItem(recipe.Recipe.ItemResult.RowId);
 
-                if (ImGui.MenuItem("Show Recipe Properties (Debug)"))
+                if (ImGui.MenuItem("显示配方属性 (调试)"))
                 {
                     GatherBuddy.Log.Information($"=== Recipe Properties for {recipe.Name} ===");
                     GatherBuddy.Log.Information($"Recipe.RowId: {recipe.Recipe.RowId}");
@@ -477,21 +477,21 @@ public partial class VulcanWindow
                     _contextMenuNewListEphemeral = false;
                 }
 
-                ImGui.TextColored(new Vector4(0.7f, 1.0f, 0.7f, 1.0f), "Create New List:");
+                ImGui.TextColored(new Vector4(0.7f, 1.0f, 0.7f, 1.0f), "创建新清单:");
                 ImGui.SetNextItemWidth(-1);
-                var createEnter = ImGui.InputTextWithHint("##NewListName", "List name...", ref _contextMenuNewListName, 128, ImGuiInputTextFlags.EnterReturnsTrue);
-                ImGui.Checkbox("Ephemeral##ctxNewListEphemeral", ref _contextMenuNewListEphemeral);
+                var createEnter = ImGui.InputTextWithHint("##NewListName", "清单名称...", ref _contextMenuNewListName, 128, ImGuiInputTextFlags.EnterReturnsTrue);
+                ImGui.Checkbox("临时##ctxNewListEphemeral", ref _contextMenuNewListEphemeral);
                 if (ImGui.IsItemHovered())
                     ImGui.SetTooltip("Delete this list automatically after crafting completes.\nCan be disabled later in the list editor.");
-                if ((ImGui.Button("Create & Add", new Vector2(-1, 0)) || createEnter) && !string.IsNullOrWhiteSpace(_contextMenuNewListName))
+                if ((ImGui.Button("创建并添加", new Vector2(-1, 0)) || createEnter) && !string.IsNullOrWhiteSpace(_contextMenuNewListName))
                 {
                     var newList = GatherBuddy.CraftingListManager.CreateNewList(_contextMenuNewListName.Trim(), _contextMenuNewListEphemeral);
                     newList.Recipes.Add(new CraftingListItem(recipe.Recipe.RowId, _contextMenuAddQuantity));
                     GatherBuddy.CraftingListManager.SaveList(newList);
                     RaphaelAssessmentService.QueueWarmupForAddedListRecipe(recipe.Recipe.RowId, newList);
                     RefreshOpenCraftingList(newList.ID);
-                    GatherBuddy.Log.Information($"[VulcanWindow] Created list '{newList.Name}' and added {recipe.Name} x{_contextMenuAddQuantity}");
-                    Communicator.Print($"Created '{newList.Name}' and added {recipe.Name} x{_contextMenuAddQuantity}.");
+                    GatherBuddy.Log.Information($"[VulcanWindow] 已创建清单 '{newList.Name}' 并添加 {recipe.Name} x{_contextMenuAddQuantity}");
+                    Communicator.Print($"已创建 '{newList.Name}' 并添加 {recipe.Name} x{_contextMenuAddQuantity}。");
                     ImGui.CloseCurrentPopup();
                 }
 
@@ -506,21 +506,21 @@ public partial class VulcanWindow
 
                     var rowH = ImGui.GetTextLineHeightWithSpacing();
 
-                    ImGui.TextColored(new Vector4(1.0f, 0.9f, 0.6f, 1.0f), $"Add {recipe.Name} to list:");
+                    ImGui.TextColored(new Vector4(1.0f, 0.9f, 0.6f, 1.0f), $"将 {recipe.Name} 加入清单:");
                     ImGui.AlignTextToFramePadding();
-                    ImGui.Text("Qty:");
+                    ImGui.Text("数量:");
                     ImGui.SameLine();
                     ImGui.SetNextItemWidth(VulcanUiScaling.Scaled(100f));
                     ImGui.InputInt("##ContextQty", ref _contextMenuAddQuantity, 1);
                     if (_contextMenuAddQuantity < 1) _contextMenuAddQuantity = 1;
                     ImGui.SetNextItemWidth(-1);
-                    ImGui.InputTextWithHint("##ContextListSearch", "Search lists...", ref _contextMenuListSearch, 128);
+                    ImGui.InputTextWithHint("##ContextListSearch", "搜索清单...", ref _contextMenuListSearch, 128);
                     var childPaddingY = ImGui.GetStyle().WindowPadding.Y * 2f;
                     var singleContentH = filteredLists.Count > 0 ? filteredLists.Count * rowH : rowH;
                     var singleH = Math.Min(singleContentH + childPaddingY, VulcanUiScaling.Scaled(150f) + childPaddingY);
                     ImGui.BeginChild("##SingleAddScroll", new Vector2(0, singleH), true);
                     if (filteredLists.Count == 0)
-                        ImGui.TextDisabled("No matches");
+                        ImGui.TextDisabled("无匹配");
                     foreach (var list in filteredLists)
                     {
                         if (ImGui.MenuItem(list.Name))
@@ -529,8 +529,8 @@ public partial class VulcanWindow
                             GatherBuddy.CraftingListManager.SaveList(list);
                             RaphaelAssessmentService.QueueWarmupForAddedListRecipe(recipe.Recipe.RowId, list);
                             RefreshOpenCraftingList(list.ID);
-                            GatherBuddy.Log.Information($"Added {recipe.Name} x{_contextMenuAddQuantity} to crafting list '{list.Name}'");
-                            Communicator.Print($"Added {recipe.Name} x{_contextMenuAddQuantity} to '{list.Name}'.");
+                            GatherBuddy.Log.Information($"已将 {recipe.Name} x{_contextMenuAddQuantity} 添加到制作清单 '{list.Name}'");
+                            Communicator.Print($"已将 {recipe.Name} x{_contextMenuAddQuantity} 添加到 '{list.Name}'。");
                             _contextMenuLastAddedList = list.Name;
                             _contextMenuLastAddedAt   = DateTime.Now;
                         }
@@ -543,7 +543,7 @@ public partial class VulcanWindow
                         if (elapsed < 1.5)
                         {
                             var alpha = (float)(1.0 - elapsed / 1.5);
-                            ImGui.TextColored(new Vector4(0.4f, 1f, 0.4f, alpha), $"Added to '{_contextMenuLastAddedList}'!");
+                            ImGui.TextColored(new Vector4(0.4f, 1f, 0.4f, alpha), $"已加入 '{_contextMenuLastAddedList}'");
                         }
                         else
                         {
@@ -554,7 +554,7 @@ public partial class VulcanWindow
                 }
                 else
                 {
-                    ImGui.TextDisabled("No crafting lists available");
+                    ImGui.TextDisabled("没有可用的制作清单");
                 }
 
                 ImGui.EndPopup();
@@ -604,9 +604,9 @@ public partial class VulcanWindow
             var emptyStateHeight = ImGui.GetTextLineHeightWithSpacing() * 2f;
             var emptyStateStartY = Math.Max(0f, (center.Y - emptyStateHeight) * 0.5f);
             ImGui.SetCursorPos(new Vector2(detailInset, emptyStateStartY));
-            ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1), "Select a recipe to view details");
+            ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1), "选择配方以查看详情");
             ImGui.SetCursorPosX(detailInset);
-            ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1), "and start crafting.");
+            ImGui.TextColored(new Vector4(0.5f, 0.5f, 0.5f, 1), "并开始制作。");
             return;
         }
 
@@ -667,7 +667,7 @@ public partial class VulcanWindow
             .GetFromGameIcon(new GameIconLookup(jobIconId))
             .GetWrapOrDefault();
         ImGui.SetCursorPosY(classMidY);
-        ImGui.TextColored(new Vector4(0.6f, 0.6f, 0.6f, 1), "Class:");
+        ImGui.TextColored(new Vector4(0.6f, 0.6f, 0.6f, 1), "职业:");
         ImGui.SameLine();
         ImGui.SetCursorPosY(classLineY);
         if (jobWrap != null)
@@ -677,13 +677,13 @@ public partial class VulcanWindow
         ImGui.TextColored(new Vector4(0.8f, 0.9f, 1.0f, 1.0f), recipe.JobAbbreviation);
         ImGui.SameLine(0, detailSectionGap);
         ImGui.SetCursorPosY(classMidY);
-        ImGui.TextColored(new Vector4(0.6f, 0.6f, 0.6f, 1), "Level:");
+        ImGui.TextColored(new Vector4(0.6f, 0.6f, 0.6f, 1), "等级:");
         ImGui.SameLine();
         ImGui.SetCursorPosY(classMidY);
         ImGui.TextColored(new Vector4(0.8f, 0.9f, 1.0f, 1.0f), recipe.Level.ToString());
         ImGui.SameLine(0, detailSectionGap);
         ImGui.SetCursorPosY(classMidY);
-        ImGui.TextColored(new Vector4(0.6f, 0.6f, 0.6f, 1), "Yield:");
+        ImGui.TextColored(new Vector4(0.6f, 0.6f, 0.6f, 1), "产量:");
         ImGui.SameLine();
         ImGui.SetCursorPosY(classMidY);
         ImGui.TextColored(new Vector4(0.8f, 0.9f, 1.0f, 1.0f), r.AmountResult.ToString());
@@ -696,11 +696,11 @@ public partial class VulcanWindow
         var statLabelColor = new Vector4(0.6f, 0.6f, 0.6f, 1.0f);
         var statValueColor = new Vector4(0.8f, 0.9f, 1.0f, 1.0f);
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + detailInset);
-        ImGui.TextColored(statLabelColor, "Difficulty:"); ImGui.SameLine(0, detailLabelGap);
+        ImGui.TextColored(statLabelColor, "难度:"); ImGui.SameLine(0, detailLabelGap);
         ImGui.TextColored(statValueColor, $"{difficulty}"); ImGui.SameLine(0, detailSectionGap);
-        ImGui.TextColored(statLabelColor, "Durability:"); ImGui.SameLine(0, detailLabelGap);
+        ImGui.TextColored(statLabelColor, "耐久:"); ImGui.SameLine(0, detailLabelGap);
         ImGui.TextColored(statValueColor, $"{durability}"); ImGui.SameLine(0, detailSectionGap);
-        ImGui.TextColored(statLabelColor, "Max Quality:"); ImGui.SameLine(0, detailLabelGap);
+        ImGui.TextColored(statLabelColor, "最高品质:"); ImGui.SameLine(0, detailLabelGap);
         ImGui.TextColored(statValueColor, $"{qualityMax}");
 
         ImGui.Spacing();
@@ -711,7 +711,7 @@ public partial class VulcanWindow
         var itemSheet = Dalamud.GameData.GetExcelSheet<Item>();
         var showRetainer = AllaganTools.Enabled;
 
-        DrawIngredientSectionHeader("Ingredients", showRetainer);
+        DrawIngredientSectionHeader("材料", showRetainer);
 
         var craftable = directIngredients.Count > 0 ? int.MaxValue : 0;
         foreach (var (ingId, ingAmt) in directIngredients)
@@ -733,10 +733,10 @@ public partial class VulcanWindow
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + detailInset);
         var (resultNq, resultHq) = GetInventoryCountSplit(r.ItemResult.RowId);
         var bagTotal = resultNq + resultHq;
-        ImGui.TextColored(statLabelColor, "Craftable:"); ImGui.SameLine(0, detailLabelGap);
+        ImGui.TextColored(statLabelColor, "可制作:"); ImGui.SameLine(0, detailLabelGap);
         ImGui.TextColored(craftable > 0 ? statValueColor : new Vector4(1f, 0.4f, 0.4f, 1f), $"{craftable}");
         ImGui.SameLine(0, detailSectionGap);
-        ImGui.TextColored(statLabelColor, "In Bag:"); ImGui.SameLine(0, detailLabelGap);
+        ImGui.TextColored(statLabelColor, "背包中:"); ImGui.SameLine(0, detailLabelGap);
         ImGui.TextColored(bagTotal > 0 ? statValueColor : new Vector4(0.5f, 0.5f, 0.5f, 1f),
             resultHq > 0 ? $"{resultNq}+{resultHq}hq" : $"{resultNq}");
 
@@ -744,7 +744,7 @@ public partial class VulcanWindow
         ImGui.Separator();
         ImGui.Spacing();
 
-        DrawIngredientSectionHeader("All Materials (including precrafts)", showRetainer);
+        DrawIngredientSectionHeader("全部材料 (含半成品)", showRetainer);
 
         var resolvedIngredients = RecipeManager.GetResolvedIngredients(r);
         foreach (var (itemId, needed) in resolvedIngredients.OrderBy(x => x.Key))
@@ -763,7 +763,7 @@ public partial class VulcanWindow
             ImGui.Separator();
             ImGui.Spacing();
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() + detailInset);
-            ImGui.TextColored(new Vector4(0.3f, 0.9f, 0.9f, 1.0f), "Configured Settings:");
+            ImGui.TextColored(new Vector4(0.3f, 0.9f, 0.9f, 1.0f), "已配置设置:");
             ImGui.Spacing();
             
             if (itemSheet != null)
@@ -771,17 +771,17 @@ public partial class VulcanWindow
                 if (settings.FoodItemId.HasValue && itemSheet.TryGetRow(settings.FoodItemId.Value, out var food))
                 {
                     ImGui.SetCursorPosX(ImGui.GetCursorPosX() + VulcanUiScaling.Scaled(24f));
-                    ImGui.Text($"Food: {food.Name.ExtractText()}");
+                    ImGui.Text($"食物: {food.Name.ExtractText()}");
                 }
                 if (settings.MedicineItemId.HasValue && itemSheet.TryGetRow(settings.MedicineItemId.Value, out var medicine))
                 {
                     ImGui.SetCursorPosX(ImGui.GetCursorPosX() + VulcanUiScaling.Scaled(24f));
-                    ImGui.Text($"Medicine: {medicine.Name.ExtractText()}");
+                    ImGui.Text($"爆发药: {medicine.Name.ExtractText()}");
                 }
                 if (settings.ManualItemId.HasValue && itemSheet.TryGetRow(settings.ManualItemId.Value, out var manual))
                 {
                     ImGui.SetCursorPosX(ImGui.GetCursorPosX() + VulcanUiScaling.Scaled(24f));
-                    ImGui.Text($"Manual: {manual.Name.ExtractText()}");
+                    ImGui.Text($"指南: {manual.Name.ExtractText()}");
                 }
             }
             ImGui.Spacing();
@@ -794,14 +794,14 @@ public partial class VulcanWindow
                 raphaelAssessment = new RaphaelAssessment(
                     RaphaelAssessmentState.Unavailable,
                     RaphaelAssessmentOutcome.None,
-                    "Raphael validation is unavailable.",
-                    "No usable stats are available for this recipe.");
+                    "Raphael 验证不可用。",
+                    "此配方没有可用的属性。");
             }
 
             ImGui.Separator();
             ImGui.Spacing();
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() + detailInset);
-            ImGui.TextColored(new Vector4(0.3f, 0.9f, 0.9f, 1.0f), "Raphael Validation:");
+            ImGui.TextColored(new Vector4(0.3f, 0.9f, 0.9f, 1.0f), "Raphael 验证:");
             ImGui.Spacing();
             ImGui.SetCursorPosX(ImGui.GetCursorPosX() + VulcanUiScaling.Scaled(24f));
             ImGui.TextColored(GetRaphaelAssessmentColor(raphaelAssessment), raphaelAssessment.Summary);
@@ -815,7 +815,7 @@ public partial class VulcanWindow
             {
                 ImGui.Spacing();
                 ImGui.SetCursorPosX(ImGui.GetCursorPosX() + VulcanUiScaling.Scaled(24f));
-                if (ImGui.Button("Queue Raphael Validation", new Vector2(0f, footerButtonHeight)))
+                if (ImGui.Button("排队 Raphael 验证", new Vector2(0f, footerButtonHeight)))
                     RaphaelAssessmentService.TryQueueWarmupForRecipe(recipe.Recipe.RowId, settings);
             }
             ImGui.Spacing();
@@ -825,7 +825,7 @@ public partial class VulcanWindow
         ImGui.SetCursorPosY(ImGui.GetCursorPosY() + Math.Max(0f, avail.Y - VulcanUiScaling.Scaled(96f)));
 
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + detailInset);
-        ImGui.TextColored(new Vector4(0.6f, 0.6f, 0.6f, 1), "Qty:");
+        ImGui.TextColored(new Vector4(0.6f, 0.6f, 0.6f, 1), "数量:");
         ImGui.SameLine();
         ImGui.SetNextItemWidth(VulcanUiScaling.Scaled(100f));
         ImGui.InputInt("##browserQty", ref _browserCraftQuantity, 1);
@@ -836,36 +836,36 @@ public partial class VulcanWindow
         if (!allaganEnabled)
             _browserRetainerRestock = false;
         using (ImRaii.Disabled(!allaganEnabled))
-            ImGui.Checkbox("Restock from Retainers##browserRestock", ref _browserRetainerRestock);
+            ImGui.Checkbox("从雇员补货##browserRestock", ref _browserRetainerRestock);
         if (ImGui.IsItemHovered(allaganEnabled ? ImGuiHoveredFlags.None : ImGuiHoveredFlags.AllowWhenDisabled))
             ImGui.SetTooltip(allaganEnabled
-                ? "Automatically withdraw missing materials from your retainers before crafting."
-                : "AllaganTools (InventoryTools) plugin is required.");
+                ? "制作前自动从雇员处取出缺少的材料"
+                : "需要安装 AllaganTools (InventoryTools) 插件");
 
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + detailInset);
         var topRowButtonWidth = (ImGui.GetContentRegionAvail().X - ImGui.GetStyle().ItemSpacing.X) / 2f;
         var artisanLoaded = IPCSubscriber.IsReady("Artisan");
         if (artisanLoaded)
         {
-            ImGuiUtil.DrawDisabledButton("Artisan Detected", new Vector2(topRowButtonWidth, footerButtonHeight),
-                "Artisan plugin is loaded. Please unload Artisan to use Vulcan's crafting system.", true);
+            ImGuiUtil.DrawDisabledButton("检测到 Artisan", new Vector2(topRowButtonWidth, footerButtonHeight),
+                "Artisan 插件已加载, 请卸载 Artisan 后使用 Vulcan 制作系统", true);
         }
-        else if (ImGui.Button("Start Craft", new Vector2(topRowButtonWidth, footerButtonHeight)))
+        else if (ImGui.Button("开始制作", new Vector2(topRowButtonWidth, footerButtonHeight)))
         {
             StartBrowserCraft(recipe.Recipe, _browserCraftQuantity);
             MinimizeWindow();
         }
         ImGui.SameLine();
-        if (ImGui.Button("Settings", new Vector2(topRowButtonWidth, footerButtonHeight)))
+        if (ImGui.Button("设置", new Vector2(topRowButtonWidth, footerButtonHeight)))
             _craftSettingsPopup.Open(recipe.Recipe.RowId, recipe.Name);
         ImGui.SetCursorPosX(ImGui.GetCursorPosX() + detailInset);
         var canQuickSynth = recipe.Recipe.CanQuickSynth;
         var qsTooltip = artisanLoaded
-            ? "Artisan plugin is loaded. Please unload Artisan to use Vulcan's crafting system."
+            ? "Artisan 插件已加载, 请卸载 Artisan 后使用 Vulcan 制作系统"
             : canQuickSynth
-                ? $"Quick synthesize {recipe.Name} x{_browserCraftQuantity}"
-                : "This recipe cannot be quick synthesized.";
-        if (ImGuiUtil.DrawDisabledButton("Quick Synth", new Vector2(-1, footerButtonHeight), qsTooltip, !canQuickSynth || artisanLoaded))
+                ? $"简易制作 {recipe.Name} x{_browserCraftQuantity}"
+                : "此配方无法简易制作";
+        if (ImGuiUtil.DrawDisabledButton("简易制作", new Vector2(-1, footerButtonHeight), qsTooltip, !canQuickSynth || artisanLoaded))
         {
             StartBrowserQuickSynth(recipe.Recipe, _browserCraftQuantity);
             MinimizeWindow();
@@ -935,7 +935,7 @@ public partial class VulcanWindow
             var retW = ImGui.CalcTextSize("Ret").X;
             ImGui.SetCursorPosX(retColStart + (colWidth - retW) / 2);
             ImGui.SetCursorPosY(headerY);
-            ImGui.TextColored(colHeaderColor, "Ret");
+            ImGui.TextColored(colHeaderColor, "雇");
         }
 
         ImGui.Spacing();

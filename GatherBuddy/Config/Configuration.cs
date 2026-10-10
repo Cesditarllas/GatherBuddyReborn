@@ -23,9 +23,9 @@ public partial class Configuration : IPluginConfiguration
     public int Version { get; set; } = 17;
 
     // Set Names
-    public string BotanistSetName { get; set; } = "Botanist";
-    public string MinerSetName    { get; set; } = "Miner";
-    public string FisherSetName   { get; set; } = "Fisher";
+    public string BotanistSetName { get; set; } = "园艺工";
+    public string MinerSetName    { get; set; } = "采矿工";
+    public string FisherSetName   { get; set; } = "捕鱼人";
 
     // formats
     public string IdentifiedGatherableFormat { get; set; } = DefaultIdentifiedGatherableFormat;
@@ -70,7 +70,7 @@ public partial class Configuration : IPluginConfiguration
     public ushort           UpcomingUptimesCount      { get; set; } = 10;
     public ModifiableHotkey MainInterfaceHotkey       { get; set; } = new();
     public bool             PlaceCustomWaymarks       { get; set; } = true;
-    public GatheringType    PreferredGatheringType    { get; set; } = GatheringType.Multiple;
+    public GatheringType    PreferredGatheringType    { get; set; } = GatheringType.多职业;
 
     // AutoGather Config
     public AutoGatherConfig AutoGatherConfig              { get; set; } = new();
@@ -262,7 +262,7 @@ public partial class Configuration : IPluginConfiguration
         }
         catch (Exception ex)
         {
-            GatherBuddy.Log.Error($"Failed to load configuration, creating new one: {ex}");
+            GatherBuddy.Log.Error($"加载配置失败, 创建新配置: {ex}");
             try
             {
                 var configPath = Dalamud.PluginInterface.ConfigFile.FullName;
@@ -270,12 +270,12 @@ public partial class Configuration : IPluginConfiguration
                 if (File.Exists(configPath))
                 {
                     File.Copy(configPath, backupPath);
-                    GatherBuddy.Log.Warning($"Corrupted config backed up to: {backupPath}");
+                    GatherBuddy.Log.Warning($"已损坏配置备份到: {backupPath}");
                 }
             }
             catch (Exception backupEx)
             {
-                GatherBuddy.Log.Error($"Failed to backup corrupted config: {backupEx}");
+                GatherBuddy.Log.Error($"备份损坏配置失败: {backupEx}");
             }
         }
 
@@ -443,7 +443,7 @@ public partial class Configuration : IPluginConfiguration
         {
             VendorBuyLists.Add(new VendorBuyListDefinition
             {
-                Name = "Default",
+                Name = "默认",
                 Entries = new List<VendorBuyListEntry>(legacyVendorBuyListEntries),
             });
             changed = true;

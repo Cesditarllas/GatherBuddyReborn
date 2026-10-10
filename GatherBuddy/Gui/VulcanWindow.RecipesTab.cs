@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -68,7 +68,7 @@ public partial class VulcanWindow
     private static string _bulkAddFilteredListSearch = string.Empty;
     private static int _filteredUncraftedRecipeCount = 0;
     private static readonly uint[] CraftTypeToClassJobId = { 8, 9, 10, 11, 12, 13, 14, 15 };
-    private static readonly string[] JobNames = { "CRP", "BSM", "ARM", "GSM", "LTW", "WVR", "ALC", "CUL" };
+    private static readonly string[] JobNames = { "刻木匠", "锻铁匠", "铸甲匠", "雕金匠", "制革匠", "裁衣匠", "炼金术士", "烹调师" };
     private static Vector2 _recipesTooltipWindowMin;
     private static Vector2 _recipesTooltipWindowMax;
     private static DateTime _lastTooltipAnchorFailureLog = DateTime.MinValue;
@@ -253,14 +253,14 @@ public partial class VulcanWindow
         expandRight = false;
         if (_recipesTooltipWindowMax.X <= _recipesTooltipWindowMin.X || _recipesTooltipWindowMax.Y <= _recipesTooltipWindowMin.Y)
         {
-            MaybeLogTooltipAnchorFailure("Recipes tooltip window bounds are invalid.");
+            MaybeLogTooltipAnchorFailure("配方提示框窗口边界无效。");
             return false;
         }
 
         var displaySize = ImGui.GetIO().DisplaySize;
         if (displaySize.X <= 0f || displaySize.Y <= 0f)
         {
-            MaybeLogTooltipAnchorFailure("Display size is unavailable for native recipe tooltip anchoring.");
+            MaybeLogTooltipAnchorFailure("显示尺寸不可用，无法定位原生配方提示框。");
             return false;
         }
 
@@ -273,7 +273,7 @@ public partial class VulcanWindow
         var anchorBottom = MathF.Round(Math.Min(displaySize.Y - screenPadding, _recipesTooltipWindowMax.Y));
         if (anchorBottom <= anchorTop)
         {
-            MaybeLogTooltipAnchorFailure("Recipes tooltip window side lane collapsed outside the screen bounds.");
+            MaybeLogTooltipAnchorFailure("配方提示框窗口的侧边通道折叠到屏幕边界之外。");
             return false;
         }
 
@@ -375,7 +375,7 @@ public partial class VulcanWindow
         
         if (GatherBuddy.ControllerSupport != null && !_recipesTabRequestFocus)
         {
-            var handle = GatherBuddy.ControllerSupport.TabNavigation.TabItem("Recipes##recipesTab", 1, 9);
+            var handle = GatherBuddy.ControllerSupport.TabNavigation.TabItem("配方##recipesTab", 1, 9);
             tabItem = handle;
             tabOpen = handle;
         }
@@ -386,7 +386,7 @@ public partial class VulcanWindow
             {
                 unsafe
                 {
-                    var labelBytes = System.Text.Encoding.UTF8.GetBytes("Recipes##recipesTab\0");
+                    var labelBytes = System.Text.Encoding.UTF8.GetBytes("配方##recipesTab\0");
                     fixed (byte* ptr = labelBytes)
                     {
                         handle = ImRaii.TabItem(ptr, ImGuiTabItemFlags.SetSelected);
@@ -395,7 +395,7 @@ public partial class VulcanWindow
             }
             else
             {
-                handle = ImRaii.TabItem("Recipes##recipesTab");
+                handle = ImRaii.TabItem("配方##recipesTab");
             }
             tabItem = handle;
             tabOpen = handle.Success;

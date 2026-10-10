@@ -140,7 +140,7 @@ namespace GatherBuddy.AutoGather
                 if (item.GatheringData.Unknown3 is 3 or 4 or 6)
                     minScore = targetScore;
 
-                GatherBuddy.Log.Verbose($"Using target collectability {targetScore} and minimum collectability {minScore} for {item.Name}.");
+                GatherBuddy.Log.Verbose($"对 {item.Name} 使用目标收藏价值 {targetScore} 和最低收藏价值 {minScore}");
                 return (targetScore, minScore);
             }
 

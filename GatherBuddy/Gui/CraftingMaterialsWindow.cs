@@ -136,7 +136,7 @@ public class CraftingMaterialsWindow : Window
         }
         if (_editor == null)
         {
-            ImGui.TextColored(new Vector4(0.7f, 0.7f, 0.7f, 1), "No list open.");
+            ImGui.TextColored(new Vector4(0.7f, 0.7f, 0.7f, 1), "未打开清单");
             return;
         }
 
@@ -149,7 +149,7 @@ public class CraftingMaterialsWindow : Window
 
         if (_editor.IsGeneratingMaterials)
         {
-            ImGui.TextColored(new Vector4(0.3f, 0.9f, 0.9f, 1), "Calculating materials...");
+            ImGui.TextColored(new Vector4(0.3f, 0.9f, 0.9f, 1), "正在计算材料...");
             return;
         }
         var showRetainer = AllaganTools.Enabled;
@@ -158,52 +158,52 @@ public class CraftingMaterialsWindow : Window
 
         if (!_cachedHasMaterials)
         {
-            ImGui.TextColored(new Vector4(0.7f, 0.7f, 0.7f, 1), "No materials needed.");
+            ImGui.TextColored(new Vector4(0.7f, 0.7f, 0.7f, 1), "不需要任何材料");
             return;
         }
 
         var overcapCheckboxWidth = GetCheckboxWidth("150%");
-        var precraftsCheckboxWidth = GetCheckboxWidth("Precrafts");
-        var preferVendorsCheckboxWidth = GetCheckboxWidth("Prefer Vendors");
-        var keepFulfilledCheckboxWidth = GetCheckboxWidth("Keep Fulfilled");
-        var refreshRetainersButtonWidth = GetSmallButtonWidth("Refresh Retainers");
+        var precraftsCheckboxWidth = GetCheckboxWidth("半成品");
+        var preferVendorsCheckboxWidth = GetCheckboxWidth("优先商店");
+        var keepFulfilledCheckboxWidth = GetCheckboxWidth("保留已满足");
+        var refreshRetainersButtonWidth = GetSmallButtonWidth("刷新雇员");
 
-        ImGui.TextColored(new Vector4(0.6f, 0.6f, 0.6f, 1f), $"{_cachedTotalMissing} missing  ·  {_cachedTotalReady} ready");
+        ImGui.TextColored(new Vector4(0.6f, 0.6f, 0.6f, 1f), $"{_cachedTotalMissing} 缺少  ·  {_cachedTotalReady} 足够");
         SameLineIfFits(overcapCheckboxWidth);
         ImGui.Checkbox("150%##overcap", ref _matsOvercapPercent);
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Show % beyond 100 when you have more than needed");
+            ImGui.SetTooltip("持有数量超过需求时显示高于 100% 的比例");
         SameLineIfFits(precraftsCheckboxWidth);
-        ImGui.Checkbox("Precrafts##precrafts", ref _matsShowPrecrafts);
+        ImGui.Checkbox("半成品##precrafts", ref _matsShowPrecrafts);
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Include intermediate craftable components and non-gear final craftables");
+            ImGui.SetTooltip("在清单中包含可制作的半成品和非装备成品");
         SameLineIfFits(preferVendorsCheckboxWidth);
-        ImGui.Checkbox("Prefer Vendors##preferVendors", ref _matsPreferVendors);
+        ImGui.Checkbox("优先商店##preferVendors", ref _matsPreferVendors);
         if (ImGui.IsItemHovered())
             ImGui.SetTooltip(
-                "Default priority:\n" +
-                "  Gather > Fish > Scrip > Drops > Craft > Vendor > Tomes > Other\n\n" +
-                "When ON: Gil Vendor overrides Gather, Fish, Drops, and Craft\n" +
-                "for items also sold at a Gil shop.");
+                "默认优先级:\n" +
+                "  采集 > 钓鱼 > 工票 > 掉落 > 制作 > 商店 > 神典石 > 其他\n\n" +
+                "启用后, 金币商店会优先于采集、钓鱼、掉落和制作\n" +
+                "适用于同样可在金币商店购买的物品");
         SameLineIfFits(keepFulfilledCheckboxWidth);
-        ImGui.Checkbox("Keep Fulfilled##keepFulfilled", ref _matsKeepFulfilled);
+        ImGui.Checkbox("保留已满足##keepFulfilled", ref _matsKeepFulfilled);
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Keep fulfilled materials visible even when \"Skip if Already Have Enough\" is enabled on the list.");
+            ImGui.SetTooltip("即使清单启用 \"持有足够时跳过\", 仍显示已满足的材料");
         if (showRetainer)
         {
             SameLineIfFits(refreshRetainersButtonWidth);
-            if (ImGui.SmallButton("Refresh Retainers"))
+            if (ImGui.SmallButton("刷新雇员"))
             {
                 _editor.InvalidateRetainerSnapshot();
                 InvalidateMaterialView();
             }
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Refresh retainer NQ/HQ counts. Automatic refresh is disabled here to avoid UI hitching.");
+                ImGui.SetTooltip("刷新雇员 NQ/HQ 数量, 此处禁用自动刷新以避免界面卡顿");
         }
         ImGui.Separator();
         if (!_cachedHasVisibleEntries)
         {
-            ImGui.TextColored(new Vector4(0.4f, 0.9f, 0.4f, 1f), "All materials ready.");
+            ImGui.TextColored(new Vector4(0.4f, 0.9f, 0.4f, 1f), "所有材料都已足够");
             return;
         }
 
@@ -359,11 +359,11 @@ public class CraftingMaterialsWindow : Window
 
             var nonCraftRetainerMode = showRetainer ? RetainerColumnMode.Total : RetainerColumnMode.None;
             var craftRetainerMode = showRetainer ? RetainerColumnMode.Split : RetainerColumnMode.None;
-            if (gatherList.Count > 0) _cachedPanels.Add(new MaterialPanel("##gather", "Gather", AccentGather, gatherList, nonCraftRetainerMode, null));
-            if (dropList.Count > 0) _cachedPanels.Add(new MaterialPanel("##drop", "Drops / Bicolor", AccentDrop, dropList, nonCraftRetainerMode, null, ShowCurrencyTotals: true, PreferBicolorDefault: true));
-            if (shopList.Count > 0) _cachedPanels.Add(new MaterialPanel("##shop", "Special Currency", AccentShop, shopList, nonCraftRetainerMode, BuildVendorBuyListTargets(shopList), ShowCurrencyTotals: true));
-            if (vendorList.Count > 0) _cachedPanels.Add(new MaterialPanel("##vendor", "Vendor", AccentVendor, vendorList, nonCraftRetainerMode, BuildVendorBuyListTargets(vendorList)));
-            if (craftList is { Count: > 0 }) _cachedPanels.Add(new MaterialPanel("##craft", "Craft", AccentCraft, craftList, craftRetainerMode, null));
+            if (gatherList.Count > 0) _cachedPanels.Add(new MaterialPanel("##gather", "采集", AccentGather, gatherList, nonCraftRetainerMode, null));
+            if (dropList.Count > 0) _cachedPanels.Add(new MaterialPanel("##drop", "掉落 / 双色", AccentDrop, dropList, nonCraftRetainerMode, null, ShowCurrencyTotals: true, PreferBicolorDefault: true));
+            if (shopList.Count > 0) _cachedPanels.Add(new MaterialPanel("##shop", "特殊货币", AccentShop, shopList, nonCraftRetainerMode, BuildVendorBuyListTargets(shopList), ShowCurrencyTotals: true));
+            if (vendorList.Count > 0) _cachedPanels.Add(new MaterialPanel("##vendor", "商店", AccentVendor, vendorList, nonCraftRetainerMode, BuildVendorBuyListTargets(vendorList)));
+            if (craftList is { Count: > 0 }) _cachedPanels.Add(new MaterialPanel("##craft", "制作", AccentCraft, craftList, craftRetainerMode, null));
 
             UpdateMaterialViewCacheMetadata(showRetainer);
         }
@@ -510,18 +510,18 @@ public class CraftingMaterialsWindow : Window
             {
                 ImGui.TableSetupScrollFreeze(0, 1);
                 ImGui.TableSetupColumn("",     ImGuiTableColumnFlags.WidthStretch);
-                ImGui.TableSetupColumn("Have", ImGuiTableColumnFlags.WidthFixed, numW);
+                ImGui.TableSetupColumn("拥有", ImGuiTableColumnFlags.WidthFixed, numW);
                 switch (retainerColumnMode)
                 {
                     case RetainerColumnMode.Total:
-                        ImGui.TableSetupColumn("Ret", ImGuiTableColumnFlags.WidthFixed, numW);
+                        ImGui.TableSetupColumn("雇员", ImGuiTableColumnFlags.WidthFixed, numW);
                         break;
                     case RetainerColumnMode.Split:
-                        ImGui.TableSetupColumn("RNQ", ImGuiTableColumnFlags.WidthFixed, numW);
-                        ImGui.TableSetupColumn("RHQ", ImGuiTableColumnFlags.WidthFixed, numW);
+                        ImGui.TableSetupColumn("雇员 NQ", ImGuiTableColumnFlags.WidthFixed, numW);
+                        ImGui.TableSetupColumn("雇员 HQ", ImGuiTableColumnFlags.WidthFixed, numW);
                         break;
                 }
-                ImGui.TableSetupColumn("Need", ImGuiTableColumnFlags.WidthFixed, numW);
+                ImGui.TableSetupColumn("需要", ImGuiTableColumnFlags.WidthFixed, numW);
                 ImGui.TableSetupColumn("%",    ImGuiTableColumnFlags.WidthFixed, barW);
                 var needIdx = retainerColumnMode switch
                 {
@@ -536,22 +536,22 @@ public class CraftingMaterialsWindow : Window
                 using (ImRaii.PushColor(ImGuiCol.Text, accent))
                     ImGui.TableHeader(label);
                 ImGui.TableSetColumnIndex(1);
-                DrawCenteredHeader("Have");
+                DrawCenteredHeader("持有");
                 switch (retainerColumnMode)
                 {
                     case RetainerColumnMode.Total:
                         ImGui.TableSetColumnIndex(2);
-                        DrawCenteredHeader("Ret", "Retainer total (via Allagan Tools)");
+                        DrawCenteredHeader("雇员", "雇员总计 (通过 Allagan Tools)");
                         break;
                     case RetainerColumnMode.Split:
                         ImGui.TableSetColumnIndex(2);
-                        DrawCenteredHeader("RNQ", "Retainer NQ (via Allagan Tools)");
+                        DrawCenteredHeader("雇员NQ", "雇员 NQ (通过 Allagan Tools)");
                         ImGui.TableSetColumnIndex(3);
-                        DrawCenteredHeader("RHQ", "Retainer HQ (via Allagan Tools)");
+                        DrawCenteredHeader("雇员HQ", "雇员 HQ (通过 Allagan Tools)");
                         break;
                 }
                 ImGui.TableSetColumnIndex(needIdx);
-                DrawCenteredHeader("Need");
+                DrawCenteredHeader("需要");
                 ImGui.TableSetColumnIndex(needIdx + 1);
                 DrawCenteredHeader("%");
 
@@ -638,12 +638,12 @@ public class CraftingMaterialsWindow : Window
             try { ImGui.SetClipboardText(name); } catch { /* ignored */ }
         }
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Click to copy to clipboard.");
+            ImGui.SetTooltip("点击复制到剪贴板");
         if (ImGui.BeginPopupContextItem($"##mbctx_{itemId}_{(isPrecraft ? 1 : 0)}_{(int)retainerColumnMode}"))
         {
-            if (ImGui.Selectable("Create Link"))
+            if (ImGui.Selectable("创建链接"))
                 Communicator.Print(SeString.CreateItemLink(itemId));
-            if (ImGui.Selectable("Search Marketboard"))
+            if (ImGui.Selectable("搜索市场布告板"))
             {
                 GatherBuddy.VulcanWindow?.OpenToMarketboardItem(itemId);
             }
@@ -828,15 +828,15 @@ public class CraftingMaterialsWindow : Window
 
         if (hasSingleTarget)
         {
-            DrawVendorBuyListExistingListMenu("Add to Existing List", new[] { singleTarget });
-            if (ImGui.Selectable("Create New List"))
+            DrawVendorBuyListExistingListMenu("添加到已有清单", new[] { singleTarget });
+            if (ImGui.Selectable("创建新清单"))
                 OpenCreateVendorBuyListPopup(new[] { singleTarget });
         }
 
         if (hasBatchTargets && vendorTargets!.Count > 1)
         {
-            DrawVendorBuyListExistingListMenu("Add Current Vendor View to Existing List", vendorTargets);
-            if (ImGui.Selectable("Create New List from Current Vendor View"))
+            DrawVendorBuyListExistingListMenu("将当前商店视图添加到已有清单", vendorTargets);
+            if (ImGui.Selectable("从当前商店视图创建新清单"))
                 OpenCreateVendorBuyListPopup(vendorTargets);
         }
     }
@@ -956,7 +956,7 @@ public class CraftingMaterialsWindow : Window
         }
 
         using (ImRaii.PushColor(ImGuiCol.Text, accent))
-            ImGui.TextUnformatted("Totals:");
+            ImGui.TextUnformatted("总计:");
 
         for (var i = 0; i < totals.Count; i++)
         {
@@ -1040,7 +1040,7 @@ public class CraftingMaterialsWindow : Window
                     ImGui.ColorConvertFloat4ToU32(new Vector4(0f, 0f, 0f, 0.55f)));
 
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip($"{option.Name}: {option.CostPerItem:N0} per item\nClick to use for totals.");
+                ImGui.SetTooltip($"{option.Name}: 每个 {option.CostPerItem:N0}\n点击用于总计计算。");
 
             if (clicked)
                 _userSelectedCurrencyByItem[entry.ItemId] = option.CurrencyItemId;
@@ -1085,7 +1085,7 @@ public class CraftingMaterialsWindow : Window
             const int MaxMobsShown = 6;
             var lines = new List<string>(MaxMobsShown + 3)
             {
-                $"Drops from {BuildMobDropSummaryText(entry.DropInfo)}.",
+                $"掉落来源: {BuildMobDropSummaryText(entry.DropInfo)}.",
             };
             for (var i = 0; i < entry.DropInfo.Mobs.Count && i < MaxMobsShown; i++)
             {
@@ -1093,15 +1093,15 @@ public class CraftingMaterialsWindow : Window
                 var mobDisplayName = NormalizeMobDisplayName(mob.MobName);
                 var zoneSummary = mob.ZoneCount == 1
                     ? mob.Zones[0].ZoneName
-                    : $"{mob.ZoneCount} {Pluralize("zone", mob.ZoneCount)}";
-                lines.Add($"{mobDisplayName} — {zoneSummary} · {mob.ClusterCount} {Pluralize("area", mob.ClusterCount)}");
+                    : $"{mob.ZoneCount} {Pluralize("个区域", mob.ZoneCount)}";
+                lines.Add($"{mobDisplayName} — {zoneSummary} · {mob.ClusterCount} {Pluralize("个地点", mob.ClusterCount)}");
             }
             if (entry.DropInfo.MobCount > MaxMobsShown)
             {
                 var remainingMobCount = entry.DropInfo.MobCount - MaxMobsShown;
-                lines.Add($"...and {remainingMobCount} more {Pluralize("mob", remainingMobCount)}");
+                lines.Add($"...及其他 {remainingMobCount} 个怪物");
             }
-            lines.Add("Click for grouped flags.");
+            lines.Add("点击查看分组标记");
             ImGui.SetTooltip(string.Join('\n', lines));
         }
 
@@ -1117,7 +1117,7 @@ public class CraftingMaterialsWindow : Window
         if (!ImGui.BeginPopup(popupId))
             return;
 
-        ImGui.TextUnformatted($"Drops for {entry.Name}");
+        ImGui.TextUnformatted($"{entry.Name} 的掉落来源");
         ImGui.TextColored(new Vector4(0.65f, 0.65f, 0.70f, 1f), BuildMobDropSummaryText(entry.DropInfo));
         ImGui.Separator();
 
@@ -1147,22 +1147,22 @@ public class CraftingMaterialsWindow : Window
             if (zonePrimaryCluster.HasValue)
             {
                 DrawMobDropFlagButton(zonePrimaryCluster.Value.Cluster, zonePrimaryCluster.Value.MobName, "flag_zone",
-                    "Place a map marker near the center of this zone's mob locations.",
-                    "No zone-level coordinates are available for this zone.");
+                    "在此区域的怪物位置中心放置地图标记",
+                    "此区域无可用坐标");
 
                 ImGui.SameLine();
                 DrawMobDropTeleportButton(zonePrimaryCluster.Value.Cluster, zonePrimaryCluster.Value.MobName, "teleport_zone",
-                    "Teleport to the nearest aetheryte for this zone and place a map marker there.",
-                    "No teleport target available for this zone.");
+                    "传送到此区域最近的以太之光并放置地图标记",
+                    "此区域无可用传送目标");
             }
             else
             {
                 DrawMobDropIconButton("flag_zone", FontAwesomeIcon.MapMarkerAlt, MobDropMarkerButtonColor,
-                    "No zone-level coordinates are available for this zone.", true);
+                    "此区域无可用坐标", true);
 
                 ImGui.SameLine();
                 DrawMobDropIconButton("teleport_zone", FontAwesomeIcon.Running, MobDropTeleportButtonColor,
-                    "No teleport target available for this zone.", true);
+                    "此区域无可用传送目标", true);
             }
 
             ImGui.SameLine();
@@ -1189,12 +1189,12 @@ public class CraftingMaterialsWindow : Window
                         ImGui.PushID(clusterIndex);
 
                         DrawMobDropFlagButton(cluster, mobDisplayName, "flag",
-                            "Place a map marker for this location.",
-                            "No coordinates available for this location.");
+                            "在此位置放置地图标记",
+                            "此位置无可用坐标");
                         ImGui.SameLine();
                         DrawMobDropTeleportButton(cluster, mobDisplayName, "teleport",
-                            "Teleport to the nearest aetheryte for this location and place a map marker there.",
-                            "No teleport target available for this location.");
+                            "传送到此位置最近的以太之光并放置地图标记",
+                            "此位置无可用传送目标");
                         ImGui.SameLine();
                         ImGui.TextUnformatted(BuildMobDropClusterText(cluster));
                         ImGui.PopID();
@@ -1264,12 +1264,12 @@ public class CraftingMaterialsWindow : Window
     }
 
     private static string BuildMobDropSummaryText(MobDropItemInfo dropInfo)
-        => $"{dropInfo.MobCount} {Pluralize("mob", dropInfo.MobCount)} · {dropInfo.ZoneCount} {Pluralize("zone", dropInfo.ZoneCount)} · {dropInfo.ClusterCount} {Pluralize("area", dropInfo.ClusterCount)}";
+        => $"{dropInfo.MobCount} {Pluralize("个怪物", dropInfo.MobCount)} · {dropInfo.ZoneCount} {Pluralize("区域", dropInfo.ZoneCount)} · {dropInfo.ClusterCount} {Pluralize("地点", dropInfo.ClusterCount)}";
 
     private static string BuildMobDropClusterText(MobDropClusterInfo cluster)
         => cluster.HasCoordinates
             ? $"{cluster.MapX:F1}, {cluster.MapY:F1}"
-            : "No coordinates";
+            : "无坐标";
 
     private static (MobDropClusterInfo Cluster, string MobName)? GetZonePrimaryCluster(
         IReadOnlyList<(MobDropMobInfo Mob, MobDropZoneInfo Zone)> zoneEntries)
@@ -1340,8 +1340,7 @@ public class CraftingMaterialsWindow : Window
         return new string(chars);
     }
 
-    private static string Pluralize(string singular, int count)
-        => count == 1 ? singular : $"{singular}s";
+    private static string Pluralize(string singular, int count) => singular;
 
     private static bool DrawMobDropIconButton(string id, FontAwesomeIcon icon, Vector4 color, string tooltip, bool disabled = false)
     {

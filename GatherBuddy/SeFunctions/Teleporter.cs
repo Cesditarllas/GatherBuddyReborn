@@ -11,7 +11,7 @@ public static unsafe class Teleporter
         var teleport = Telepo.Instance();
         if (teleport == null)
         {
-            GatherBuddy.Log.Error("Could not check attunement: Telepo is missing.");
+            GatherBuddy.Log.Error("无法检查以太之光共鸣状态: Telepo 不可用");
             return false;
         }
 
@@ -38,9 +38,9 @@ public static unsafe class Teleporter
             return true;
         }
 
-        Communicator.PrintError("Could not teleport to ",
-            GatherBuddy.GameData.Aetherytes.TryGetValue(aetheryte, out var a) ? a.Name : "Unknown Aetheryte", GatherBuddy.Config.SeColorNames,
-            " not attuned.");
+        Communicator.PrintError("无法传送至 ",
+            GatherBuddy.GameData.Aetherytes.TryGetValue(aetheryte, out var a) ? a.Name : "未知以太之光", GatherBuddy.Config.SeColorNames,
+            ", 尚未与其共鸣");
         return false;
     }
 

@@ -1,4 +1,4 @@
-﻿namespace GatherBuddy.Plugin;
+namespace GatherBuddy.Plugin;
 
 public static class Offsets
 {

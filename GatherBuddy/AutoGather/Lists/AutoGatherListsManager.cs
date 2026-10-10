@@ -20,10 +20,10 @@ public sealed class AutoGatherFolderConfig
 public class ManualOrderSortMode : ISortMode<AutoGatherList>
 {
     public ReadOnlySpan<byte> Name
-        => "Manual Order"u8;
+        => "手动排序"u8;
 
     public ReadOnlySpan<byte> Description
-        => "Sort by manually assigned order, with folders first."u8;
+        => "按手动指定的顺序排序，文件夹优先"u8;
 
     public IEnumerable<FileSystem<AutoGatherList>.IPath> GetChildren(FileSystem<AutoGatherList>.Folder folder)
     {
@@ -262,7 +262,7 @@ public partial class AutoGatherListsManager : IDisposable
         var file = Functions.ObtainSaveFile(FileName);
         if (file == null)
         {
-            GatherBuddy.Log.Error("Failed to obtain save file for auto-gather lists");
+            GatherBuddy.Log.Error("无法获取自动采集列表的保存文件");
             return;
         }
 
@@ -280,7 +280,7 @@ public partial class AutoGatherListsManager : IDisposable
         }
         catch (Exception e)
         {
-            GatherBuddy.Log.Error($"Error serializing auto-gather lists data:\n{e}");
+            GatherBuddy.Log.Error($"序列化自动采集清单数据时出错:\n{e}");
         }
     }
 
@@ -303,8 +303,8 @@ public partial class AutoGatherListsManager : IDisposable
             }
             catch (Exception e)
             {
-                GatherBuddy.Log.Error($"Error deserializing auto gather lists:\n{e}");
-                Communicator.PrintError($"[GatherBuddy Reborn] Auto gather lists failed to load and have been reset.");
+                GatherBuddy.Log.Error($"反序列化自动采集清单时出错:\n{e}");
+                Communicator.PrintError($"[GatherBuddy Reborn] �Զ��ɼ��б�����ʧ��, ��ִ�����á�");
             }
         }
 

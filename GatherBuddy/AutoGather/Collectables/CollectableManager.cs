@@ -50,7 +50,7 @@ public unsafe class CollectableManager : IDisposable
     public event Action<string>? OnError;
 
     public bool IsRunning { get; private set; }
-    public string StatusText { get; private set; } = "Idle";
+    public string StatusText { get; private set; } = "空闲";
     public CollectableRunSource CurrentRunSource { get; private set; } = CollectableRunSource.Manual;
 
     private CollectableState _state = CollectableState.Idle;
@@ -88,14 +88,14 @@ public unsafe class CollectableManager : IDisposable
     {
         if (IsRunning)
         {
-            GatherBuddy.Log.Debug("[CollectableManager] Collectables run already active");
+            GatherBuddy.Log.Debug("[收藏品管理器] 收藏品交付已在运行中");
             return false;
         }
 
         if (!CollectableTurnInRequirements.IsAvailable)
         {
             StatusText = CollectableTurnInRequirements.UnavailableStatusText;
-            GatherBuddy.Log.Debug("[CollectableManager] Blocked collectables start because neither AllaganTools nor AllaganItemSearch is loaded");
+            GatherBuddy.Log.Debug("[收藏品管理器] 无法开始收藏品交付，因为 AllaganTools 和 AllaganItemSearch 均未加载");
             return false;
         }
 
@@ -103,15 +103,15 @@ public unsafe class CollectableManager : IDisposable
         if (!CollectableInventoryHelper.IsTurnInItemMetadataReady)
         {
             StatusText = CollectableInventoryHelper.IsTurnInItemMetadataLoading
-                ? "Collectables item data is still loading."
-                : "Collectables item data is unavailable.";
+                ? "收藏品物品数据仍在加载中。"
+                : "收藏品物品数据不可用。";
             return false;
         }
 
         var availableItems = CollectableInventoryHelper.GetTurnInItems();
         if (availableItems.Count == 0)
         {
-            StatusText = "No collectables are ready for turn-in.";
+            StatusText = "没有可交付的收藏品。";
             return false;
         }
 
@@ -119,8 +119,8 @@ public unsafe class CollectableManager : IDisposable
         if (route == null)
         {
             StatusText = CollectableTurnInRouteResolver.HasLookupData
-                ? "Collectables route locations are still loading."
-                : "Collectables route data is unavailable.";
+                ? "收藏品路线位置仍在加载中。"
+                : "收藏品路线数据不可用。";
             return false;
         }
 
@@ -147,9 +147,9 @@ public unsafe class CollectableManager : IDisposable
         CurrentRunSource = source;
         IsRunning = true;
         _state = CollectableState.CheckingInventory;
-        StatusText = $"Starting collectables run via {DescribeSource(source)} at {route.DisplayName}.";
+        StatusText = $"开始收藏品交付（{DescribeSource(source)}），地点：{route.DisplayName}。";
 
-        GatherBuddy.Log.Information($"[CollectableManager] Starting collectables run via {DescribeSource(source)} using {route.DisplayName}");
+        GatherBuddy.Log.Information($"[收藏品管理器] 开始收藏品交付（{DescribeSource(source)}），使用 {route.DisplayName}");
         _framework.Update += OnUpdate;
         return true;
     }
@@ -159,15 +159,15 @@ public unsafe class CollectableManager : IDisposable
         if (!IsRunning && _state == CollectableState.Idle)
             return;
 
-        GatherBuddy.Log.Information("[CollectableManager] Stopping collectables run");
+        GatherBuddy.Log.Information("[收藏品管理器] 正在停止收藏品交付");
         CleanupCurrentRun(stopActivePurchaseList: true);
-        StatusText = "Collectables run stopped.";
+        StatusText = "收藏品交付已停止。";
     }
 
     public void ClearStatus()
     {
         if (!IsRunning)
-            StatusText = "Idle";
+            StatusText = "空闲";
     }
 
     private void OnUpdate(IFramework framework)
@@ -228,8 +228,8 @@ public unsafe class CollectableManager : IDisposable
         }
         catch (Exception ex)
         {
-            GatherBuddy.Log.Error($"[CollectableManager] Error in collectables run: {ex}");
-            Fail("An unexpected error occurred during collectables automation.");
+            GatherBuddy.Log.Error($"[收藏品管理器] 收藏品交付出错: {ex}");
+            Fail("收藏品自动交付过程中发生意外错误。");
         }
     }
 
@@ -239,16 +239,16 @@ public unsafe class CollectableManager : IDisposable
         if (!CollectableInventoryHelper.IsTurnInItemMetadataReady)
         {
             StatusText = CollectableInventoryHelper.IsTurnInItemMetadataLoading
-                ? "Collectables item data is still loading."
-                : "Collectables item data is unavailable.";
+                ? "收藏品物品数据仍在加载中。"
+                : "收藏品物品数据不可用。";
             return;
         }
         var route = CollectableTurnInRouteResolver.ResolvePreferredRoute(_config.CollectableConfig.PreferredTurnInRoute);
         if (route == null)
         {
             StatusText = CollectableTurnInRouteResolver.HasLookupData
-                ? "Collectables route locations are still loading."
-                : "Collectables route data is unavailable.";
+                ? "收藏品路线位置仍在加载中。"
+                : "收藏品路线数据不可用。";
             return;
         }
 
@@ -265,7 +265,7 @@ public unsafe class CollectableManager : IDisposable
 
         if (_turnInQueue.Count == 0)
         {
-            _completionMessage = "No collectables were available for turn-in.";
+            _completionMessage = "没有可用于交付的收藏品。";
             _state = CollectableState.Completed;
             return;
         }
@@ -273,7 +273,7 @@ public unsafe class CollectableManager : IDisposable
         VendorInteractionHelper.ResetShopSelectionState(_turnInVendor);
         GatherBuddy.VendorNavigator.StartNavigation(_turnInLocation);
         _stateStartTime = DateTime.UtcNow;
-        StatusText = $"Navigating to {_turnInVendor.Name} for collectables turn-ins.";
+        StatusText = $"正在导航到 {_turnInVendor.Name} 进行收藏品交付。";
         _state = CollectableState.NavigatingToTurnInNpc;
     }
 
@@ -281,13 +281,13 @@ public unsafe class CollectableManager : IDisposable
     {
         if (_turnInVendor == null || _turnInLocation == null)
         {
-            Fail("No collectables turn-in route is configured.");
+            Fail("未配置收藏品交付路线。");
             return;
         }
 
         if (GatherBuddy.VendorNavigator.IsFailed)
         {
-            Fail($"Failed to navigate to {_turnInVendor.Name} for collectables turn-ins.");
+            Fail($"导航到 {_turnInVendor.Name} 进行收藏品交付失败。");
             return;
         }
 
@@ -296,7 +296,7 @@ public unsafe class CollectableManager : IDisposable
 
         _stateStartTime = DateTime.UtcNow;
         _lastAction = DateTime.MinValue;
-        StatusText = $"Opening {_turnInVendor.Name}'s collectables menu.";
+        StatusText = $"正在打开 {_turnInVendor.Name} 的收藏品菜单。";
         _state = CollectableState.OpeningTurnInWindow;
     }
 
@@ -304,7 +304,7 @@ public unsafe class CollectableManager : IDisposable
     {
         if (_turnInVendor == null || _turnInLocation == null)
         {
-            Fail("No collectables turn-in route is configured.");
+            Fail("未配置收藏品交付路线。");
             return;
         }
 
@@ -312,7 +312,7 @@ public unsafe class CollectableManager : IDisposable
         {
             _stateStartTime = DateTime.UtcNow;
             _lastAction = DateTime.MinValue;
-            StatusText = "Selecting collectables turn-in job.";
+            StatusText = "正在选择收藏品交付职业。";
             _state = CollectableState.SelectingJob;
             return;
         }
@@ -345,7 +345,7 @@ public unsafe class CollectableManager : IDisposable
         }
 
         if ((DateTime.UtcNow - _stateStartTime) > TimeSpan.FromSeconds(15))
-            Fail($"Timed out opening {_turnInVendor.Name}'s collectables menu.");
+            Fail($"打开 {_turnInVendor.Name} 的收藏品菜单超时。");
     }
 
     private void SelectJob()
@@ -383,7 +383,7 @@ public unsafe class CollectableManager : IDisposable
             _windowHandler.SelectItemById(next.ItemId);
             _currentItemId = next.ItemId;
             _lastAction = DateTime.UtcNow;
-            StatusText = $"Selecting {next.ItemName} for turn-in.";
+            StatusText = $"正在选择 {next.ItemName} 进行交付。";
             return;
         }
 
@@ -396,7 +396,7 @@ public unsafe class CollectableManager : IDisposable
             return;
 
         var next = _turnInQueue.Peek();
-        StatusText = $"Turning in {next.ItemName}.";
+        StatusText = $"正在交付 {next.ItemName}。";
         _windowHandler.SubmitItem();
         _lastAction = DateTime.UtcNow;
         _stateStartTime = DateTime.UtcNow;
@@ -412,23 +412,23 @@ public unsafe class CollectableManager : IDisposable
             _lastAction = DateTime.UtcNow;
             _currentItemId = 0;
             _overcapInterrupted = true;
-            GatherBuddy.Log.Warning("[CollectableManager] Scrip cap detected during collectables turn-in");
+            GatherBuddy.Log.Warning("[收藏品管理器] 收藏品交付期间检测到工票上限");
 
             if (_purchaseAttemptedForOvercap)
             {
                 DisableAutoTurnInAndFail(_lastOvercapPurchaseHitScripReserveLimit
-                    ? "Collectables are still blocked by the scrip cap after running the purchase list. The configured scrip reserve prevented spending enough scrips to continue."
-                    : "Collectables are still blocked by the scrip cap after running the purchase list.");
+                    ? "运行购买列表后收藏品仍被工票上限阻止。配置的工票储备阻止了足够的工票消费以继续。"
+                    : "运行购买列表后收藏品仍被工票上限阻止。");
                 return;
             }
 
             if (!HasConfiguredPurchaseList())
             {
-                DisableAutoTurnInAndFail("Scrip cap reached while turning in collectables, but no collectables purchase list is configured.");
+                DisableAutoTurnInAndFail("收藏品交付时达到工票上限，但未配置收藏品购买列表。");
                 return;
             }
 
-            TransitionAfterClosingTurnInWindow(CollectableState.StartingPurchaseList, "Scrip cap reached, running the collectables purchase list.");
+            TransitionAfterClosingTurnInWindow(CollectableState.StartingPurchaseList, "已达到工票上限，正在运行收藏品购买列表。");
             return;
         }
 
@@ -456,7 +456,7 @@ public unsafe class CollectableManager : IDisposable
         _lastOvercapPurchaseHitScripReserveLimit = false;
         _currentItemId = 0;
         _lastAction = DateTime.UtcNow;
-        StatusText = $"Turned in {current.ItemName}.";
+        StatusText = $"已交付 {current.ItemName}。";
         _state = CollectableState.CheckingForMore;
     }
 
@@ -473,7 +473,7 @@ public unsafe class CollectableManager : IDisposable
 
         if (ShouldRunPurchaseList())
         {
-            TransitionAfterClosingTurnInWindow(CollectableState.StartingPurchaseList, "Running the collectables purchase list.");
+            TransitionAfterClosingTurnInWindow(CollectableState.StartingPurchaseList, "正在运行收藏品购买列表。");
             return;
         }
 
@@ -511,7 +511,7 @@ public unsafe class CollectableManager : IDisposable
         }
 
         if ((DateTime.UtcNow - _stateStartTime) > TimeSpan.FromSeconds(10))
-            Fail("Timed out closing the collectables turn-in window.");
+            Fail("关闭收藏品交付窗口超时。");
     }
 
     private void StartPurchaseList()
@@ -522,7 +522,7 @@ public unsafe class CollectableManager : IDisposable
             if (_pendingPurchaseListIds.Count == 0)
             {
                 if (_overcapInterrupted)
-                    DisableAutoTurnInAndFail("Scrip cap reached while turning in collectables, but no collectables purchase list is configured.");
+                    DisableAutoTurnInAndFail("收藏品交付时达到工票上限，但未配置收藏品购买列表。");
                 else
                     BeginCompletionFlow();
                 return;
@@ -535,7 +535,7 @@ public unsafe class CollectableManager : IDisposable
         if (purchaseListId == Guid.Empty)
         {
             if (_overcapInterrupted)
-                DisableAutoTurnInAndFail("Scrip cap reached while turning in collectables, but no collectables purchase list is configured.");
+                DisableAutoTurnInAndFail("收藏品交付时达到工票上限，但未配置收藏品购买列表。");
             else
                 BeginCompletionFlow();
             return;
@@ -569,7 +569,7 @@ public unsafe class CollectableManager : IDisposable
             case VendorBuyListManager.StartResult.AutomationUnavailable:
                 if (_overcapInterrupted)
                 {
-                    DisableAutoTurnInAndFail("Scrip cap reached while turning in collectables, but vendor automation is unavailable because neither Allagan Tools nor Allagan Item Search is installed and enabled.");
+                    DisableAutoTurnInAndFail("收藏品交付时达到工票上限，但供应商自动化不可用，因为 Allagan Tools 和 Allagan Item Search 均未安装或启用。");
                     return;
                 }
                 _activePurchaseListId = null;
@@ -579,7 +579,7 @@ public unsafe class CollectableManager : IDisposable
             case VendorBuyListManager.StartResult.NoPendingEntries:
                 if (_overcapInterrupted)
                 {
-                    DisableAutoTurnInAndFail($"Scrip cap reached while turning in collectables, but purchase list '{GetPurchaseListName(purchaseListId)}' has no pending items.");
+                    DisableAutoTurnInAndFail($"收藏品交付时达到工票上限，但购买列表 '{GetPurchaseListName(purchaseListId)}' 没有待处理的物品。");
                     return;
                 }
                 _activePurchaseListId = null;
@@ -587,7 +587,7 @@ public unsafe class CollectableManager : IDisposable
                 return;
             case VendorBuyListManager.StartResult.NoList:
                 if (_overcapInterrupted)
-                    DisableAutoTurnInAndFail("The configured collectables purchase list is unavailable.");
+                    DisableAutoTurnInAndFail("配置的收藏品购买列表不可用。");
                 else
                 {
                     _activePurchaseListId = null;
@@ -618,7 +618,7 @@ public unsafe class CollectableManager : IDisposable
             _currentItemId = 0;
             _currentJobId = -1;
             _pendingPurchaseListIds.Clear();
-            StatusText = "Resuming collectables turn-ins after the purchase list.";
+            StatusText = "购买列表完成后恢复收藏品交付。";
             _state = CollectableState.CheckingInventory;
             return;
         }
@@ -635,25 +635,25 @@ public unsafe class CollectableManager : IDisposable
             if (!HomeNavigationHelper.TryStartReturnHome(out var error))
             {
                 if (!string.IsNullOrWhiteSpace(error))
-                    GatherBuddy.Log.Warning($"[CollectableManager] {error}");
+                    GatherBuddy.Log.Warning($"[收藏品管理器] {error}");
 
                 _completionMessage = string.IsNullOrWhiteSpace(error)
-                    ? "Collectables turn-in complete."
-                    : $"Collectables turn-in complete without home return: {error}";
+                    ? "收藏品交付完成。"
+                    : $"收藏品交付完成（未返回家园: {error}）";
                 _state = CollectableState.Completed;
                 return;
             }
 
             _homeReturnStarted = true;
             _lastAction = DateTime.UtcNow;
-            StatusText = "Returning home after collectables turn-ins.";
+            StatusText = "收藏品交付后正在返回家园。";
             return;
         }
 
         if (!HomeNavigationHelper.IsReturnComplete())
             return;
 
-        _completionMessage = "Collectables turn-in complete.";
+        _completionMessage = "收藏品交付完成。";
         _state = CollectableState.Completed;
     }
 
@@ -662,18 +662,18 @@ public unsafe class CollectableManager : IDisposable
         if (_returnHomeAfterCompletion && HomeNavigationHelper.ShouldReturnHomeAfterCollectables())
         {
             _homeReturnStarted = false;
-            TransitionAfterClosingTurnInWindow(CollectableState.ReturningHome, "Returning home after collectables turn-ins.");
+            TransitionAfterClosingTurnInWindow(CollectableState.ReturningHome, "收藏品交付后正在返回家园。");
             return;
         }
 
-        _completionMessage = "Collectables turn-in complete.";
+        _completionMessage = "收藏品交付完成。";
         TransitionAfterClosingTurnInWindow(CollectableState.Completed, _completionMessage);
     }
 
     private void Complete()
     {
-        _completionMessage ??= "Collectables turn-in complete.";
-        GatherBuddy.Log.Information($"[CollectableManager] {_completionMessage}");
+        _completionMessage ??= "收藏品交付完成。";
+        GatherBuddy.Log.Information($"[收藏品管理器] {_completionMessage}");
         CleanupCurrentRun(stopActivePurchaseList: false);
         StatusText = _completionMessage;
         OnFinishCollecting?.Invoke();
@@ -681,8 +681,8 @@ public unsafe class CollectableManager : IDisposable
 
     private void HandleError()
     {
-        var errorMessage = _lastErrorText ?? "An error occurred during collectables automation.";
-        GatherBuddy.Log.Error($"[CollectableManager] {errorMessage}");
+        var errorMessage = _lastErrorText ?? "收藏品自动交付过程中发生错误。";
+        GatherBuddy.Log.Error($"[收藏品管理器] {errorMessage}");
         CleanupCurrentRun(stopActivePurchaseList: true);
         StatusText = errorMessage;
         OnError?.Invoke(errorMessage);
@@ -697,7 +697,7 @@ public unsafe class CollectableManager : IDisposable
 
     private void DisableAutoTurnInAndFail(string message)
     {
-        var hardFailMessage = $"{message} Auto turn-in collectables has been disabled to prevent repeated failures. Adjust the collectables reserve or purchase list, then re-enable auto turn-ins.";
+        var hardFailMessage = $"{message} 已禁用自动交付收藏品以防止重复失败。请调整收藏品储备或购买列表，然后重新启用自动交付。";
         var shouldSave = false;
         if (_config.CollectableConfig.AutoTurnInCollectables)
         {
@@ -733,7 +733,7 @@ public unsafe class CollectableManager : IDisposable
         _statusAfterWindowClose = nextStatus;
         _stateStartTime = DateTime.UtcNow;
         _lastAction = DateTime.MinValue;
-        StatusText = "Closing the collectables turn-in window.";
+        StatusText = "正在关闭收藏品交付窗口。";
         _state = CollectableState.ClosingTurnInWindow;
     }
 
@@ -844,7 +844,7 @@ public unsafe class CollectableManager : IDisposable
         if (_pendingPurchaseListIds.Count > 0)
         {
             var nextPurchaseListId = _pendingPurchaseListIds.Peek();
-            StatusText = $"Running collectables purchase list '{GetPurchaseListName(nextPurchaseListId)}'.";
+            StatusText = $"正在运行收藏品购买列表 '{GetPurchaseListName(nextPurchaseListId)}'。";
             _stateStartTime = DateTime.UtcNow;
             _state = CollectableState.StartingPurchaseList;
             return;
@@ -881,9 +881,9 @@ public unsafe class CollectableManager : IDisposable
     private static string DescribeSource(CollectableRunSource source)
         => source switch
         {
-            CollectableRunSource.AutoGather => "Auto-Gather",
-            CollectableRunSource.VulcanQueue => "Vulcan queue",
-            _ => "manual mode",
+            CollectableRunSource.AutoGather => "自动采集",
+            CollectableRunSource.VulcanQueue => "Vulcan 队列",
+            _ => "手动模式",
         };
 
     public void Dispose()

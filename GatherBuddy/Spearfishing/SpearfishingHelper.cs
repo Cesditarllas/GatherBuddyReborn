@@ -1,4 +1,4 @@
-﻿using System.Collections.Frozen;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
 using Dalamud.Game.ClientState.Objects.Enums;
@@ -62,7 +62,7 @@ public partial class SpearfishingHelper
     // This may result in more than one fish, but does so rarely. Unknown attributes are seen as valid for any attribute.
     private static string Identify(FishingSpot? spot, AddonSpearFishing.FishInfo info)
     {
-        const string unknown = "Unknown Fish";
+        const string unknown = "未知鱼类";
 
         if (spot == null)
             return unknown;

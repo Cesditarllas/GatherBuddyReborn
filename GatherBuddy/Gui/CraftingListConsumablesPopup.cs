@@ -39,7 +39,7 @@ public class CraftingListConsumablesPopup
     public void OpenListDefaults(CraftingListDefinition list)
     {
         _list = list;
-        _title = $"List Consumables/Macros - {list.Name}";
+        _title = $"制作清单 消耗品/宏 - {list.Name}";
         _workingDefaults = list.Consumables.Clone();
         _workingDefaultPrecraftMacroId = list.DefaultPrecraftMacroId;
         _workingDefaultFinalMacroId = list.DefaultFinalMacroId;
@@ -67,13 +67,13 @@ public class CraftingListConsumablesPopup
             ImGui.Separator();
             ImGui.Spacing();
 
-            if (ImGui.Button("Save Defaults", SaveButtonSize))
+            if (ImGui.Button("保存为默认", SaveButtonSize))
             {
                 Save();
             }
 
             ImGui.SameLine();
-            if (ImGui.Button("Cancel", CancelButtonSize))
+            if (ImGui.Button("取消", CancelButtonSize))
             {
                 _isOpen = false;
             }
@@ -84,7 +84,7 @@ public class CraftingListConsumablesPopup
 
     private void DrawListDefaults()
     {
-        ImGui.Text("Default consumables for this list:");
+        ImGui.Text("配置此清单的默认消耗品");
         ImGui.Spacing();
         DrawMacroSection();
         ImGui.Spacing();
@@ -121,7 +121,7 @@ public class CraftingListConsumablesPopup
     {
         var allMacros = CraftingGameInterop.UserMacroLibrary.GetAllMacros();
         DrawMacroSelector(
-            "Precraft Macro:",
+            "半成品制作宏:",
             "##PrecraftMacro",
             "##PrecraftMacroSearch",
             ref _workingDefaultPrecraftMacroId,
@@ -130,7 +130,7 @@ public class CraftingListConsumablesPopup
             allMacros);
 
         DrawMacroSelector(
-            "Final Craft Macro:",
+            "成品制作宏:",
             "##FinalMacro",
             "##FinalMacroSearch",
             ref _workingDefaultFinalMacroId,
@@ -158,33 +158,33 @@ public class CraftingListConsumablesPopup
             return;
 
         var isDefault = solverOverride == SolverOverrideMode.Default && string.IsNullOrEmpty(selectedMacroId);
-        if (ImGui.Selectable("Default (Use Solver)", isDefault))
+        if (ImGui.Selectable("默认 (使用求解器)", isDefault))
         {
             selectedMacroId = null;
             solverOverride = SolverOverrideMode.Default;
         }
-        if (ImGui.Selectable("Standard Solver", solverOverride == SolverOverrideMode.StandardSolver))
+        if (ImGui.Selectable("标准求解器", solverOverride == SolverOverrideMode.StandardSolver))
         {
             selectedMacroId = null;
             solverOverride = SolverOverrideMode.StandardSolver;
         }
-        if (ImGui.Selectable("Raphael Solver", solverOverride == SolverOverrideMode.RaphaelSolver))
+        if (ImGui.Selectable("Raphael 求解器", solverOverride == SolverOverrideMode.RaphaelSolver))
         {
             selectedMacroId = null;
             solverOverride = SolverOverrideMode.RaphaelSolver;
         }
-        if (ImGui.Selectable("Progress Only", solverOverride == SolverOverrideMode.ProgressOnlySolver))
+        if (ImGui.Selectable("只推进度", solverOverride == SolverOverrideMode.ProgressOnlySolver))
         {
             selectedMacroId = null;
             solverOverride = SolverOverrideMode.ProgressOnlySolver;
         }
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Use only progress-building actions, no quality steps. Fast NQ crafts.");
+            ImGui.SetTooltip("只使用推进度的技能, 不使用品质技能, 适合快速 NQ 制作");
 
         if (allMacros.Count > 0)
         {
             ImGui.Separator();
-            ImGui.InputTextWithHint(searchId, "Search macros...", ref macroSearch, 128);
+            ImGui.InputTextWithHint(searchId, "搜索宏...", ref macroSearch, 128);
             var searchValue = macroSearch;
             var filteredMacros = string.IsNullOrWhiteSpace(searchValue)
                 ? allMacros
@@ -210,32 +210,32 @@ public class CraftingListConsumablesPopup
     {
         return solverOverride switch
         {
-            SolverOverrideMode.StandardSolver     => "Standard Solver",
-            SolverOverrideMode.RaphaelSolver      => "Raphael Solver",
-            SolverOverrideMode.ProgressOnlySolver => "Progress Only",
-            _ when !string.IsNullOrEmpty(macroId) => allMacros.FirstOrDefault(m => m.Id == macroId)?.Name ?? "(Macro Not Found)",
-            _                                     => "Default (Use Solver)",
+            SolverOverrideMode.StandardSolver     => "标准求解器",
+            SolverOverrideMode.RaphaelSolver      => "Raphael 求解器",
+            SolverOverrideMode.ProgressOnlySolver => "只推进度",
+            _ when !string.IsNullOrEmpty(macroId) => allMacros.FirstOrDefault(m => m.Id == macroId)?.Name ?? "(未找到宏)",
+            _                                     => "默认 (使用求解器)",
         };
     }
 
     private void DrawFoodSelector(ref uint? itemId, ref bool hq, string idSuffix, ref string search)
     {
         ImGui.AlignTextToFramePadding();
-        ImGui.Text("Food:");
+        ImGui.Text("食物:");
         ImGui.SameLine(SelectorLabelWidth);
 
         var current = GetDisplayName(itemId, hq);
         ImGui.SetNextItemWidth(SelectorComboWidth);
         if (ImGui.BeginCombo($"##Food{idSuffix}", current))
         {
-            if (ImGui.Selectable("None", !itemId.HasValue))
+            if (ImGui.Selectable("无", !itemId.HasValue))
             {
                 itemId = null;
                 hq = false;
             }
 
             ImGui.Separator();
-            ImGui.InputTextWithHint($"##FoodSearch{idSuffix}", "Search food...", ref search, 128);
+            ImGui.InputTextWithHint($"##FoodSearch{idSuffix}", "搜索食物...", ref search, 128);
 
             var searchValue = search;
             var filtered = string.IsNullOrWhiteSpace(searchValue)
@@ -260,21 +260,21 @@ public class CraftingListConsumablesPopup
     private void DrawMedicineSelector(ref uint? itemId, ref bool hq, string idSuffix, ref string search)
     {
         ImGui.AlignTextToFramePadding();
-        ImGui.Text("Medicine:");
+        ImGui.Text("药水:");
         ImGui.SameLine(SelectorLabelWidth);
 
         var current = GetDisplayName(itemId, hq);
         ImGui.SetNextItemWidth(SelectorComboWidth);
         if (ImGui.BeginCombo($"##Medicine{idSuffix}", current))
         {
-            if (ImGui.Selectable("None", !itemId.HasValue))
+            if (ImGui.Selectable("无", !itemId.HasValue))
             {
                 itemId = null;
                 hq = false;
             }
 
             ImGui.Separator();
-            ImGui.InputTextWithHint($"##MedicineSearch{idSuffix}", "Search medicine...", ref search, 128);
+            ImGui.InputTextWithHint($"##MedicineSearch{idSuffix}", "搜索药水...", ref search, 128);
 
             var searchValue = search;
             var filtered = string.IsNullOrWhiteSpace(searchValue)
@@ -299,15 +299,15 @@ public class CraftingListConsumablesPopup
     private void DrawManualSelector(ref uint? itemId, string idSuffix)
     {
         ImGui.AlignTextToFramePadding();
-        ImGui.Text("Manual:");
+        ImGui.Text("指南:");
         ImGui.SameLine(SelectorLabelWidth);
 
         var manualId = itemId ?? 0;
-        var current = manualId == 0 ? "None" : GetItemName(manualId);
+        var current = manualId == 0 ? "无" : GetItemName(manualId);
         ImGui.SetNextItemWidth(SelectorComboWidth);
         if (ImGui.BeginCombo($"##Manual{idSuffix}", current))
         {
-            if (ImGui.Selectable("None", manualId == 0))
+            if (ImGui.Selectable("无", manualId == 0))
                 itemId = null;
 
             foreach (var (id, name) in _manualItems)
@@ -324,15 +324,15 @@ public class CraftingListConsumablesPopup
     private void DrawSquadronManualSelector(ref uint? itemId, string idSuffix)
     {
         ImGui.AlignTextToFramePadding();
-        ImGui.Text("Squadron Manual:");
+        ImGui.Text("冒险者分队指南:");
         ImGui.SameLine(SelectorLabelWidth);
 
         var squadronId = itemId ?? 0;
-        var current = squadronId == 0 ? "None" : GetItemName(squadronId);
+        var current = squadronId == 0 ? "无" : GetItemName(squadronId);
         ImGui.SetNextItemWidth(SelectorComboWidth);
         if (ImGui.BeginCombo($"##Squadron{idSuffix}", current))
         {
-            if (ImGui.Selectable("None", squadronId == 0))
+            if (ImGui.Selectable("无", squadronId == 0))
                 itemId = null;
 
             foreach (var (id, name) in _squadronManualItems)
@@ -464,14 +464,14 @@ public class CraftingListConsumablesPopup
     }
 
     private static string GetDisplayName(uint? itemId, bool hq)
-        => itemId.HasValue ? GetItemName(itemId.Value) + (hq ? $" {(char)SeIconChar.HighQuality}" : "") : "None";
+        => itemId.HasValue ? GetItemName(itemId.Value) + (hq ? $" {(char)SeIconChar.HighQuality}" : "") : "无";
 
     private static string GetItemName(uint itemId)
     {
         var itemSheet = Dalamud.GameData.GetExcelSheet<Item>();
         if (itemSheet != null && itemSheet.TryGetRow(itemId, out var item))
             return item.Name.ExtractText();
-        return "Unknown";
+        return "未知";
     }
 
     private static unsafe bool HasItemInInventory(uint itemId, bool hq)

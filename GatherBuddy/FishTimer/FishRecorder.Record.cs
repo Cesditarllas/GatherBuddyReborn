@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -55,7 +55,7 @@ public partial class FishRecorder
             if (GatherBuddy.GameData.Fishes.TryGetValue(fishId, out var fish))
                 return new Bait(fish.ItemData);
 
-            GatherBuddy.Log.Error($"Item with id {fishId} is not a known type of fish to be used as bait.");
+            GatherBuddy.Log.Error($"ID 为 {fishId} 的物品不是可用作钓饵的已知鱼类");
             return Bait.Unknown;
         }
 
@@ -63,7 +63,7 @@ public partial class FishRecorder
         if (GatherBuddy.GameData.Bait.TryGetValue(baitId, out var bait))
             return bait;
 
-        GatherBuddy.Log.Error($"Item with id {baitId} is not a known type of bait.");
+        GatherBuddy.Log.Error($"ID 为 {baitId} 的物品不是已知类型的钓饵");
         return Bait.Unknown;
     }
 
@@ -120,13 +120,13 @@ public partial class FishRecorder
     }
 
     private static readonly uint GatheringIdx =
-        Dalamud.GameData.GetExcelSheet<BaseParam>(ClientLanguage.English).Cast<BaseParam?>()
-            .FirstOrDefault(r => r!.Value.Name == "Gathering")?.RowId
+        Dalamud.GameData.GetExcelSheet<BaseParam>((ClientLanguage)4).Cast<BaseParam?>()
+            .FirstOrDefault(r => r!.Value.Name == "获得力")?.RowId // 修改为中文
      ?? 72;
 
     private static readonly uint PerceptionIdx =
-        Dalamud.GameData.GetExcelSheet<BaseParam>(ClientLanguage.English).Cast<BaseParam?>()
-            .FirstOrDefault(r => r!.Value.Name == "Perception")?.RowId
+        Dalamud.GameData.GetExcelSheet<BaseParam>((ClientLanguage)4).Cast<BaseParam?>()
+            .FirstOrDefault(r => r!.Value.Name == "鉴别力")?.RowId // 修改为中文
      ?? 73;
 
     private static int GetContentHash(ulong id)
@@ -191,7 +191,7 @@ public partial class FishRecorder
         if (Record.HasSpot)
             Step |= CatchSteps.IdentifiedSpot;
 
-        GatherBuddy.Log.Verbose($"Began fishing at {spot?.Name ?? "Undiscovered Fishing Hole"} using {Record.Bait.Name}.");
+        GatherBuddy.Log.Verbose($"开始在 {spot?.Name ?? "未知钓场"} 钓鱼，使用 {Record.Bait.Name}");
     }
 
     private void OnBite()
@@ -202,16 +202,16 @@ public partial class FishRecorder
         Step                 |= CatchSteps.FishBit;
         if (LureTimer.ElapsedMilliseconds > 0)
             GatherBuddy.Log.Verbose(
-                $"Fish bit with {Record.Tug} after {Timer.ElapsedMilliseconds} ms. Time since last lure: {LureTimer.ElapsedMilliseconds} ms.");
+                $"鱼在 {Timer.ElapsedMilliseconds} ms 后咬钩，咬钩类型 {Record.Tug}。距离上次撒饵: {LureTimer.ElapsedMilliseconds} ms");
         else
-            GatherBuddy.Log.Verbose($"Fish bit with {Record.Tug} after {Timer.ElapsedMilliseconds} ms.");
+            GatherBuddy.Log.Verbose($"鱼在 {Timer.ElapsedMilliseconds} ms 后咬钩，咬钩类型 {Record.Tug}");
     }
 
     private void OnIdentification(FishingSpot spot)
     {
         Record.FishingSpot =  spot;
         Step               |= CatchSteps.IdentifiedSpot;
-        GatherBuddy.Log.Verbose($"Identified previously unknown fishing spot as {spot.Name}.");
+        GatherBuddy.Log.Verbose($"识别出之前未知的钓场为 {spot.Name}");
     }
 
     private void OnHooking(HookSet hook)
@@ -219,7 +219,7 @@ public partial class FishRecorder
         if (!Step.HasFlag(CatchSteps.FishReeled) && !Step.HasFlag(CatchSteps.NoMoreHook))
         {
             Record.SetTugHook(Record.Tug, hook);
-            GatherBuddy.Log.Verbose($"Hooking {Record.Tug} tug with {hook}.");
+            GatherBuddy.Log.Verbose($"使用 {hook} 提钩，咬钩类型 {Record.Tug}");
         }
     }
 
@@ -234,7 +234,7 @@ public partial class FishRecorder
         if (collectible)
             Record.Flags |= Effects.Collectible;
         GatherBuddy.Log.Verbose(
-            $"Caught {amount} {(large ? "large " : string.Empty)}{(collectible ? "collectible " : string.Empty)}{Record.Catch.Name[ClientLanguage.English]} of size {size / 10f:F1}.");
+            $"钓到了 {amount} 条 {(large ? "大型 " : string.Empty)}{(collectible ? "收藏品 " : string.Empty)}{Record.Catch.Name[(ClientLanguage)4]}，大小 {size / 10f:F1}");
     }
 
     private void OnMooch()
@@ -250,7 +250,7 @@ public partial class FishRecorder
         Record.FishingSpot = spot;
         if (Record.HasSpot)
             Step |= CatchSteps.IdentifiedSpot;
-        GatherBuddy.Log.Verbose($"Mooching with {Record.Bait.Name} at {spot?.Name ?? "Undiscovered Fishing Hole"}.");
+        GatherBuddy.Log.Verbose($"使用 {Record.Bait.Name} 以小钓大，位置 {spot?.Name ?? "未知钓场"}");
     }
 
     private void OnFishingStop()

@@ -10,7 +10,7 @@ public class CommandManager
         // First try to process the command through Dalamud.
         if (Dalamud.Commands.ProcessCommand(message))
         {
-            GatherBuddy.Log.Verbose($"Executed Dalamud command \"{message}\".");
+            GatherBuddy.Log.Verbose($"已执行 Dalamud 命令 \"{message}\"");
             return true;
         }
 

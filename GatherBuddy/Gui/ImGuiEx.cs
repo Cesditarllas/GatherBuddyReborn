@@ -48,8 +48,8 @@ public static class ImGuiEx
     public static void PluginAvailabilityIndicator(IEnumerable<RequiredPluginInfo> pluginInfos, string? prependText = null, bool all = true)
     {
         prependText ??= all 
-            ? "The following plugins are required to be installed and enabled:" 
-            : "One of the following plugins is required to be installed and enabled";
+            ? "需要安装以下所有插件:"
+            : "需要安装以下插件之一:";
         
         bool pass;
         if (all)
@@ -94,7 +94,7 @@ public static class ImGuiEx
                         ImGui.SameLine(0, 0);
                         ImGui.TextColored(ImGuiColors.DalamudRed, $"{info.MinVersion}+ ");
                         ImGui.SameLine(0, 0);
-                        ImGui.TextUnformatted("(outdated)");
+                        ImGui.TextUnformatted("(已过期)");
                     }
                 }
                 else
@@ -102,7 +102,7 @@ public static class ImGuiEx
                     ImGui.TextColored(ImGuiColors.DalamudRed, 
                         $"- {info.VanityName ?? info.InternalName} " + (info.MinVersion == null ? "" : $"{info.MinVersion}+ "));
                     ImGui.SameLine(0, 0);
-                    ImGui.TextUnformatted("(not installed)");
+                    ImGui.TextUnformatted("(未安装)");
                 }
             }
             ImGui.EndTooltip();

@@ -528,16 +528,16 @@ public class CraftingListEditor
 
     private void DrawQueuePane()
     {
-        ImGui.TextColored(ImGuiColors.DalamudYellow, "Craft Queue");
+        ImGui.TextColored(ImGuiColors.DalamudYellow, "制作队列");
         ImGui.Separator();
         ImGui.Spacing();
         var planningList = GetPlanningList();
         var activeExecutionPlan = GetActiveExecutionPlan();
         if (planningList.Recipes.Count == 0)
         {
-            ImGui.TextColored(ImGuiColors.DalamudGrey, "No recipes in queue.");
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "队列中没有配方");
             ImGui.Spacing();
-            ImGui.TextWrapped("Add recipes using the panel on the right.");
+            ImGui.TextWrapped("使用右侧面板添加配方");
             return;
         }
 
@@ -553,14 +553,14 @@ public class CraftingListEditor
 
         if (_isGeneratingQueue)
         {
-            ImGui.TextColored(ImGuiColors.DalamudYellow, "Calculating craft queue...");
+            ImGui.TextColored(ImGuiColors.DalamudYellow, "正在计算制作队列...");
         }
         else
         {
             var displayRows = GetDisplayQueueRows(planningList, activeExecutionPlan);
             if (displayRows.Count == 0)
             {
-                ImGui.TextColored(ImGuiColors.DalamudGrey, "Queue is empty.");
+                ImGui.TextColored(ImGuiColors.DalamudGrey, "队列为空");
             }
             else
             {
@@ -584,7 +584,7 @@ public class CraftingListEditor
         ImGui.Separator();
         ImGui.Spacing();
 
-        ImGui.Checkbox("Show Precrafts##sp", ref _showPrecrafts);
+        ImGui.Checkbox("显示半成品##sp", ref _showPrecrafts);
 
         var craftOrder = (int)_list.CraftOrderMode;
         if (ImGui.Combo("Craft order##craftOrder", ref craftOrder, CraftOrderLabels, CraftOrderLabels.Length))
@@ -599,7 +599,7 @@ public class CraftingListEditor
             ImGui.SetTooltip("Required precrafts are made first. Recipes that cannot be crafted are skipped.");
 
         var skipIfEnough = _list.SkipIfEnough;
-        if (ImGui.Checkbox("Skip if Already Have Enough##sie", ref skipIfEnough))
+        if (ImGui.Checkbox("持有足够时跳过##sie", ref skipIfEnough))
         {
             _list.SkipIfEnough    = skipIfEnough;
             InvalidateQueueCache();
@@ -614,7 +614,7 @@ public class CraftingListEditor
         {
             ImGui.Indent();
             var skipFinalIfEnough = _list.SkipFinalIfEnough;
-            if (ImGui.Checkbox("Include Final Crafts##sife", ref skipFinalIfEnough))
+            if (ImGui.Checkbox("包含成品##sife", ref skipFinalIfEnough))
             {
                 _list.SkipFinalIfEnough = skipFinalIfEnough;
                 InvalidateQueueCache();
@@ -623,12 +623,12 @@ public class CraftingListEditor
                 TriggerQueueRegeneration();
             }
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Also reduce final crafts based on how many you already have. Useful for resuming an interrupted list.");
+                ImGui.SetTooltip("同时根据已有数量减少成品制作。适用于恢复中断的清单");
             ImGui.Unindent();
         }
 
         var quickSynthAll = _list.QuickSynthAll;
-        if (ImGui.Checkbox("Quick Synth All##qsa", ref quickSynthAll))
+        if (ImGui.Checkbox("全部快速制作##qsa", ref quickSynthAll))
         {
             _list.QuickSynthAll = quickSynthAll;
             GatherBuddy.CraftingListManager.SaveList(_list);
@@ -639,14 +639,14 @@ public class CraftingListEditor
             TriggerMaterialsRegeneration();
         }
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Force Quick Synthesis on eligible items in this list. Additional override options appear below when enabled.");
+            ImGui.SetTooltip("对此清单中符合条件的物品强制使用快速制作。启用后下方会显示更多覆盖选项");
 
         if (_list.QuickSynthAll)
         {
             ImGui.Indent();
 
             var quickSynthAllPreferNQ = _list.QuickSynthAllPreferNQ;
-            if (ImGui.Checkbox("Prefer NQ##qsapnq", ref quickSynthAllPreferNQ))
+            if (ImGui.Checkbox("偏好 NQ##qsapnq", ref quickSynthAllPreferNQ))
             {
                 _list.QuickSynthAllPreferNQ = quickSynthAllPreferNQ;
                 GatherBuddy.CraftingListManager.SaveList(_list);
@@ -657,10 +657,10 @@ public class CraftingListEditor
                 TriggerMaterialsRegeneration();
             }
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Enable the Quick Synthesis 'Synthesize NQ items only' toggle for affected crafts.");
+                ImGui.SetTooltip("覆盖受影响配方的材料品质偏好, 优先使用 NQ 材料, 除非需要 HQ 作为后备");
 
             var quickSynthAllPrecraftsOnly = _list.QuickSynthAllPrecraftsOnly;
-            if (ImGui.Checkbox("Precrafts Only##qsapo", ref quickSynthAllPrecraftsOnly))
+            if (ImGui.Checkbox("仅半成品##qsapo", ref quickSynthAllPrecraftsOnly))
             {
                 _list.QuickSynthAllPrecraftsOnly = quickSynthAllPrecraftsOnly;
                 GatherBuddy.CraftingListManager.SaveList(_list);
@@ -671,7 +671,7 @@ public class CraftingListEditor
                 TriggerMaterialsRegeneration();
             }
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Apply the Quick Synth All and Prefer NQ overrides only to generated precrafts, leaving final list items unchanged.");
+                ImGui.SetTooltip("仅对生成的半成品应用全部快速制作和偏好 NQ 覆盖, 最终清单物品保持不变");
 
             ImGui.Unindent();
         }
@@ -680,7 +680,7 @@ public class CraftingListEditor
         using (ImRaii.Disabled(!allaganEnabled))
         {
             var retainerRestock = _list.RetainerRestock;
-            if (ImGui.Checkbox("Restock from Retainers##rrr", ref retainerRestock))
+            if (ImGui.Checkbox("从雇员补货##rrr", ref retainerRestock))
             {
                 _list.RetainerRestock = retainerRestock;
                 GatherBuddy.CraftingListManager.SaveList(_list);
@@ -693,16 +693,16 @@ public class CraftingListEditor
         }
         if (ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
             ImGui.SetTooltip(allaganEnabled
-                ? "Withdraw needed materials from retainers before generating the gather list. Respects HQ/NQ preferences."
-                : "Requires Allagan Tools to be installed and enabled.");
+                ? "在生成采集清单前从雇员取出所需材料。遵循 HQ/NQ 偏好"
+                : "需要安装并启用 Allagan Tools");
 
 
         ImGui.Spacing();
 
         if (IPCSubscriber.IsReady("Artisan"))
         {
-            ImGuiUtil.DrawDisabledButton("Artisan Detected", VulcanUiScaling.Scaled(-1f, 22f),
-                "Artisan plugin is loaded. Please unload Artisan to use Vulcan's crafting system.", true);
+            ImGuiUtil.DrawDisabledButton("检测到 Artisan", VulcanUiScaling.Scaled(-1f, 22f),
+                "Artisan 插件已加载, 请卸载 Artisan 后使用 Vulcan 制作系统", true);
         }
         else
         {
@@ -712,7 +712,7 @@ public class CraftingListEditor
             else if (warnings > 0)
                 ImGui.PushStyleColor(ImGuiCol.Button, new Vector4(0.55f, 0.40f, 0.05f, 1f));
 
-            if (ImGui.Button("Start Gather/Crafting", VulcanUiScaling.Scaled(-1f, 22f)))
+            if (ImGui.Button("开始采集/制作", VulcanUiScaling.Scaled(-1f, 22f)))
             {
                 if (hardFails > 0)
                     ImGui.OpenPopup("ConfirmFailedMacros##startCraft");
@@ -732,15 +732,15 @@ public class CraftingListEditor
             if (ImGui.BeginPopupModal("ConfirmFailedMacros##startCraft", ImGuiWindowFlags.AlwaysAutoResize))
             {
                 ImGui.TextColored(new Vector4(0.78f, 0.25f, 0.25f, 1f), $"{hardFails} macro(s) are predicted to FAIL their craft.");
-                ImGui.TextWrapped("These items may not be completed. Start crafting anyway?");
+                ImGui.TextWrapped("这些物品可能无法完成, 仍然开始制作?");
                 ImGui.Spacing();
-                if (ImGui.Button("Start Anyway", VulcanUiScaling.Scaled(120f, 0f)))
+                if (ImGui.Button("仍然开始", VulcanUiScaling.Scaled(120f, 0f)))
                 {
                     OnStartCrafting?.Invoke(_list);
                     ImGui.CloseCurrentPopup();
                 }
                 ImGui.SameLine();
-                if (ImGui.Button("Cancel", VulcanUiScaling.Scaled(80f, 0f)))
+                if (ImGui.Button("取消", VulcanUiScaling.Scaled(80f, 0f)))
                     ImGui.CloseCurrentPopup();
                 ImGui.EndPopup();
             }
@@ -748,17 +748,17 @@ public class CraftingListEditor
 
         var hSpacing = ImGui.GetStyle().ItemSpacing.X;
         var thirdW = (ImGui.GetContentRegionAvail().X - hSpacing * 2f) / 3f;
-        if (ImGui.Button("Generate Gather List##gatherList", new Vector2(thirdW, VulcanUiScaling.Scaled(22f))))
+        if (ImGui.Button("生成采集清单##gatherList", new Vector2(thirdW, VulcanUiScaling.Scaled(22f))))
         {
             var materials = new Dictionary<uint, int>(GetCachedMaterials());
-            CraftingGatherBridge.CreatePersistentGatherList($"{_list.Name}...Auto-Generated", materials);
+            CraftingGatherBridge.CreatePersistentGatherList($"{_list.Name}...自动生成", materials);
         }
         ImGui.SameLine();
-        var matsBtnLabel = GatherBuddy.CraftingMaterialsWindow?.IsOpen == true ? "Hide Materials" : "View Materials";
+        var matsBtnLabel = GatherBuddy.CraftingMaterialsWindow?.IsOpen == true ? "隐藏材料" : "查看材料";
         if (ImGui.Button($"{matsBtnLabel}##viewMats", new Vector2(thirdW, VulcanUiScaling.Scaled(22f))) && GatherBuddy.CraftingMaterialsWindow != null)
             GatherBuddy.CraftingMaterialsWindow.IsOpen = !GatherBuddy.CraftingMaterialsWindow.IsOpen;
         ImGui.SameLine();
-        var treeBtnLabel = GatherBuddy.CraftingTreeWindow?.IsOpen == true ? "Hide Tree" : "View Tree";
+        var treeBtnLabel = GatherBuddy.CraftingTreeWindow?.IsOpen == true ? "隐藏树" : "查看树";
         if (ImGui.Button($"{treeBtnLabel}##viewTree", VulcanUiScaling.Scaled(-1f, 22f)) && GatherBuddy.CraftingTreeWindow != null)
         {
             GatherBuddy.CraftingTreeWindow.SetEditor(this);
@@ -770,25 +770,25 @@ public class CraftingListEditor
     
     private void DrawDetailsPane()
     {
-        ImGui.TextColored(ImGuiColors.DalamudYellow, "List Info");
+        ImGui.TextColored(ImGuiColors.DalamudYellow, "清单信息");
         ImGui.Separator();
         ImGui.Spacing();
         DrawListInfoSection();
 
         ImGui.Spacing();
-        ImGui.TextColored(ImGuiColors.DalamudYellow, "List Consumables");
+        ImGui.TextColored(ImGuiColors.DalamudYellow, "清单消耗品");
         ImGui.Separator();
         ImGui.Spacing();
         DrawListConsumablesSection();
 
         ImGui.Spacing();
-        ImGui.TextColored(ImGuiColors.DalamudYellow, "Add Recipe");
+        ImGui.TextColored(ImGuiColors.DalamudYellow, "添加配方");
         ImGui.Separator();
         ImGui.Spacing();
         DrawAddRecipeSection();
 
         ImGui.Spacing();
-        ImGui.TextColored(ImGuiColors.DalamudYellow, "Recipe List");
+        ImGui.TextColored(ImGuiColors.DalamudYellow, "配方列表");
         ImGui.Separator();
         ImGui.Spacing();
         DrawRecipeListSection();
@@ -822,10 +822,10 @@ public class CraftingListEditor
         }
 
         if (_nameConflict)
-            ImGui.TextColored(ImGuiColors.DalamudRed, "A list with that name already exists.");
+            ImGui.TextColored(ImGuiColors.DalamudRed, "已存在同名清单。");
 
         ImGui.Spacing();
-        ImGui.TextColored(ImGuiColors.DalamudGrey3, "Notes");
+        ImGui.TextColored(ImGuiColors.DalamudGrey3, "备注");
 
         if (_editingDescActive)
         {
@@ -851,7 +851,7 @@ public class CraftingListEditor
                 ImGui.BeginChild("##notesDisplay", VulcanUiScaling.Scaled(-1f, 60f), true);
 
                 if (string.IsNullOrEmpty(_editingDescription))
-                    ImGui.TextColored(ImGuiColors.DalamudGrey, "Click to add notes...");
+                    ImGui.TextColored(ImGuiColors.DalamudGrey, "点击添加备注...");
                 else
                 {
                     using (ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudGrey3))
@@ -870,7 +870,7 @@ public class CraftingListEditor
 
         ImGui.Spacing();
         var buttonWidth = (ImGui.GetContentRegionAvail().X - ImGui.GetStyle().ItemSpacing.X) / 2f;
-        if (ImGui.Button("Export List##exportList", new Vector2(buttonWidth, 0)))
+        if (ImGui.Button("导出清单##exportList", new Vector2(buttonWidth, 0)))
         {
             var exported = GatherBuddy.CraftingListManager.ExportList(_list.ID);
             if (exported != null)
@@ -880,10 +880,10 @@ public class CraftingListEditor
             }
         }
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Copy GatherBuddy's list export string to the clipboard.");
+            ImGui.SetTooltip("将 GatherBuddy 清单导出字符串复制到剪贴板");
 
         ImGui.SameLine();
-        if (ImGui.Button("TeamCraft Export##teamCraftExport", new Vector2(-1, 0)))
+        if (ImGui.Button("TeamCraft 导出##teamCraftExport", new Vector2(-1, 0)))
         {
             var (exported, error) = GatherBuddy.CraftingListManager.ExportListToTeamCraft(_list.ID);
             if (exported != null)
@@ -897,7 +897,7 @@ public class CraftingListEditor
             }
         }
         if (ImGui.IsItemHovered())
-            ImGui.SetTooltip("Copy a TeamCraft import link built from this list's Recipe List entries.");
+            ImGui.SetTooltip("复制基于此清单配方列表生成的 TeamCraft 导入链接");
     }
 
     private void DrawListConsumablesSection()
@@ -908,44 +908,44 @@ public class CraftingListEditor
 
         if (_list.Consumables.FoodItemId.HasValue)
         {
-            ImGui.TextColored(labelColor, "Food:");
+            ImGui.TextColored(labelColor, "食物:");
             ImGui.SameLine(valueX);
             ImGui.TextColored(labelColor, GetItemLabel(_list.Consumables.FoodItemId.Value, _list.Consumables.FoodHQ));
             hasAny = true;
         }
         if (_list.Consumables.MedicineItemId.HasValue)
         {
-            ImGui.TextColored(labelColor, "Medicine:");
+            ImGui.TextColored(labelColor, "药物:");
             ImGui.SameLine(valueX);
             ImGui.TextColored(labelColor, GetItemLabel(_list.Consumables.MedicineItemId.Value, _list.Consumables.MedicineHQ));
             hasAny = true;
         }
         if (_list.Consumables.ManualItemId.HasValue)
         {
-            ImGui.TextColored(labelColor, "Manual:");
+            ImGui.TextColored(labelColor, "手动:");
             ImGui.SameLine(valueX);
             ImGui.TextColored(labelColor, GetItemLabel(_list.Consumables.ManualItemId.Value, false));
             hasAny = true;
         }
         if (_list.Consumables.SquadronManualItemId.HasValue)
         {
-            ImGui.TextColored(labelColor, "Squadron:");
+            ImGui.TextColored(labelColor, "中队:");
             ImGui.SameLine(valueX);
             ImGui.TextColored(labelColor, GetItemLabel(_list.Consumables.SquadronManualItemId.Value, false));
             hasAny = true;
         }
         if (_list.UseAllHQ)
         {
-            ImGui.TextColored(labelColor, "HQ Mats:");
+            ImGui.TextColored(labelColor, "HQ 材料:");
             ImGui.SameLine(valueX);
-            ImGui.TextColored(labelColor, "All HQ");
+            ImGui.TextColored(labelColor, "全部 HQ");
             hasAny = true;
         }
         if (!hasAny)
-            ImGui.TextColored(ImGuiColors.DalamudGrey, "None set.");
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "未设置");
 
         ImGui.Spacing();
-        if (ImGui.Button("Edit Consumables & Macros##editConsumables", new Vector2(0, 0)))
+        if (ImGui.Button("编辑消耗品和宏##editConsumables", new Vector2(0, 0)))
             _consumablesPopup.OpenListDefaults(_list);
     }
     
@@ -964,7 +964,7 @@ public class CraftingListEditor
 
         using (ImRaii.Disabled(_selectedRecipe == null))
         {
-            var clicked = ImGui.Button("Add to List##addRecipeBtn", new Vector2(0, 0));
+            var clicked = ImGui.Button("添加到清单##addRecipeBtn", new Vector2(0, 0));
             if (!clicked && ImGui.IsItemHovered() && ImGui.IsMouseReleased(ImGuiMouseButton.Left))
                 clicked = true;
             if (clicked && _selectedRecipe != null)
@@ -988,10 +988,10 @@ public class CraftingListEditor
     private void DrawRecipeComboWithKeywordFilter()
     {
         ImGui.SetNextItemWidth(-1);
-        if (ImGui.BeginCombo("##recipeComboCustom", _selectedRecipe.HasValue ? _recipeLabels.GetValueOrDefault(_selectedRecipe.Value.RowId, "Select recipe") : "Select recipe"))
+        if (ImGui.BeginCombo("##recipeComboCustom", _selectedRecipe.HasValue ? _recipeLabels.GetValueOrDefault(_selectedRecipe.Value.RowId, "选择配方") : "选择配方"))
         {
             ImGui.SetNextItemWidth(-1);
-            ImGui.InputTextWithHint("##filterRecipes", "Type to filter...", ref _lastComboFilter, 256);
+            ImGui.InputTextWithHint("##filterRecipes", "输入以过滤...", ref _lastComboFilter, 256);
 
             var filterKeywords = _lastComboFilter.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(k => k.ToLowerInvariant())
@@ -1065,7 +1065,7 @@ public class CraftingListEditor
     {
         if (_list.Recipes.Count == 0)
         {
-            ImGui.TextColored(ImGuiColors.DalamudGrey, "No recipes added yet.");
+            ImGui.TextColored(ImGuiColors.DalamudGrey, "尚未添加配方");
             return;
         }
 
@@ -1076,17 +1076,17 @@ public class CraftingListEditor
             var selectionCount = _selectedRecipeIndices.Count;
 
             if (ImGuiUtil.DrawDisabledButton(FontAwesomeIcon.Ban.ToIconString() + "##skipSelected", Interface.IconButtonSize,
-                    $"Mark all {selectionCount} selected recipes as skipped.", false, true))
+                    $"将 {selectionCount} 个已选配方标记为跳过", false, true))
                 BulkSetSkipping(true);
 
             ImGui.SameLine();
             if (ImGuiUtil.DrawDisabledButton(FontAwesomeIcon.Check.ToIconString() + "##enableSelected", Interface.IconButtonSize,
-                    $"Re-enable all {selectionCount} selected recipes.", false, true))
+                    $"重新启用所选 {selectionCount} 个配方", false, true))
                 BulkSetSkipping(false);
 
             ImGui.SameLine();
             if (ImGuiUtil.DrawDisabledButton(FontAwesomeIcon.Trash.ToIconString() + "##removeSelected", Interface.IconButtonSize,
-                    $"Remove the {selectionCount} selected recipes from this list.", false, true))
+                    $"从清单中移除 {selectionCount} 个已选配方", false, true))
                 indicesToRemove.AddRange(_selectedRecipeIndices);
 
             ImGui.SameLine();
@@ -1270,10 +1270,10 @@ public class CraftingListEditor
             return;
         }
 
-        if (ImGui.MenuItem("Search Market Board"))
+        if (ImGui.MenuItem("搜索市场板"))
             GatherBuddy.VulcanWindow?.OpenToMarketboardItem(row.Recipe.ItemResult.RowId);
 
-        if (ImGui.MenuItem("Craft Settings..."))
+        if (ImGui.MenuItem("制作设置..."))
         {
             if (row.IsOriginalRecipe)
             {
@@ -1289,7 +1289,7 @@ public class CraftingListEditor
 
         var resultItemId = row.Recipe.ItemResult.RowId;
         var altRecipes = RecipeManager.GetRecipesForItem(resultItemId);
-        if (altRecipes.Count > 1 && ImGui.BeginMenu("Change Job..."))
+        if (altRecipes.Count > 1 && ImGui.BeginMenu("切换职业..."))
         {
             if (row.IsOriginalRecipe)
             {
@@ -1336,7 +1336,7 @@ public class CraftingListEditor
                 if (_list.PrecraftRecipeOverrides.ContainsKey(resultItemId))
                 {
                     ImGui.Separator();
-                    if (ImGui.MenuItem("Reset to Default"))
+                    if (ImGui.MenuItem("重置为默认"))
                     {
                         _list.PrecraftRecipeOverrides.Remove(resultItemId);
                         GatherBuddy.CraftingListManager.SaveList(_list);
@@ -1358,7 +1358,7 @@ public class CraftingListEditor
         {
             using (ImRaii.Disabled(row.ForceQuickSynth))
             {
-                if (ImGui.MenuItem("Quick Synthesis", "", row.EffectiveQuickSynth))
+                if (ImGui.MenuItem("快速制作", "", row.EffectiveQuickSynth))
                 {
                     _list.SetRecipeQuickSynth(row.Recipe.RowId, !recipeOptions.NQOnly, row.IsOriginalRecipe);
                     GatherBuddy.CraftingListManager.SaveList(_list);
@@ -1371,14 +1371,14 @@ public class CraftingListEditor
             }
             if (ImGui.IsItemHovered(row.ForceQuickSynth ? ImGuiHoveredFlags.AllowWhenDisabled : ImGuiHoveredFlags.None))
                 ImGui.SetTooltip(row.ForceQuickSynth
-                    ? "Forced on by Quick Synth All for this recipe. Disable the list-level override to edit the per-item quick synth setting."
-                    : "Use quick synthesis for this recipe (NQ only)");
+                    ? "由全部快速制作强制启用。禁用清单级覆盖可编辑单个物品的快速制作设置"
+                    : "对此配方使用快速制作 (仅 NQ)");
         }
         else
         {
-            ImGui.TextDisabled("Quick Synthesis not available");
+            ImGui.TextDisabled("快速制作不可用");
             if (ImGui.IsItemHovered())
-                ImGui.SetTooltip("Recipe must be unlocked and previously crafted to use Quick Synthesis");
+                ImGui.SetTooltip("配方必须已解锁且曾制作过才能使用快速制作");
         }
 
         ImGui.EndPopup();
@@ -1544,7 +1544,7 @@ public class CraftingListEditor
 
         ImGui.SameLine(0, innerSpacing);
         var skipIcon = item.Options.Skipping ? FontAwesomeIcon.Check : FontAwesomeIcon.Ban;
-        var skipTooltip = item.Options.Skipping ? "Re-enable this recipe in the queue." : "Skip this recipe in the queue.";
+        var skipTooltip = item.Options.Skipping ? "在队列中重新启用此配方" : "在队列中跳过此配方";
         if (ImGuiUtil.DrawDisabledButton(skipIcon.ToIconString() + $"##skip_{row.ListIndex}", iconBtnSize, skipTooltip, false, true))
         {
             item.Options.Skipping = !item.Options.Skipping;
@@ -1556,7 +1556,7 @@ public class CraftingListEditor
         }
 
         ImGui.SameLine(0, innerSpacing);
-        if (ImGuiUtil.DrawDisabledButton(FontAwesomeIcon.Trash.ToIconString() + $"##remove_{row.ListIndex}", iconBtnSize, "Remove this recipe from the list.", false, true))
+        if (ImGuiUtil.DrawDisabledButton(FontAwesomeIcon.Trash.ToIconString() + $"##remove_{row.ListIndex}", iconBtnSize, "从清单中移除此配方", false, true))
             indicesToRemove.Add(row.ListIndex);
 
         var isPopupOpen = GatherBuddy.ControllerSupport != null
@@ -1565,15 +1565,15 @@ public class CraftingListEditor
 
         if (isPopupOpen)
         {
-            if (ImGui.MenuItem("Search Market Board"))
+            if (ImGui.MenuItem("搜索市场板"))
                 GatherBuddy.VulcanWindow?.OpenToMarketboardItem(row.Recipe.ItemResult.RowId);
 
-            if (ImGui.MenuItem("Craft Settings..."))
+            if (ImGui.MenuItem("制作设置..."))
                 _craftSettingsPopup.OpenForListItem(item, _list, row.ItemName);
 
             var resultItemId = row.Recipe.ItemResult.RowId;
             var altRecipes = RecipeManager.GetRecipesForItem(resultItemId);
-            if (altRecipes.Count > 1 && ImGui.BeginMenu("Change Job..."))
+            if (altRecipes.Count > 1 && ImGui.BeginMenu("切换职业..."))
             {
                 foreach (var alt in altRecipes)
                 {
@@ -1848,7 +1848,7 @@ public class CraftingListEditor
             }
             catch (Exception ex)
             {
-                GatherBuddy.Log.Error($"Error generating queue: {ex.Message}");
+                GatherBuddy.Log.Error($"生成队列时出错: {ex.Message}");
             }
             finally
             {
@@ -1898,7 +1898,7 @@ public class CraftingListEditor
             }
             catch (Exception ex)
             {
-                GatherBuddy.Log.Error($"Error generating materials: {ex.Message}");
+                GatherBuddy.Log.Error($"生成材料时出错: {ex.Message}");
             }
             finally
             {
@@ -2000,15 +2000,15 @@ public class CraftingListEditor
         var parts = new List<string>();
 
         if (settings.FoodItemId.HasValue)
-            parts.Add($"Food: {GetItemLabel(settings.FoodItemId.Value, settings.FoodHQ)}");
+            parts.Add($"食物: {GetItemLabel(settings.FoodItemId.Value, settings.FoodHQ)}");
         if (settings.MedicineItemId.HasValue)
-            parts.Add($"Medicine: {GetItemLabel(settings.MedicineItemId.Value, settings.MedicineHQ)}");
+            parts.Add($"药物: {GetItemLabel(settings.MedicineItemId.Value, settings.MedicineHQ)}");
         if (settings.ManualItemId.HasValue)
-            parts.Add($"Manual: {GetItemLabel(settings.ManualItemId.Value, false)}");
+            parts.Add($"手动: {GetItemLabel(settings.ManualItemId.Value, false)}");
         if (settings.SquadronManualItemId.HasValue)
-            parts.Add($"Squadron: {GetItemLabel(settings.SquadronManualItemId.Value, false)}");
+            parts.Add($"中队: {GetItemLabel(settings.SquadronManualItemId.Value, false)}");
 
-        return parts.Count > 0 ? string.Join(" | ", parts) : "None";
+        return parts.Count > 0 ? string.Join(" | ", parts) : "无";
     }
 
     private static string GetItemLabel(uint itemId, bool hq)
@@ -2255,6 +2255,6 @@ public class CraftingListEditor
             if (classJob.RowId > 0)
                 return classJob.Abbreviation.ExtractText();
         }
-        return "Unknown";
+        return "未知";
     }
 }

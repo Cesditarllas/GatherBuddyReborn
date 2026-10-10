@@ -37,7 +37,7 @@ public class ContextMenu : IDisposable
             IsEnabled   = true,
             IsReturn    = false,
             PrefixChar  = 'G',
-            Name        = "Gather Manually",
+            Name        = "手动前往采集",
             OnClicked   = OnClick,
             IsSubmenu   = false,
             PrefixColor = 42,
@@ -48,7 +48,7 @@ public class ContextMenu : IDisposable
             IsEnabled = true,
             IsReturn = false,
             PrefixChar = 'G',
-            Name = "Add to Auto-Gather List",
+            Name = "添加到自动采集列表",
             OnClicked = OnClickAuto,
             IsSubmenu = false,
             PrefixColor = 42,
@@ -58,8 +58,8 @@ public class ContextMenu : IDisposable
         {
             IsEnabled = true,
             IsReturn = false,
-            PrefixChar = 'V',
-            Name = "Add to Crafting List",
+            PrefixChar = 'C',
+            Name = "添加到制作清单",
             OnClicked = OnClickCrafting,
             IsSubmenu = true,
             PrefixColor = 42,
@@ -70,7 +70,7 @@ public class ContextMenu : IDisposable
             IsEnabled   = true,
             IsReturn    = false,
             PrefixChar  = 'V',
-            Name        = "Open in Vulcan",
+            Name        = "在 Vulcan 中打开",
             OnClicked   = OnClickVulcanRecipe,
             IsSubmenu   = false,
             PrefixColor = 42,
@@ -90,7 +90,7 @@ public class ContextMenu : IDisposable
             IsEnabled   = true,
             IsReturn    = false,
             PrefixChar  = 'V',
-            Name        = "Add to Vendor Buy List",
+            Name        = "加入商店购买清单",
             OnClicked   = OnClickVendorBuyList,
             IsSubmenu   = true,
             PrefixColor = 42,
@@ -194,7 +194,7 @@ public class ContextMenu : IDisposable
         {
             new()
             {
-                Name = "Create New List...",
+                Name = "新建清单...",
                 PrefixChar = 'C',
                 PrefixColor = 42,
                 OnClicked = _ => OpenCreateCraftingListPopup(recipe.Value.RowId),
@@ -229,7 +229,7 @@ public class ContextMenu : IDisposable
             {
                 var moreItem = new MenuItem
                 {
-                    Name = $"({allLists.Count - maxLists} more lists...)",
+                    Name = $"(还有 {allLists.Count - maxLists} 个清单...)",
                     IsEnabled = false
                 };
                 menuItems.Add(moreItem);
@@ -252,7 +252,7 @@ public class ContextMenu : IDisposable
         {
             new()
             {
-                Name = "Create New List...",
+                Name = "新建清单...",
                 PrefixChar = 'V',
                 PrefixColor = 42,
                 OnClicked = _ => OpenCreateVendorBuyListPopup(itemId),
@@ -294,12 +294,12 @@ public class ContextMenu : IDisposable
         if (existingItem != null)
         {
             existingItem.Quantity += 1;
-            GatherBuddy.Log.Information($"Increased quantity of {recipe.ItemResult.Value.Name.ExtractText()} in list '{list.Name}' to {existingItem.Quantity}");
+            GatherBuddy.Log.Information($"已将清单 '{list.Name}' 中 {recipe.ItemResult.Value.Name.ExtractText()} 的数量增加到 {existingItem.Quantity}");
         }
         else
         {
             list.AddRecipe(recipe.RowId, 1);
-            GatherBuddy.Log.Information($"Added {recipe.ItemResult.Value.Name.ExtractText()} to list '{list.Name}'");
+            GatherBuddy.Log.Information($"已将 {recipe.ItemResult.Value.Name.ExtractText()} 添加到清单 '{list.Name}'");
         }
 
         GatherBuddy.CraftingListManager.SaveList(list);

@@ -34,7 +34,7 @@ public unsafe class CollectableWindowHandler
             var index = turnIn.GetItemIndexOf(itemName);
             if (index == -1)
             {
-                GatherBuddy.Log.Error($"[CollectableWindowHandler] Item '{itemName}' not found in current collectable tab");
+                GatherBuddy.Log.Error($"[收藏品窗口] 在当前收藏品标签页找不到物品 '{itemName}'");
                 return;
             }
             var selectItem = stackalloc AtkValue[]

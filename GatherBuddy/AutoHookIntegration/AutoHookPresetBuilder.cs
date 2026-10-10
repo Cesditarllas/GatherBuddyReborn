@@ -100,7 +100,7 @@ public class AutoHookPresetBuilder
         if (cordial.MinGP > 0 && cordial.MaxGP < ConfigPreset.MaxGP)
         {
             GatherBuddy.Log.Debug(
-                $"[AutoHook] Preset '{gbrPreset.Name}' uses a cordial GP range ({cordial.MinGP}-{cordial.MaxGP}); AutoHook only supports one threshold, using the upper bound.");
+                $"[AutoHook] 预设 '{gbrPreset.Name}' 使用强心剂 GP 范围 ({cordial.MinGP}-{cordial.MaxGP}); AutoHook 仅支持单一阈值, 将采用上限值");
             return (true, cordial.MaxGP, false);
         }
 
@@ -133,11 +133,11 @@ public class AutoHookPresetBuilder
                 {
                     if (predatorFish.IsSpearFish)
                     {
-                        GatherBuddy.Log.Warning($"[AutoHook] Skipping spearfish predator {predatorFish.Name[GatherBuddy.Language]} for {fish.Name[GatherBuddy.Language]}");
+                        GatherBuddy.Log.Warning($"[AutoHook] 跳过刺鱼掠食者 {predatorFish.Name[GatherBuddy.Language]} (目标鱼: {fish.Name[GatherBuddy.Language]})");
                         continue;
                     }
                     
-                    GatherBuddy.Log.Debug($"[AutoHook] Adding predator fish {predatorFish.Name[GatherBuddy.Language]} for {fish.Name[GatherBuddy.Language]}");
+                    GatherBuddy.Log.Debug($"[AutoHook] 添加掠食鱼 {predatorFish.Name[GatherBuddy.Language]} (目标鱼: {fish.Name[GatherBuddy.Language]})");
                     allFish.Add(predatorFish);
                     
                     // Also include predator's mooch chain so we can actually catch them
@@ -181,19 +181,19 @@ public class AutoHookPresetBuilder
         
         var targetBiteTypes = targetFish
             .Select(f => f.Mooches.Length > 0 ? f.Mooches[0].BiteType : f.BiteType)
-            .Where(bt => bt != BiteType.Unknown && bt != BiteType.None)
+            .Where(bt => bt != BiteType.未知 && bt != BiteType.无)
             .Distinct()
             .ToList();
         
         if (targetBiteTypes.Count == 0)
         {
-            GatherBuddy.Log.Debug($"[AutoHook] No valid target bite types found, skipping Surface Slap fish collection");
+            GatherBuddy.Log.Debug($"[AutoHook] 未找到有效目标咬钩类型, 跳过拍击水面鱼收集");
             return additionalFish;
         }
         
         var fishingSpots = targetFish.SelectMany(f => f.FishingSpots).Distinct().ToList();
         
-        GatherBuddy.Log.Debug($"[AutoHook] Collecting fish from {fishingSpots.Count} fishing spots for Surface Slap (target bite types: {string.Join(", ", targetBiteTypes)})");
+        GatherBuddy.Log.Debug($"[AutoHook] 从 {fishingSpots.Count} 个钓场收集拍击水面鱼 (目标咬钩类型: {string.Join(", ", targetBiteTypes)})");
         
         foreach (var spot in fishingSpots)
         {
@@ -201,7 +201,7 @@ public class AutoHookPresetBuilder
                 .Where(f => f.FishingSpots.Contains(spot) && !f.IsSpearFish)
                 .ToList();
             
-            GatherBuddy.Log.Debug($"[AutoHook] Found {fishAtSpot.Count} fish at {spot.Name}");
+            GatherBuddy.Log.Debug($"[AutoHook] 在 {spot.Name} 找到 {fishAtSpot.Count} 条鱼");
             
             foreach (var fish in fishAtSpot)
             {
@@ -226,7 +226,7 @@ public class AutoHookPresetBuilder
         
         if (hasIntuitionFish)
         {
-            GatherBuddy.Log.Information($"[AutoHook] Detected intuition fish, generating two presets for {presetName}");
+            GatherBuddy.Log.Information($"[AutoHook] 检测到捕鱼人之识鱼类, 为 {presetName} 生成两个预设");
             
             var predatorPresetName = $"{presetName}_Predators";
             var targetPresetName = $"{presetName}_Target";
@@ -282,7 +282,7 @@ public class AutoHookPresetBuilder
             }
         }
         
-        GatherBuddy.Log.Debug($"[AutoHook] Predator preset '{presetName}': {predators.Count} fish total");
+        GatherBuddy.Log.Debug($"[AutoHook] 掠食者预设 '{presetName}': 共 {predators.Count} 条鱼");
         
         var fishWithBait = predators.Where(f => f.Mooches.Length == 0).ToList();
         var fishWithMooch = predators.Where(f => f.Mooches.Length > 0).ToList();
@@ -298,7 +298,7 @@ public class AutoHookPresetBuilder
             var effectiveBaitId = baitId;
             if (GetInventoryItemCount(baitId) == 0)
             {
-                GatherBuddy.Log.Warning($"[AutoHook] User does not have bait {baitId} in inventory, using Versatile Lure ({VersatileLureId}) instead");
+                GatherBuddy.Log.Warning($"[AutoHook] 背包中无鱼饵 {baitId}, 改用万能拟饵 ({VersatileLureId})");
                 effectiveBaitId = VersatileLureId;
             }
 
@@ -387,7 +387,7 @@ public class AutoHookPresetBuilder
             var effectiveBaitId = baitId;
             if (GetInventoryItemCount(baitId) == 0)
             {
-                GatherBuddy.Log.Warning($"[AutoHook] User does not have bait {baitId} in inventory, using Versatile Lure ({VersatileLureId}) instead");
+                GatherBuddy.Log.Warning($"[AutoHook] 背包中无鱼饵 {baitId}, 改用万能拟饵 ({VersatileLureId})");
                 effectiveBaitId = VersatileLureId;
             }
 
@@ -462,7 +462,7 @@ public class AutoHookPresetBuilder
             var effectiveBaitId = baitId;
             if (GetInventoryItemCount(baitId) == 0)
             {
-                GatherBuddy.Log.Warning($"[AutoHook] User does not have bait {baitId} in inventory, using Versatile Lure ({VersatileLureId}) instead");
+                GatherBuddy.Log.Warning($"[AutoHook] 背包中无鱼饵 {baitId}, 改用万能拟饵 ({VersatileLureId})");
                 effectiveBaitId = VersatileLureId;
             }
 
@@ -536,7 +536,7 @@ public class AutoHookPresetBuilder
         
         if (ahBiteType == AHBiteType.Unknown || ahHookType == AHHookType.Unknown)
         {
-            GatherBuddy.Log.Warning($"[AutoHook] Unknown bite/hook type for {fish.Name[GatherBuddy.Language]}, skipping");
+            GatherBuddy.Log.Warning($"[AutoHook] {fish.Name[GatherBuddy.Language]} 咬钩/提钩类型未知, 跳过");
             return;
         }
 
@@ -681,10 +681,10 @@ public class AutoHookPresetBuilder
     {
         return gbBiteType switch
         {
-            BiteType.Weak => AHBiteType.Weak,
-            BiteType.Strong => AHBiteType.Strong,
-            BiteType.Legendary => AHBiteType.Legendary,
-            BiteType.None => AHBiteType.None,
+            BiteType.轻竿 => AHBiteType.Weak,
+            BiteType.普通竿 => AHBiteType.Strong,
+            BiteType.鱼王竿 => AHBiteType.Legendary,
+            BiteType.无 => AHBiteType.None,
             _ => AHBiteType.Unknown
         };
     }
@@ -794,8 +794,8 @@ public class AutoHookPresetBuilder
         {
             var sourcefish = targetMoochChain.Last();
             isSourceFish = fish.BiteType == sourcefish.BiteType && 
-                          fish.BiteType != BiteType.Unknown && 
-                          fish.BiteType != BiteType.None &&
+                          fish.BiteType != BiteType.未知 && 
+                          fish.BiteType != BiteType.无 &&
                           !isPartOfTargetMoochChain &&
                           !isTargetFish;
         }
@@ -850,7 +850,7 @@ public class AutoHookPresetBuilder
         }
         
         var fishBiteType = fish.BiteType;
-        if (fishBiteType == BiteType.Unknown || fishBiteType == BiteType.None)
+        if (fishBiteType == BiteType.未知 || fishBiteType == BiteType.无)
         {
             return new AHAutoSurfaceSlap(false);
         }
@@ -859,8 +859,8 @@ public class AutoHookPresetBuilder
         {
             var relevantBiteType = targetFish.Mooches.Length > 0 ? targetFish.Mooches[0].BiteType : targetFish.BiteType;
             return fishBiteType == relevantBiteType
-                && relevantBiteType != BiteType.Unknown
-                && relevantBiteType != BiteType.None;
+                && relevantBiteType != BiteType.未知
+                && relevantBiteType != BiteType.无;
         });
         
         if (sharesBiteType)
@@ -908,7 +908,7 @@ public class AutoHookPresetBuilder
     {
         if (baitId == null)
         {
-            GatherBuddy.Log.Warning($"[AutoHook] No bait ID available for ExtraCfg, skipping Force Bait Swap configuration");
+            GatherBuddy.Log.Warning($"[AutoHook] 没有鱼饵 ID 可用于 ExtraCfg，跳过强制换饵配置");
             return;
         }
         
@@ -926,10 +926,10 @@ public class AutoHookPresetBuilder
         var needsCollect = fishList.Any(f => f.ItemData.IsCollectable);
         var canBeReduced = fishList.Any(f => f.ItemData.AetherialReduce != 0);
         
-        GatherBuddy.Log.Debug($"[AutoHook] ConfigureAutoCasts: Fish count={fishList.Length}, needsCollect={needsCollect}");
+        GatherBuddy.Log.Debug($"[AutoHook] ConfigureAutoCasts: 鱼数量={fishList.Length}, 需要收藏品={needsCollect}");
         foreach (var fish in fishList)
         {
-            GatherBuddy.Log.Debug($"[AutoHook]   Fish: {fish.Name[GatherBuddy.Language]} (ID:{fish.ItemId}), IsCollectable={fish.ItemData.IsCollectable}");
+            GatherBuddy.Log.Debug($"[AutoHook]   鱼: {fish.Name[GatherBuddy.Language]} (ID:{fish.ItemId}), 是否收藏品={fish.ItemData.IsCollectable}");
         }
         var shouldUsePatience = hasMooches || needsCollect || canBeReduced;
         var needsPatience = shouldUsePatience
@@ -1010,6 +1010,6 @@ public class AutoHookPresetBuilder
             }
         };
         
-        GatherBuddy.Log.Debug($"[AutoHook] CastCollect configured: {(preset.AutoCastsCfg.CastCollect != null ? $"Enabled={preset.AutoCastsCfg.CastCollect.Enabled}" : "null")}");
+        GatherBuddy.Log.Debug($"[AutoHook] CastCollect 配置: {(preset.AutoCastsCfg.CastCollect != null ? $"启用={preset.AutoCastsCfg.CastCollect.Enabled}" : "null")}");
     }
 }

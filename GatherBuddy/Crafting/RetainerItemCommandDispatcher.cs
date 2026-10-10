@@ -24,13 +24,13 @@ internal static unsafe class RetainerItemCommandDispatcher
         var agent = AgentModule.Instance()->GetAgentByInternalId(AgentId.Retainer);
         if (agent == null)
         {
-            GatherBuddy.Log.Debug($"[RetainerItemCommandDispatcher] AgentRetainer was null while dispatching {command} for {container} slot {slot}");
+            GatherBuddy.Log.Debug($"[RetainerItemCommandDispatcher] 为 {container} 的栏位 {slot} 分派 {command} 时 AgentRetainer 为空");
             return false;
         }
 
         if (!agent->IsAgentActive())
         {
-            GatherBuddy.Log.Debug($"[RetainerItemCommandDispatcher] AgentRetainer was inactive while dispatching {command} for {container} slot {slot}");
+            GatherBuddy.Log.Debug($"[RetainerItemCommandDispatcher] 为 {container} 的栏位 {slot} 分派 {command} 时 AgentRetainer 未激活");
             return false;
         }
 
@@ -38,7 +38,7 @@ internal static unsafe class RetainerItemCommandDispatcher
         void** vtable = *(void***)contextEventPtr;
         var sendCommand = (delegate* unmanaged<void*, uint, InventoryType, ulong, RetainerItemCommand, void>)vtable[0];
 
-        GatherBuddy.Log.Debug($"[RetainerItemCommandDispatcher] Dispatching {command} for {container} slot {slot}");
+        GatherBuddy.Log.Debug($"[RetainerItemCommandDispatcher] 正在为 {container} 的栏位 {slot} 分派 {command}");
         sendCommand(contextEventPtr, slot, container, 0, command);
         return true;
     }
