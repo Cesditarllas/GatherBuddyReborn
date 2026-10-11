@@ -72,5 +72,10 @@
 	  <EmbeddedResource Include="CustomInfo\fish_records.json" />
 	</ItemGroup>
 
+  <Target Name="CopyLocalRaphaelCli" AfterTargets="Build" Condition="Exists('$(MSBuildProjectDirectory)\raphael-cli.exe')">
+    <Copy SourceFiles="$(MSBuildProjectDirectory)\raphael-cli.exe"
+          DestinationFiles="$(TargetDir)raphael-cli.exe"
+          SkipUnchangedFiles="true" />
+  </Target>
 
 </Project>
